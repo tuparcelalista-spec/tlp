@@ -1,0 +1,3455 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const CLP = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+  const CONTACT_PHONE_DISPLAY = "+56988508361";
+  const CONTACT_PHONE_WA = "56988508361";
+
+  // Catálogos dinámicos. Se inicializan vacíos para que la interfaz principal
+  // (menú, filtros, comunas y mapa) no se detenga mientras Supabase responde.
+  let fundaciones = Array.isArray(window.fundaciones) ? window.fundaciones : [];
+  let extrasAutomaticos = Array.isArray(window.extrasAutomaticos) ? window.extrasAutomaticos : [];
+  let extrasOpcionales = Array.isArray(window.extrasOpcionales) ? window.extrasOpcionales : [];
+
+  const state = {
+    mode: "normal", // normal | parcela | combo
+    viewMode: "grid",
+    budget: 0,
+    wantedRooms: "all",
+    wantedMeters: 0,
+    searchPreference: "economic",
+    familyProfile: "couple",
+    recommendationActive: false,
+    homeGridLimit: 40,
+    selectedParcela: null,
+    selectedCasa: null,
+    selectedFundacion: null,
+    installationService: false,
+    userCoords: null,
+    selectedExtras: new Map(),
+    roomFilter: "all",
+    projectChangeMode: localStorage.getItem("tplReturnToCotizador") || "",
+    houseImageIndices: new Map(),
+    activeFilters: {
+      text: "",
+      gps: false,
+      economic: false,
+      size: false,
+      water: false,
+      river: false,
+      native: false,
+      payment: false,
+      commune: "all"
+    }
+  };
+
+  window.state = state;
+
+  const DOM = {
+    decisionFlow: document.getElementById("decision-flow"),
+    optParcela: document.getElementById("opt-parcela"),
+    optCombo: document.getElementById("opt-combo"),
+    budgetBox: document.getElementById("budget-box"),
+    budgetInput: document.getElementById("budget-input"),
+    roomInput: document.getElementById("combo-room-input"),
+    metersInput: document.getElementById("combo-meters-input"),
+    budgetGo: document.getElementById("budget-go"),
+    budgetTitle: document.getElementById("budget-title"),
+    budgetHelp: document.getElementById("budget-help"),
+    comboFields: document.getElementById("combo-fields"),
+    projectTypeOptions: document.getElementById("project-type-options"),
+    priorityOptions: document.getElementById("priority-options"),
+    familyGroup: document.getElementById("family-profile-group"),
+    familyOptions: document.getElementById("family-profile-options"),
+
+    searchInput: document.getElementById("search-input"),
+    searchBtn: document.getElementById("search-btn"),
+    parcelasAnchor: document.getElementById("parcelas-anchor"),
+    parcelasContainer: document.getElementById("parcelas-container"),
+    resultsCount: document.getElementById("results-count"),
+    searchTitle: document.getElementById("search-title"),
+    searchSubtitle: document.getElementById("search-subtitle"),
+    changeParcelaBtn: document.getElementById("change-parcela"),
+    changeCasaBtn: document.getElementById("change-casa"),
+
+    filterGps: document.getElementById("filter-gps"),
+    filterEconomic: document.getElementById("filter-economic"),
+    filterSize: document.getElementById("filter-size"),
+    filterWater: document.getElementById("filter-water"),
+    filterRiver: document.getElementById("filter-river"),
+    filterPayment: document.getElementById("filter-payment"),
+    filterNative: document.getElementById("filter-native"),
+    filterRegionBtn: document.getElementById("filter-region-btn"),
+    regionDropdown: document.getElementById("region-dropdown"),
+    filterClear: document.getElementById("filter-clear"),
+
+    btnMapView: document.getElementById("btn-map-view"),
+    mapLayout: document.getElementById("map-layout"),
+    mapContainer: document.getElementById("map-container"),
+    mapCards: document.getElementById("map-cards"),
+    mapResults: document.getElementById("map-results"),
+    backToParcelas: document.getElementById("back-to-parcelas"),
+
+    casasSection: document.getElementById("casas-section"),
+    casasContainer: document.getElementById("casas-container"),
+    comboProposalsSection: document.getElementById("combo-proposals-section"),
+    comboProposalsContainer: document.getElementById("combo-proposals-container"),
+    roomFilterButtons: document.querySelectorAll(".room-filter-btn"),
+
+    cotizadorSection: document.getElementById("cotizador-section"),
+    fundacionesContainer: document.getElementById("fundaciones-container"),
+    installationServiceToggle: document.getElementById("installation-service-toggle"),
+    installationStatus: document.getElementById("installation-plan-status"),
+    installationPlansTitle: document.getElementById("installation-plans-title"),
+    automaticosBox: document.getElementById("automaticos-box"),
+    automaticosContainer: document.getElementById("automaticos-container"),
+    opcionalesContainer: document.getElementById("opcionales-container"),
+    summaryItems: document.getElementById("summary-items"),
+    totalAmount: document.getElementById("total-amount"),
+    previewParcelaImg: document.getElementById("preview-parcela-img"),
+    previewCasaImg: document.getElementById("preview-casa-img"),
+    previewTitle: document.getElementById("preview-title"),
+    previewLocation: document.getElementById("preview-location"),
+    whatsappBtn: document.getElementById("whatsapp-btn"),
+    activateProjectBtn: document.getElementById("activate-project-btn"),
+    activationModal: document.getElementById("project-activation-modal"),
+    activationForm: document.getElementById("project-activation-form"),
+    activationStatus: document.getElementById("activation-status"),
+    downloadProjectPdfBtn: document.getElementById("download-project-pdf-btn")
+  };
+
+  function scrollToBudget() {
+    if (!DOM.budgetBox) return;
+    window.requestAnimationFrame(() => {
+      DOM.budgetBox.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  }
+
+  let map = null;
+  let satelliteLayer = null;
+  let satelliteLabelsLayer = null;
+  let streetLayer = null;
+  let markers = [];
+  let markerClusterLayer = null;
+
+  function parseClp(value) {
+    if (typeof value === "number") return value;
+    return Number(String(value || "").replace(/[^0-9]/g, "")) || 0;
+  }
+
+  function money(value) {
+    return CLP.format(Number(value) || 0);
+  }
+
+  function getCheapestFundacion() {
+    if (!Array.isArray(fundaciones) || !fundaciones.length) return null;
+    return [...fundaciones].sort((a, b) => Number(a.valorM2 || a.valor || a.precio || 0) - Number(b.valorM2 || b.valor || b.precio || 0))[0];
+  }
+
+  function getFundacionValue(fundacion, casa) {
+    if (!fundacion || !casa) return 0;
+    return Number(fundacion.valorM2 || fundacion.valor || fundacion.precio || 0) * Number(casa.metros || 1);
+  }
+
+  function getParcelaM2(parcela) {
+    return Number(parcela?.tamano || parcela?.metros || parcela?.m2 || 0) || 0;
+  }
+
+  function estimatePerimeterFromM2(m2) {
+    if (!m2) return 0;
+    // Estimación simple: parcela aproximada cuadrada. Perímetro = 4 * raíz(m²).
+    return Math.ceil(Math.sqrt(m2) * 4);
+  }
+
+  function getDefaultExtraQty(extra) {
+    const id = extraKey(extra);
+    if (id.includes("cierre") || id.includes("cerco") || id.includes("perimetral")) {
+      return estimatePerimeterFromM2(getParcelaM2(state.selectedParcela));
+    }
+    if (extra.tipoCalculo === "mt2" && extra.tipoCalculo2 === "casa") {
+      return Number(state.selectedCasa?.metros || extra.defaultQty || 0);
+    }
+    return clampExtraQty(extra, Number(extra.defaultQty || 0));
+  }
+
+  function extraKey(extraOrValue) {
+    const value = typeof extraOrValue === "object"
+      ? (extraOrValue?.extraId || extraOrValue?.id || extraOrValue?.nombre)
+      : extraOrValue;
+    return normalizar(value).trim().replace(/[\s_+/-]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  function clampExtraQty(extra, qty) {
+    const min = Math.max(0, Number(extra?.minQty ?? extra?.cantidad_minima ?? 1) || 1);
+    const maxValue = Number(extra?.maxQty ?? extra?.cantidad_maxima);
+    const max = Number.isFinite(maxValue) && maxValue >= min ? maxValue : Number.POSITIVE_INFINITY;
+    return Math.min(max, Math.max(min, Number(qty) || min));
+  }
+
+  const PREMIUM_INCLUDED_EXTRA_PATTERNS = [
+    "pintura", "ceramica", "ceramico", "instalacion electrica", "instalacion sanitaria",
+    "artefactos cocina", "artefactos de cocina", "artefactos bano", "artefactos baño", "banos", "baños"
+  ];
+
+  function isPremiumInstallationPlan(fundacion = state.selectedFundacion) {
+    if (!fundacion || !state.installationService) return false;
+    return getFundacionPlanCode(fundacion) === "premium";
+  }
+
+  function getFundacionPlanCode(fundacion = state.selectedFundacion) {
+    if (!fundacion) return "";
+    if (fundacion.planCode) return String(fundacion.planCode);
+    const text = normalizar(`${fundacion.id || ""} ${fundacion.nombre || ""}`);
+    if (text.includes("llave en mano") || text.includes("ceramico")) return "premium";
+    if (text.includes("radier")) return "radier_full";
+    return "base";
+  }
+
+  function getFundacionExtraRule(extra, fundacion = state.selectedFundacion) {
+    const rules = Array.isArray(fundacion?.extraRules) ? fundacion.extraRules : [];
+    const targetId = String(extra?.extraId || "");
+    return rules.find(rule => String(rule.extra_id) === targetId) || null;
+  }
+
+  function isPremiumIncludedExtra(extra) {
+    const rule = getFundacionExtraRule(extra);
+    if (rule) return rule.estado === "incluido";
+    if (Array.isArray(state.selectedFundacion?.extraRules) && state.selectedFundacion.extraRules.length) return false;
+    if (!isPremiumInstallationPlan()) return false;
+    // Respaldo transitorio para instalaciones donde aún no se aplicó la migración.
+    const text = normalizar(`${extra?.id || ""} ${extra?.nombre || ""} ${extra?.descripcion || ""}`);
+    return PREMIUM_INCLUDED_EXTRA_PATTERNS.some(pattern => text.includes(normalizar(pattern)));
+  }
+
+  function getPremiumIncludedExtrasList() {
+    const rules = Array.isArray(state.selectedFundacion?.extraRules) ? state.selectedFundacion.extraRules : [];
+    if (rules.length) {
+      return rules
+        .filter(rule => rule.estado === "incluido")
+        .sort((a, b) => Number(a.orden || 0) - Number(b.orden || 0))
+        .map(rule => (Array.isArray(extrasOpcionales) ? extrasOpcionales : []).find(extra => String(extra.extraId) === String(rule.extra_id))?.nombre)
+        .filter(Boolean);
+    }
+    return isPremiumInstallationPlan()
+      ? ["Pintura interior y exterior", "Cerámica / piso cerámico", "Instalación eléctrica", "Instalación sanitaria", "Artefactos de cocina", "Artefactos de baño"]
+      : [];
+  }
+
+  function getInstallationPlanDisplayName(fundacion = state.selectedFundacion) {
+    if (!fundacion) return "No incluido";
+    const code = getFundacionPlanCode(fundacion);
+    if (code === "base") return "Pilotes + montaje";
+    if (code === "radier_full") return "Radier + montaje Full";
+    if (code === "premium") return "Fundación + terminaciones";
+    return fundacion.nombre || "Plan de instalación";
+  }
+
+  function scrollTo(el) {
+    if (!el) return;
+    const navbar = document.querySelector(".navbar");
+    const offset = (navbar?.offsetHeight || 82) + 18;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - offset;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }
+
+  function scrollToParcelasResults() {
+    let tries = 0;
+    const run = () => {
+      tries += 1;
+      const firstCard = DOM.parcelasContainer?.querySelector(".parcela-card");
+      const mapButton = DOM.btnMapView || document.getElementById("btn-map-view");
+      const target = mapButton || document.getElementById("search-heading-card") || DOM.parcelasAnchor || DOM.parcelasContainer;
+
+      if (target) {
+        const header = document.querySelector(".tpl-site-header, .navbar");
+        const locationBar = document.querySelector(".location-filter-bar");
+        const headerHeight = header?.getBoundingClientRect().height || 72;
+        const stickyLocationHeight = locationBar && getComputedStyle(locationBar).position === "sticky"
+          ? locationBar.getBoundingClientRect().height
+          : 0;
+        const visibleGap = 12;
+        const top = target.getBoundingClientRect().top + window.scrollY - headerHeight - stickyLocationHeight - visibleGap;
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      }
+
+      if (firstCard) {
+        firstCard.classList.add("tpl-result-focus");
+        return;
+      }
+      if (tries < 8) setTimeout(run, 90);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(run));
+  }
+
+  function applyManualParcelFilter() {
+    // Un filtro manual debe trabajar sobre el catálogo completo, no únicamente
+    // sobre las cinco recomendaciones generadas por la búsqueda de presupuesto.
+    state.recommendationActive = false;
+    state.parcelasRenderLimit = Number.POSITIVE_INFINITY;
+    refresh();
+    scrollToParcelasResults();
+  }
+
+  function getPendingProjectChange() {
+    return state.projectChangeMode || localStorage.getItem("tplReturnToCotizador") || "";
+  }
+
+  function setPendingProjectChange(type) {
+    state.projectChangeMode = type || "";
+    if (type) localStorage.setItem("tplReturnToCotizador", type);
+    else localStorage.removeItem("tplReturnToCotizador");
+  }
+
+  function getProjectTotalEstimate() {
+    let total = 0;
+    if (state.selectedParcela) total += parseClp(state.selectedParcela.precio);
+    if (state.selectedCasa) total += Number(state.selectedCasa.valorCasa || state.selectedCasa.precio || 0);
+    if (state.selectedCasa && state.installationService && state.selectedFundacion) total += getFundacionValue(state.selectedFundacion, state.selectedCasa);
+    state.selectedExtras?.forEach?.((qty, id) => {
+      const extra = (Array.isArray(extrasOpcionales) ? extrasOpcionales : []).find(x => extraKey(x) === extraKey(id));
+      if (extra && !isPremiumIncludedExtra(extra)) {
+        total += Number(extra.valor || extra.precio || 0) * clampExtraQty(extra, qty);
+      }
+    });
+    return total;
+  }
+
+  let projectBarTimer = null;
+  let projectBarSlide = 0;
+
+  function getProjectBarSlides() {
+    const parcelaName = state.selectedParcela?.nombre || "Elige tu parcela ideal";
+    const parcelaMeta = state.selectedParcela
+      ? `${Number(state.selectedParcela.tamano || state.selectedParcela.tamano_m2 || 0).toLocaleString("es-CL")} m² · ${state.selectedParcela.comuna || "Chile"}`
+      : "Compara alternativas según tu presupuesto.";
+
+    const casaName = state.selectedCasa?.nombre || "Agrega una casa a tu proyecto";
+    const casaMeta = state.selectedCasa
+      ? `${Number(state.selectedCasa.metros || state.selectedCasa.m2 || state.selectedCasa.superficie || 0) || "—"} m² · ${state.selectedCasa.habitaciones || state.selectedCasa.dormitorios || "—"} habitaciones`
+      : "Visualiza parcela + casa en un solo presupuesto.";
+
+    const total = money(getProjectTotalEstimate());
+    const nextStep = state.selectedParcela && state.selectedCasa
+      ? "Revisa instalación, extras y solicita tu cotización."
+      : state.selectedParcela
+        ? "Ahora elige una casa para completar tu proyecto."
+        : "Comienza seleccionando una parcela.";
+
+    return [
+      { icon: "🌿", kicker: "PARCELA ELEGIDA", title: parcelaName, text: parcelaMeta },
+      { icon: "🏡", kicker: "CASA DEL PROYECTO", title: casaName, text: casaMeta },
+      { icon: "✨", kicker: "INVERSIÓN ESTIMADA", title: total, text: "Tu proyecto se actualiza automáticamente." },
+      { icon: "🧭", kicker: "SIGUIENTE PASO", title: nextStep, text: "TPL te acompaña durante todo el proceso." }
+    ];
+  }
+
+  function renderProjectBarSlide(forceIndex) {
+    const bar = document.getElementById("tpl-project-bar");
+    if (!bar || bar.hidden) return;
+    const slides = getProjectBarSlides();
+    if (Number.isInteger(forceIndex)) projectBarSlide = forceIndex;
+    projectBarSlide = ((projectBarSlide % slides.length) + slides.length) % slides.length;
+    const slide = slides[projectBarSlide];
+    const stage = bar.querySelector(".tpl-project-bar-stage");
+    if (!stage) return;
+
+    stage.classList.remove("is-changing");
+    void stage.offsetWidth;
+    stage.classList.add("is-changing");
+
+    const icon = document.getElementById("tpl-bar-icon");
+    const kicker = document.getElementById("tpl-bar-kicker");
+    const title = document.getElementById("tpl-bar-title");
+    const text = document.getElementById("tpl-bar-text");
+    if (icon) icon.textContent = slide.icon;
+    if (kicker) kicker.textContent = slide.kicker;
+    if (title) title.textContent = slide.title;
+    if (text) text.textContent = slide.text;
+
+    bar.querySelectorAll(".tpl-project-dot").forEach((dot, index) => {
+      dot.classList.toggle("active", index === projectBarSlide);
+    });
+  }
+
+  function startProjectBarRotation() {
+    if (projectBarTimer) clearInterval(projectBarTimer);
+    projectBarTimer = setInterval(() => {
+      projectBarSlide = (projectBarSlide + 1) % 4;
+      renderProjectBarSlide();
+    }, 3000);
+  }
+
+  function ensureProjectBar() {
+    let bar = document.getElementById("tpl-project-bar");
+    if (bar) return bar;
+    document.body.insertAdjacentHTML("beforeend", `
+      <div id="tpl-project-bar" class="tpl-project-bar" hidden aria-live="polite">
+        <div class="tpl-project-bar-inner">
+          <div class="tpl-project-bar-brand">
+            <span>🏡</span>
+            <strong>Tu proyecto</strong>
+          </div>
+          <div class="tpl-project-bar-stage">
+            <span class="tpl-project-bar-icon" id="tpl-bar-icon">🌿</span>
+            <div class="tpl-project-bar-message">
+              <small id="tpl-bar-kicker">PARCELA ELEGIDA</small>
+              <strong id="tpl-bar-title">Tu proyecto comienza aquí</strong>
+              <span id="tpl-bar-text">Selecciona una alternativa para continuar.</span>
+            </div>
+          </div>
+          <div class="tpl-project-bar-dots" aria-hidden="true">
+            <span class="tpl-project-dot active"></span>
+            <span class="tpl-project-dot"></span>
+            <span class="tpl-project-dot"></span>
+            <span class="tpl-project-dot"></span>
+          </div>
+          <div class="tpl-project-bar-actions">
+            <button type="button" data-change-project="parcela">Cambiar parcela</button>
+            <button type="button" data-change-project="casa">Cambiar casa</button>
+          </div>
+        </div>
+      </div>`);
+    startProjectBarRotation();
+    return document.getElementById("tpl-project-bar");
+  }
+
+  function updateProjectBar() {
+    const bar = ensureProjectBar();
+    const hasProject = !!(state.selectedParcela || state.selectedCasa);
+    bar.hidden = !hasProject;
+    document.body.classList.toggle("has-project-bar", hasProject);
+    if (hasProject) {
+      renderProjectBarSlide(projectBarSlide);
+      startProjectBarRotation();
+    } else if (projectBarTimer) {
+      clearInterval(projectBarTimer);
+      projectBarTimer = null;
+    }
+  }
+
+  function getAllParcelas() {
+    return Array.isArray(window.SERVER_PARCELAS) ? window.SERVER_PARCELAS : [];
+  }
+
+  function getAllCasas() {
+    return Array.isArray(window.SERVER_CASAS) ? window.SERVER_CASAS : [];
+  }
+
+  function getParcelaCardImage(p) {
+    return (Array.isArray(p?.imagenes) && p.imagenes[0]) || p?.imagen || "image/boton_combo_parcela_casa.png";
+  }
+
+  function normalizar(text) {
+    return String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+
+  function distanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function getActiveFilterTitle() {
+    const f = state.activeFilters;
+    if (state.recommendationActive && state.mode === "parcela") {
+      const labels = { gps: "más cercanas a ti", economic: "más económicas", nature: "rodeadas de naturaleza", surprise: "seleccionadas para sorprenderte" };
+      return `Parcelas ${labels[state.searchPreference] || "recomendadas"} dentro de tu presupuesto`;
+    }
+    if (f.gps) return "Parcelas cercanas a mí";
+    if (f.water) return "Parcelas con agua";
+    if (f.river) return "Parcelas con luz";
+    if (f.native) return "Parcelas con bosque nativo";
+    if (f.payment) return "Parcelas con facilidad de pago";
+    if (f.size) return "Parcelas sobre 1 hectárea";
+    if (f.commune && f.commune !== "all") return `Parcelas en ${f.commune}`;
+    if (f.economic) return "Parcelas ordenadas desde menor precio";
+    if (f.text) return `Resultados de búsqueda para “${f.text}”`;
+    return "40 parcelas seleccionadas para comenzar";
+  }
+
+  function updateSearchHeading(list) {
+    if (!DOM.searchTitle || !DOM.searchSubtitle) return;
+    const f = state.activeFilters;
+    const countText = `${list.length} parcela${list.length === 1 ? "" : "s"} encontrada${list.length === 1 ? "" : "s"}`;
+    if (DOM.resultsCount) DOM.resultsCount.textContent = countText;
+
+    DOM.searchTitle.textContent = getActiveFilterTitle();
+
+    const active = [];
+    if (f.gps) active.push("distancia");
+    if (f.economic) active.push("precio");
+    if (f.size) active.push("superficie");
+    if (f.payment) active.push("facilidad de pago");
+    if (f.water) active.push("agua");
+    if (f.river) active.push("luz");
+    if (f.native) active.push("bosque nativo");
+    if (f.commune && f.commune !== "all") active.push(f.commune);
+    if (f.text) active.push("búsqueda");
+
+    DOM.searchSubtitle.textContent = state.recommendationActive
+      ? `Presupuesto ${money(state.budget)} · ${state.mode === "combo" ? "Parcela + casa" : "Solo parcela"}. Mostramos las opciones que mejor coinciden con tu selección.`
+      : active.length
+        ? `Resultados obtenidos desde el catálogo completo según ${active.join(", ")}.`
+        : "Mostramos una vitrina inicial de hasta 40 parcelas. Usa la búsqueda o los filtros para consultar el catálogo completo.";
+  }
+
+  function getRecommendedParcelas() {
+    const budget = Number(state.budget || 0);
+    let all = getAllParcelas().filter(p => parseClp(p.precio) > 0);
+
+    const scored = all.map((p, index) => {
+      const price = parseClp(p.precio);
+      const budgetDiff = Math.abs(price - budget);
+      let preferenceScore = 0;
+      if (state.searchPreference === "economic") preferenceScore = price;
+      if (state.searchPreference === "nature") {
+        const text = normalizar(`${p.naturaleza || ""} ${p.descripcion || ""} ${p.caracteristicas || ""}`);
+        preferenceScore = /(bosque|nativ|naturaleza|rio|río|estero|laguna|tranquil|vista|cordillera)/.test(text) ? -100000000 : 0;
+      }
+      if (state.searchPreference === "gps" && state.userCoords && p.lat && p.lng) {
+        preferenceScore = distanceKm(state.userCoords.lat, state.userCoords.lng, Number(p.lat), Number(p.lng)) * 100000;
+      }
+      if (state.searchPreference === "surprise") {
+        const seed = String(p.id || index).split("").reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+        preferenceScore = (seed % 17) * 100000;
+      }
+      return { ...p, __score: budgetDiff + preferenceScore };
+    });
+
+    return scored.sort((a, b) => a.__score - b.__score).slice(0, 5);
+  }
+
+  function getFilteredParcelas() {
+    const hasCatalogQuery = Boolean(
+      state.activeFilters.text || state.activeFilters.gps || state.activeFilters.economic ||
+      state.activeFilters.size || state.activeFilters.payment || state.activeFilters.water ||
+      state.activeFilters.river || state.activeFilters.native ||
+      (state.activeFilters.commune && state.activeFilters.commune !== "all") ||
+      (state.activeFilters.region && state.activeFilters.region !== "all")
+    );
+    let list = state.recommendationActive && state.mode === "parcela"
+      ? getRecommendedParcelas()
+      : [...getAllParcelas()];
+    if (!state.recommendationActive && !hasCatalogQuery) list = list.slice(0, state.homeGridLimit || 40);
+
+    const text = normalizar(state.activeFilters.text);
+    if (text) {
+      list = list.filter(p => normalizar(`${p.id} ${p.nombre} ${p.comuna} ${p.descripcion}`).includes(text));
+    }
+    if (state.activeFilters.size) list = list.filter(p => Number(p.tamano) >= 10000);
+    if (state.activeFilters.payment) list = list.filter(p => String(p.facilidad || "").toLowerCase() === "si" || p.facilidad === true);
+    if (state.activeFilters.water) list = list.filter(p => String(p.agua).toLowerCase() === "si" || p.agua === true);
+    if (state.activeFilters.river) {
+      list = list.filter(p => {
+        const luz = p.luz;
+        if (luz === true) return true;
+        const luzText = normalizar(String(luz || ""));
+        return luzText === "si" || luzText === "sí" || luzText === "true" || luzText.includes("factibilidad") || luzText.includes("poste") || luzText.includes("empalme") || luzText.includes("luz en proceso");
+      });
+    }
+    if (state.activeFilters.native) list = list.filter(p => String(p.naturaleza).toLowerCase() === "si" || p.naturaleza === true);
+    if (state.activeFilters.region && state.activeFilters.region !== "all") {
+      const regionMap = {
+        "biobio": ["florida", "nacimiento", "negrete", "yumbel"],
+        "nuble": ["nipas", "pemuco", "quillon"],
+        "araucania": ["caburgua"]
+      };
+      const validCommunes = regionMap[state.activeFilters.region] || [];
+      list = list.filter(p => validCommunes.includes(normalizar(p.comuna)));
+    }
+    if (state.activeFilters.commune && state.activeFilters.commune !== "all") {
+      list = list.filter(p => normalizar(p.comuna) === state.activeFilters.commune);
+    }
+    if (state.activeFilters.gps && state.userCoords) {
+      list = list
+        .filter(p => p.lat && p.lng)
+        .sort((a, b) => distanceKm(state.userCoords.lat, state.userCoords.lng, a.lat, a.lng) - distanceKm(state.userCoords.lat, state.userCoords.lng, b.lat, b.lng));
+    }
+    if (state.activeFilters.economic) list.sort((a, b) => parseClp(a.precio) - parseClp(b.precio));
+    return list;
+  }
+
+  function findComboMatches() {
+    const budget = state.budget || 0;
+    let casasBase = getAllCasas();
+
+    if (state.familyProfile === "couple") casasBase = casasBase.filter(c => Number(c.habitaciones) >= 1 && Number(c.habitaciones) <= 2);
+    if (state.familyProfile === "children") casasBase = casasBase.filter(c => Number(c.habitaciones) === 3);
+    if (state.familyProfile === "large") casasBase = casasBase.filter(c => Number(c.habitaciones) >= 4);
+    if (state.wantedRooms !== "all" && state.wantedRooms) casasBase = casasBase.filter(c => Number(c.habitaciones) === Number(state.wantedRooms));
+    if (state.wantedMeters) {
+      casasBase = casasBase.sort((a, b) => Math.abs(Number(a.metros) - state.wantedMeters) - Math.abs(Number(b.metros) - state.wantedMeters));
+    }
+
+    const combos = [];
+    const cheapestFundacion = getCheapestFundacion();
+    getAllParcelas().forEach(p => {
+      casasBase.slice(0, 12).forEach(c => {
+        const fundacionValor = getFundacionValue(cheapestFundacion, c);
+        const total = parseClp(p.precio) + Number(c.valorCasa || 0) + fundacionValor;
+        combos.push({ parcela: p, casa: c, fundacion: cheapestFundacion, fundacionValor, total, diff: Math.abs(total - budget) });
+      });
+    });
+
+    // Siempre devuelve las 5 combinaciones más cercanas al presupuesto del cliente.
+    return combos.sort((a, b) => a.diff - b.diff).slice(0, 5);
+  }
+
+
+  function getCasaCardImage(casa) {
+    const imgs = Array.isArray(casa?.imagenes) ? casa.imagenes : [];
+    return casa?.foto || imgs.find(img => !normalizar(img).includes("plano")) || imgs[0] || "";
+  }
+
+  function renderComboProposals(matches) {
+    if (!DOM.comboProposalsSection || !DOM.comboProposalsContainer) return;
+    DOM.comboProposalsSection.hidden = false;
+    DOM.comboProposalsContainer.innerHTML = "";
+
+    matches.forEach((match, index) => {
+      const p = match.parcela;
+      const c = match.casa;
+      const card = document.createElement("article");
+      card.className = "combo-proposal-card";
+      card.innerHTML = `
+        <div class="combo-proposal-media">
+          <img src="${getParcelaCardImage(p)}" alt="${p.nombre || 'Parcela'}" loading="lazy">
+          <img src="${getCasaCardImage(c)}" alt="${c.nombre || 'Casa'}" loading="lazy">
+          <span class="combo-proposal-badge">Opción ${index + 1}</span>
+        </div>
+        <div class="combo-proposal-body">
+          <h4>${p.nombre || "Parcela"} + ${c.nombre || "Casa"}</h4>
+          <p class="combo-proposal-place">📍 ${p.comuna || "Chile"} · ${Number(p.tamano || p.superficie || 0).toLocaleString("es-CL")} m² terreno</p>
+          <div class="combo-proposal-specs">
+            <span>🏡 ${Number(c.metros || 0).toLocaleString("es-CL")} m² casa</span>
+            <span>🛏 ${c.habitaciones || "—"} hab.</span>
+            <span>🛠 Plan Base referencial</span>
+          </div>
+          <button type="button" class="combo-location-link" data-combo-location="${p.id}">
+            📍 Ver ubicación de la parcela
+          </button>
+          <div class="combo-proposal-total">
+            <small>Total estimado</small>
+            <strong>${money(match.total)}</strong>
+          </div>
+          <button type="button" class="combo-proposal-select">Elegir esta propuesta</button>
+        </div>
+      `;
+      card.querySelector(".combo-location-link")?.addEventListener("click", () => {
+        openLocationModal(match.parcela);
+      });
+
+      card.querySelector(".combo-proposal-select")?.addEventListener("click", () => {
+        state.installationService = true;
+        state.selectedFundacion = match.fundacion || getCheapestFundacion();
+        state.selectedParcela = match.parcela;
+        state.selectedCasa = match.casa;
+        localStorage.setItem("selectedParcelaId", match.parcela.id);
+        localStorage.setItem("selectedParcelaData", JSON.stringify(match.parcela));
+        localStorage.setItem("selectedCasaId", match.casa.id);
+        localStorage.setItem("selectedCasaData", JSON.stringify(match.casa));
+        localStorage.setItem("tplComboAutoInstallation", "si");
+        DOM.casasSection?.classList.add("active");
+        DOM.cotizadorSection?.classList.add("active");
+        DOM.comboProposalsSection.hidden = true;
+        renderCasas();
+        renderFundaciones();
+        renderExtras();
+        updateCotizacionSummary();
+        ensurePreviewActionButtons();
+        showFriendlyMessage("Ya cargamos tu proyecto con parcela, casa y Plan Base. Puedes cambiar el plan o agregar extras antes de enviar la cotización.", "Proyecto cargado");
+        setTimeout(() => scrollTo(DOM.cotizadorSection), 80);
+      });
+      DOM.comboProposalsContainer.appendChild(card);
+    });
+    setTimeout(() => {
+      const target = DOM.comboProposalsSection;
+      if (!target) return;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - 96;
+      window.scrollTo({ top, behavior: "smooth" });
+    }, 180);
+  }
+
+  function hideComboProposals() {
+    if (DOM.comboProposalsSection) DOM.comboProposalsSection.hidden = true;
+    if (DOM.comboProposalsContainer) DOM.comboProposalsContainer.innerHTML = "";
+  }
+
+
+  function hasRiverOrStream(p) {
+    return Boolean(normalizar(`${p?.id || ""} ${p?.nombre || ""} ${p?.descripcion || ""} ${p?.detalle || ""} ${p?.caracteristicas || ""}`).match(/rio|río|arroyo|estero|canal|vertiente|cuerpo de agua|curso de agua/));
+  }
+
+  function getParcelaFeatureChipItems(p) {
+    const yes = value => value === true || String(value || "").trim().toLowerCase() === "si";
+    const numericPrice = Number(String(p?.precio || "").replace(/[^0-9]/g, "")) || 0;
+    const chips = [];
+
+    if (numericPrice > 0 && numericPrice < 10000000) {
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-featured">⭐ Destacada</span>');
+    }
+    if (yes(p.facilidad)) {
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-payment">💰 Facilidad de pago</span>');
+    }
+    if (yes(p.luz)) {
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-light">⚡ Factibilidad de luz</span>');
+    }
+    if (yes(p.servicios)) {
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-services">📍 Cercana a servicios</span>');
+    }
+    if (yes(p.naturaleza)) {
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-native">🌿 Nativas</span>');
+    }
+
+    return chips.slice(0, 2);
+  }
+
+  function renderParcelaFeatureChips(p, placement = "desktop") {
+    const chips = getParcelaFeatureChipItems(p);
+    if (!chips.length) return "";
+    return `<div class="parcel-feature-chips parcel-feature-chips-${placement}">${chips.join("")}</div>`;
+  }
+
+
+  function hasTplBackedValue(p) {
+    return p?.valorRespaldadoTPL === true ||
+      String(p?.valorRespaldadoTPL || '').toLowerCase() === 'true' ||
+      p?.distintivos?.valorRespaldadoTPL === true ||
+      p?.tasacion?.valorRespaldadoTPL === true;
+  }
+
+  function renderTplBackedValueBadge(p, placement = 'card') {
+    if (!hasTplBackedValue(p)) return '';
+    return `<div class="tpl-backed-value-badge tpl-backed-value-badge-${placement}" title="Precio sugerido por el Tasador TPL y aceptado por quien publica.">
+      <span class="tpl-backed-value-check">✓</span>
+      <span><strong>Valor respaldado por Tu Parcela Lista</strong><small>Precio recomendado</small></span>
+    </div>`;
+  }
+
+  function renderPromotionBadge(p) {
+    if (p?.urgenteDestacado) return '<div class="tpl-promotion-badge tpl-promotion-badge-paid">⭐ Urgente destacado</div>';
+    if (p?.ventaUrgente) return '<div class="tpl-promotion-badge tpl-promotion-badge-free">🔥 Venta urgente</div>';
+    return '';
+  }
+
+  function getDistanceBadge(p) {
+    if (!state.activeFilters.gps || !state.userCoords || !p.lat || !p.lng) return "";
+    const km = distanceKm(state.userCoords.lat, state.userCoords.lng, Number(p.lat), Number(p.lng));
+    const mins = Math.max(1, Math.round((km / 55) * 60));
+    return `<div class="distance-badge">📍 ${km.toFixed(1)} km · ${mins} min aprox.</div>`;
+  }
+
+
+  function renderParcelasConCasa(list = []) {
+    const section = document.getElementById('parcelas-con-casa');
+    const container = document.getElementById('parcelas-con-casa-container');
+    if (!section || !container) return;
+    if (!list.length) { section.hidden = true; container.innerHTML = ''; return; }
+    section.hidden = false;
+    container.innerHTML = list.map(p => {
+      const img = getParcelaCardImage(p);
+      const href = `parcela.html?id=${encodeURIComponent(p.id)}`;
+      const construida = Number(p.superficie_construida_m2 || p.datos_formulario?.superficie_construida_m2 || 0);
+      const habitaciones = Number(p.habitaciones || p.datos_formulario?.habitaciones || 0);
+      return `<article class="parcela-card parcela-con-casa-card">
+        <a class="card-image card-image-link" href="${href}"><img src="${img}" alt="${p.nombre}" loading="lazy" decoding="async" width="800" height="600"><span class="tpl-land-house-badge">Parcela con casa</span></a>
+        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-meta">🌳 ${Number(p.tamano||0).toLocaleString('es-CL')} m² de terreno${construida?` · 🏠 ${construida.toLocaleString('es-CL')} m² construidos`:''}${habitaciones?` · ${habitaciones} dorm.`:''}</div><div class="card-price card-price-clean">${p.precio}</div><div class="card-actions"><a class="btn-card btn-details" href="${href}">Ver propiedad</a></div></div>
+      </article>`;
+    }).join('');
+  }
+
+  function renderParcelas(customList) {
+    if (!DOM.parcelasContainer) return;
+    const filters = state.activeFilters || {};
+    const hasCatalogQuery = Boolean(
+      filters.text || filters.gps || filters.economic || filters.size || filters.payment ||
+      filters.water || filters.river || filters.native ||
+      (filters.commune && filters.commune !== "all") ||
+      (filters.region && filters.region !== "all")
+    );
+    const sourceList = customList || getFilteredParcelas();
+    const list = (!state.recommendationActive && !hasCatalogQuery)
+      ? sourceList.slice(0, state.homeGridLimit || 40)
+      : sourceList;
+    const renderKey = list.map(p => p.id).join("|");
+    if (state.lastParcelasRenderKey !== renderKey) {
+      state.lastParcelasRenderKey = renderKey;
+      state.parcelasRenderLimit = state.recommendationActive ? 5 : Math.min(40, list.length);
+    }
+    const visibleList = list.slice(0, state.parcelasRenderLimit || (state.recommendationActive ? 5 : 40));
+    DOM.parcelasContainer.innerHTML = "";
+    DOM.parcelasContainer.className = "parcelas-grid";
+    if (DOM.parcelasContainer) DOM.parcelasContainer.style.display = "grid";
+    if (DOM.resultsCount) DOM.resultsCount.textContent = `${list.length} parcelas encontradas`;
+    updateSearchHeading(list);
+
+    if (!list.length) {
+      DOM.parcelasContainer.innerHTML = `<div class="no-results"><h3>No encontramos alternativas</h3><p>Prueba con otro presupuesto o limpia los filtros.</p></div>`;
+      return;
+    }
+
+    visibleList.forEach(p => {
+      const img = getParcelaCardImage(p);
+      const card = document.createElement("article");
+      card.className = `parcela-card ${state.selectedParcela?.id === p.id ? "selected" : ""}`;
+      card.dataset.id = p.id;
+      const pendingChange = getPendingProjectChange();
+      const detailHref = `parcela.html?id=${encodeURIComponent(p.id)}${pendingChange === "parcela" ? "&from=cotizador" : ""}`;
+      const primaryLabel = pendingChange === "parcela" ? "Agregar parcela" : "Añadir casa";
+      const primaryClass = pendingChange === "parcela" ? "btn-add-house btn-add-parcela-project" : "btn-add-house";
+      card.innerHTML = `
+        <div class="card-image-wrapper" style="position:relative;">
+        <a class="card-image card-image-link" href="${detailHref}" aria-label="Ver detalles de ${p.nombre}">
+          ${window.TasadorInteligente && window.TasadorInteligente.isOpportunity(getAllParcelas(), p) ? `<div class="badge-opportunity" style="position:absolute; top:12px; left:12px; background:linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; z-index:10; box-shadow:0 4px 12px rgba(245,158,11,0.4);"><i data-lucide="flame" style="width:12px;height:12px;margin-right:4px;vertical-align:-2px;"></i> Oportunidad de Inversión</div>` : ''}
+          
+          <div class="card-top-icons" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10;"></div>
+          <img src="${img}" alt="${p.nombre}" loading="${state.recommendationActive ? "eager" : "lazy"}" fetchpriority="${state.recommendationActive ? "high" : "auto"}" decoding="async" width="800" height="600">
+          ${renderParcelaFeatureChips(p, "mobile")}
+        </a>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">${p.nombre}</h3>
+          <div class="card-meta">🌳 ${Number(p.tamano || 0).toLocaleString("es-CL")} m²</div>
+          <div class="card-price card-price-clean">${p.precio}</div>
+          ${renderPromotionBadge(p)}
+          ${renderTplBackedValueBadge(p, "card")}
+          ${renderParcelaFeatureChips(p, "desktop")}
+          ${getDistanceBadge(p)}
+          <div style="text-align: center; margin: 16px 0 8px;">
+            <button class="card-location-link" type="button" data-location-id="${p.id}" style="background: transparent; border: 1px solid rgba(0,0,0,0.1); color: var(--tpl-brand, #0c2b2e); font-weight: 600; border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; cursor: pointer; transition: background 0.2s, border-color 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background='transparent'"><i data-lucide="map" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px;"></i>Ver ubicación en mapa</button>
+          </div>
+          <div class="card-actions">
+            <a class="btn-card btn-details" href="${detailHref}">Más detalles</a>
+            
+          </div>
+        </div>`;
+      DOM.parcelasContainer.appendChild(card);
+    });
+
+    if (list.length > visibleList.length) {
+      const more = document.createElement("div");
+      more.className = "parcelas-load-more-wrap";
+      more.innerHTML = `<button class="parcelas-load-more" type="button">Ver más parcelas</button>`;
+      DOM.parcelasContainer.appendChild(more);
+      const loadMore = () => {
+        state.parcelasRenderLimit = Math.min(list.length, (state.parcelasRenderLimit || 40) + 20);
+        renderParcelas(list);
+      };
+      more.querySelector("button")?.addEventListener("click", loadMore);
+      if ("IntersectionObserver" in window) {
+        const io = new IntersectionObserver(entries => {
+          if (entries.some(entry => entry.isIntersecting)) {
+            io.disconnect();
+            loadMore();
+          }
+        }, { rootMargin: "220px" });
+        io.observe(more);
+      }
+    }
+
+    DOM.parcelasContainer.querySelectorAll(".card-location-link").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const p = getAllParcelas().find(x => String(x.id) === String(btn.dataset.locationId));
+        openLocationModal(p);
+      });
+    });
+
+    DOM.parcelasContainer.querySelectorAll(".btn-add-house").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const p = getAllParcelas().find(x => String(x.id) === String(btn.dataset.id));
+        if (!p) return;
+        const pending = getPendingProjectChange();
+        selectParcela(p);
+        if (pending === "parcela") {
+          showFriendlyMessage("Parcela actualizada en tu proyecto.", "Proyecto actualizado");
+          return;
+        }
+        state.mode = "combo";
+        DOM.casasSection?.classList.add("active");
+        renderCasas();
+        scrollTo(DOM.casasSection);
+      });
+    });
+
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function getPlanoCasa(casa) {
+    if (casa.plano) return casa.plano;
+    const imgs = Array.isArray(casa.imagenes) ? casa.imagenes : [];
+    return imgs.find(img => normalizar(img).includes("plano")) || imgs[imgs.length - 1] || casa.foto || "#";
+  }
+
+
+  function getCasaImages(casa) {
+    const imgs = Array.isArray(casa.imagenes) ? casa.imagenes.filter(Boolean) : [];
+    const first = casa.foto || imgs[0] || "";
+    return [first, ...imgs].filter((img, i, arr) => img && arr.indexOf(img) === i);
+  }
+
+  function renderCasaImage(casaId) {
+    const casa = getAllCasas().find(c => c.id === casaId);
+    if (!casa) return;
+    const imgs = getCasaImages(casa);
+    const idx = state.houseImageIndices.get(casaId) || 0;
+    const card = DOM.casasContainer?.querySelector(`.casa-card[data-id="${casaId}"]`);
+    const img = card?.querySelector(".casa-main-img");
+    const counter = card?.querySelector(".casa-gallery-counter");
+    if (img && imgs[idx]) img.src = imgs[idx];
+    if (counter) counter.textContent = `${idx + 1}/${imgs.length}`;
+  }
+
+
+  function openHousePlanModal(planoSrc, casaNombre) {
+    if (!planoSrc || planoSrc === "#") {
+      showFriendlyMessage("Esta casa aún no tiene plano disponible. Puedes solicitarlo por WhatsApp.");
+      return;
+    }
+
+    let modal = document.getElementById("house-plan-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "house-plan-modal";
+      modal.className = "house-plan-modal";
+      modal.innerHTML = `
+        <div class="house-plan-modal-backdrop" data-close="true"></div>
+        <div class="house-plan-modal-panel" role="dialog" aria-modal="true" aria-labelledby="house-plan-modal-title">
+          <button class="house-plan-modal-close" type="button" aria-label="Cerrar plano">×</button>
+          <div class="house-plan-modal-header">
+            <span>Plano de casa</span>
+            <h3 id="house-plan-modal-title"></h3>
+          </div>
+          <div class="house-plan-modal-image-wrap">
+            <img class="house-plan-modal-image" src="" alt="Plano de casa">
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+
+      modal.querySelector(".house-plan-modal-close")?.addEventListener("click", closeHousePlanModal);
+      modal.querySelector(".house-plan-modal-backdrop")?.addEventListener("click", closeHousePlanModal);
+    }
+
+    const img = modal.querySelector(".house-plan-modal-image");
+    const title = modal.querySelector("#house-plan-modal-title");
+    if (img) {
+      img.src = planoSrc;
+      img.alt = `Plano ${casaNombre || "casa"}`;
+    }
+    if (title) title.textContent = casaNombre || "Casa seleccionada";
+    modal.classList.add("active");
+    document.body.classList.add("plan-modal-open");
+    document.addEventListener("keydown", housePlanKeydownHandler);
+  }
+
+  function housePlanKeydownHandler(e) {
+    if (e.key === "Escape") closeHousePlanModal();
+  }
+
+  function closeHousePlanModal() {
+    const modal = document.getElementById("house-plan-modal");
+    modal?.classList.remove("active");
+    document.body.classList.remove("plan-modal-open");
+    document.removeEventListener("keydown", housePlanKeydownHandler);
+  }
+
+
+  function getCasaImagen(casa) {
+    if (!casa) return "image/placeholder-casa.jpg";
+    return casa.foto || (Array.isArray(casa.imagenes) && casa.imagenes[0]) || casa.imagen || "image/placeholder-casa.jpg";
+  }
+
+  function getCasaPlano(casa) {
+    if (!casa) return "";
+    return casa.plano || casa.planos || casa.imagenPlano || casa.imagen_plano || "";
+  }
+
+  function getParcelaMainImage(parcela) {
+    if (!parcela) return "image/placeholder-parcela.jpg";
+    return (Array.isArray(parcela.imagenes) && parcela.imagenes[0]) || parcela.imagen || parcela.foto || "image/placeholder-parcela.jpg";
+  }
+
+  function getParcelaLink(parcela) {
+    return parcela?.id ? `parcela.html?id=${encodeURIComponent(parcela.id)}` : "parcela.html";
+  }
+
+  function ensureSummaryInfoModal() {
+    let modal = document.getElementById("summary-info-modal");
+    if (modal) return modal;
+    modal = document.createElement("div");
+    modal.id = "summary-info-modal";
+    modal.className = "summary-info-modal";
+    modal.setAttribute("aria-hidden", "true");
+    modal.innerHTML = `
+      <div class="summary-info-backdrop" data-summary-info-close></div>
+      <div class="summary-info-card" role="dialog" aria-modal="true">
+        <button type="button" class="summary-info-close" data-summary-info-close aria-label="Cerrar ficha">×</button>
+        <div class="summary-info-media"><img id="summary-info-img" alt="Ficha informativa"></div>
+        <div class="summary-info-body">
+          <span id="summary-info-kicker" class="summary-info-kicker"></span>
+          <h3 id="summary-info-title"></h3>
+          <p id="summary-info-desc"></p>
+          <div id="summary-info-specs" class="summary-info-specs"></div>
+          <div id="summary-info-actions" class="summary-info-actions"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", e => {
+      if (e.target.closest("[data-summary-info-close]")) closeSummaryInfoModal();
+    });
+    return modal;
+  }
+
+  function summaryInfoKeydownHandler(e) {
+    if (e.key === "Escape") closeSummaryInfoModal();
+  }
+
+  window.TPLOpenSummaryInfoModal = (type) => openSummaryInfoModal(type);
+
+  function closeSummaryInfoModal() {
+    const modal = document.getElementById("summary-info-modal");
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("summary-info-open");
+    document.removeEventListener("keydown", summaryInfoKeydownHandler);
+  }
+
+  function openSummaryInfoModal(type) {
+    const modal = ensureSummaryInfoModal();
+    const img = modal.querySelector("#summary-info-img");
+    const kicker = modal.querySelector("#summary-info-kicker");
+    const title = modal.querySelector("#summary-info-title");
+    const desc = modal.querySelector("#summary-info-desc");
+    const specs = modal.querySelector("#summary-info-specs");
+    const actions = modal.querySelector("#summary-info-actions");
+
+    if (type === "parcela") {
+      const p = state.selectedParcela;
+      if (!p) return showFriendlyMessage("Primero selecciona una parcela.");
+      const m2 = getParcelaM2(p);
+      const tipo = m2 >= 10000 ? "Campo seleccionado" : "Parcela seleccionada";
+      img.src = getParcelaMainImage(p);
+      kicker.textContent = tipo;
+      title.textContent = p.nombre || "Propiedad seleccionada";
+      desc.innerHTML = p.descripcion || p.detalleTexto || p.descripcion_breve || "Ficha informativa de la propiedad seleccionada para este proyecto.";
+      specs.innerHTML = `
+        <span><b>Valor</b>${p.precio || "Consultar"}</span>
+        <span><b>Superficie</b>${m2.toLocaleString("es-CL")} m²</span>
+        <span><b>Comuna</b>${p.comuna || "Por definir"}</span>
+        <span><b>Rol</b>${String(p.rol || "Consultar").toUpperCase()}</span>
+        <span><b>Agua</b>${p.agua || "Consultar"}</span>
+        <span><b>Luz</b>${p.luz || "Consultar"}</span>
+        <span><b>Naturaleza</b>${p.naturaleza || "Consultar"}</span>
+        <span><b>Servicios</b>${p.servicios || "Consultar"}</span>`;
+      actions.innerHTML = `
+        <a href="${getParcelaLink(p)}">Abrir ficha completa</a>
+        <button type="button" data-summary-location="${p.id}">Ver en mapa</button>
+        <button type="button" data-summary-info-close>Volver al resumen</button>`;
+    } else {
+      const c = state.selectedCasa;
+      if (!c) return showFriendlyMessage("Primero selecciona una casa.");
+      const m2 = Number(c.metros || c.m2 || c.superficie || 0);
+      const habitaciones = Number(c.habitaciones || c.dormitorios || 0);
+      img.src = getCasaImagen(c);
+      kicker.textContent = "Casa seleccionada";
+      title.textContent = c.nombre || "Casa seleccionada";
+      desc.innerHTML = c.descripcion || c.detalle || c.descripcion_breve || "Ficha informativa del modelo seleccionado para este proyecto.";
+      specs.innerHTML = `
+        <span><b>Valor</b>${money(Number(c.valorCasa || c.precio || 0))}</span>
+        <span><b>Superficie</b>${m2 || "-"} m²</span>
+        <span><b>Habitaciones</b>${habitaciones || "-"}</span>
+        <span><b>Baños</b>${c.banos || c.baños || "Consultar"}</span>
+        <span><b>Materialidad</b>${c.material || c.materialidad || c.tipo || "Prefabricada"}</span>
+        <span><b>Terminación</b>${c.terminacion || c.terminación || c.nivel || "Consultar"}</span>`;
+      const plano = getCasaPlano(c);
+      actions.innerHTML = `${plano ? `<button type="button" data-summary-house-plan>Ver plano</button>` : `<span class="summary-info-note">Plano referencial no disponible.</span>`}<button type="button" data-summary-select-house>Mantener esta casa</button>`;
+      actions.querySelector("[data-summary-house-plan]")?.addEventListener("click", () => openHousePlanModal(plano, c.nombre));
+      actions.querySelector("[data-summary-select-house]")?.addEventListener("click", () => closeSummaryInfoModal());
+    }
+
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("summary-info-open");
+    document.addEventListener("keydown", summaryInfoKeydownHandler);
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function renderCasas(customList) {
+    if (!DOM.casasContainer) return;
+    let list = customList || getAllCasas();
+    if (!customList && state.roomFilter !== "all") {
+      list = list.filter(c => Number(c.habitaciones) === Number(state.roomFilter));
+    }
+
+    DOM.casasContainer.innerHTML = "";
+    const sectionTitle = DOM.casasSection?.querySelector(".casas-results-counter") || document.createElement("div");
+    if (DOM.casasSection && !sectionTitle.classList.contains("casas-results-counter")) {
+      sectionTitle.className = "casas-results-counter";
+      DOM.casasContainer.parentNode?.insertBefore(sectionTitle, DOM.casasContainer);
+    }
+    sectionTitle.textContent = `${list.length} casa${list.length === 1 ? "" : "s"} encontrada${list.length === 1 ? "" : "s"}`;
+
+    list.forEach(c => {
+      const imgs = getCasaImages(c);
+      const idx = state.houseImageIndices.get(c.id) || 0;
+      const currentImg = imgs[idx] || "";
+      const plano = getPlanoCasa(c);
+      const hasGallery = imgs.length > 1;
+      const card = document.createElement("article");
+      card.className = `casa-card ${state.selectedCasa?.id === c.id ? "selected" : ""}`;
+      card.dataset.id = c.id;
+      card.innerHTML = `
+        <div class="casa-img-container casa-gallery">
+          <img class="casa-main-img" src="${currentImg}" alt="${c.nombre}">
+          <div class="casa-specs-badge">${c.metros} m²</div>
+          ${hasGallery ? `<button class="casa-gallery-btn casa-prev" type="button" aria-label="Imagen anterior">‹</button><button class="casa-gallery-btn casa-next" type="button" aria-label="Imagen siguiente">›</button><span class="casa-gallery-counter">${idx + 1}/${imgs.length}</span>` : ""}
+        </div>
+        <div class="casa-body">
+          <div class="casa-head-row">
+            <h3 class="casa-title">${c.nombre}</h3>
+            <div class="casa-price">${money(c.valorCasa || c.precio)}</div>
+          </div>
+          <p class="casa-desc">${c.descripcion_breve || "Casa prefabricada lista para cotizar."}</p>
+          <div class="casa-specs-strip"><span>🛏 ${c.habitaciones} hab</span><span>🚿 ${c.banos || 1} baño</span><span>📐 ${c.metros} m²</span></div>
+          <button class="house-plan-button" type="button" data-plano="${plano}" data-title="${c.nombre}" title="Ver plano ampliado">
+            <span class="house-plan-icon">📐</span>
+            <span>Plano</span>
+          </button>
+          <button class="btn-select-house" type="button">${getPendingProjectChange() === "casa" ? "Agregar esta casa" : "Seleccionar casa"}</button>
+        </div>`;
+
+      card.querySelector(".btn-select-house").addEventListener("click", () => {
+        selectCasa(c);
+        scrollTo(DOM.cotizadorSection);
+      });
+      card.querySelector(".house-plan-button")?.addEventListener("click", ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openHousePlanModal(plano, c.nombre);
+      });
+      card.querySelector(".casa-prev")?.addEventListener("click", ev => {
+        ev.stopPropagation();
+        const next = ((state.houseImageIndices.get(c.id) || 0) - 1 + imgs.length) % imgs.length;
+        state.houseImageIndices.set(c.id, next);
+        renderCasaImage(c.id);
+      });
+      card.querySelector(".casa-next")?.addEventListener("click", ev => {
+        ev.stopPropagation();
+        const next = ((state.houseImageIndices.get(c.id) || 0) + 1) % imgs.length;
+        state.houseImageIndices.set(c.id, next);
+        renderCasaImage(c.id);
+      });
+      DOM.casasContainer.appendChild(card);
+    });
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function selectParcela(p) {
+    state.selectedParcela = p;
+    localStorage.setItem("selectedParcelaId", p.id);
+    localStorage.setItem("selectedParcelaData", JSON.stringify(p));
+    renderParcelas();
+    updateCotizacionSummary();
+    updateProjectBar();
+    finishProjectChangeIfNeeded("parcela");
+  }
+
+  function selectCasa(c) {
+    state.selectedCasa = c;
+    if (state.installationService && !state.selectedFundacion) state.selectedFundacion = getCheapestFundacion();
+    localStorage.setItem("selectedCasaId", c.id);
+    localStorage.setItem("selectedCasaData", JSON.stringify(c));
+    DOM.cotizadorSection?.classList.add("active");
+    renderCasas();
+    renderFundaciones();
+    renderExtras();
+    updateCotizacionSummary();
+    updateProjectBar();
+    finishProjectChangeIfNeeded("casa");
+  }
+
+  function getFundacionPlanMeta(index, f) {
+    const metas = {
+      base: { badge: "Económico", title: "Pilotes + montaje", tag: "Menor inversión inicial", desc: "Base simple para terrenos aptos.", bullets: ["Pilotes de madera", "Montaje de la casa"] },
+      radier_full: { badge: "Recomendado", title: "Radier + montaje Full", tag: "Equilibrio y firmeza", desc: "Base sólida y montaje completo.", bullets: ["Radier afinado", "Montaje Full"] },
+      premium: { badge: "Llave en mano", title: "Fundación + terminaciones", tag: "Proyecto más completo", desc: "Para avanzar con menos coordinaciones.", bullets: ["Fundación especial", "Terminaciones principales incluidas"] }
+    };
+    return metas[getFundacionPlanCode(f)] || { badge: `Plan ${index + 1}`, title: f.nombre || "Plan de instalación", tag: "Servicio opcional", desc: "Plan de instalación para tu proyecto.", bullets: ["Equipo especializado", "Coordinación según zona"] };
+  }
+
+  function syncInstallationUI() {
+    const enabled = !!state.installationService;
+    if (DOM.installationServiceToggle) DOM.installationServiceToggle.checked = enabled;
+    if (DOM.fundacionesContainer) DOM.fundacionesContainer.hidden = !enabled;
+    if (DOM.installationPlansTitle) DOM.installationPlansTitle.hidden = !enabled;
+    if (DOM.installationStatus) {
+      DOM.installationStatus.classList.toggle("enabled", enabled);
+      DOM.installationStatus.innerHTML = enabled
+        ? `✅ Servicio activado: <strong>${getInstallationPlanDisplayName()}</strong>`
+        : "Servicio no incluido. Puedes continuar con tu propio equipo o activar un plan de instalación.";
+    }
+  }
+
+  function renderFundaciones() {
+    if (!DOM.fundacionesContainer || !Array.isArray(fundaciones)) return;
+    syncInstallationUI();
+    DOM.fundacionesContainer.innerHTML = "";
+    fundaciones.forEach((f, index) => {
+      const meta = getFundacionPlanMeta(index, f);
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `fundacion-option installation-plan-card ${state.installationService && state.selectedFundacion?.id === f.id ? "selected active" : ""}`;
+      const valor = getFundacionValue(f, state.selectedCasa);
+      const valorM2 = Number(f.valorM2 || f.valor || f.precio || 0);
+      const casaM2 = Number(state.selectedCasa?.metros || state.selectedCasa?.m2 || 0);
+      const priceCopy = state.selectedCasa
+        ? `<div class="installation-plan-price"><small>${money(valorM2)} por m² × ${casaM2} m²</small><strong>${money(valor)}</strong><span>Valor para esta casa</span></div>`
+        : `<div class="installation-plan-price is-pending"><small>Desde ${money(valorM2)} por m²</small><strong>Selecciona una casa</strong><span>para calcular el total</span></div>`;
+      btn.innerHTML = `
+        <span class="installation-plan-badge">${meta.badge}</span>
+        <strong class="installation-plan-title">${meta.title}</strong>
+        <small class="installation-plan-tag">${meta.tag}</small>
+        ${priceCopy}
+        <p>${meta.desc}</p>
+        <ul>${meta.bullets.map(b => `<li>✓ ${b}</li>`).join("")}</ul>`;
+      
+      btn.onclick = () => {
+        state.selectedFundacion = f;
+        state.installationService = true;
+        renderFundaciones();
+        renderExtras();
+        updateCotizacionSummary();
+      };
+      DOM.fundacionesContainer.appendChild(btn);
+    });
+  }
+
+  function getExtraIcon(id) {
+    const iconMap = {
+      "piso ceramico": "fa-border-all",
+      "instalacion_electrica": "fa-bolt",
+      "instalacion_sanitaria": "fa-droplet",
+      "pintura": "fa-paint-roller",
+      "artefactos_cocina": "fa-sink",
+      "artefactos_bano": "fa-bath",
+      "fosa_septica": "fa-trash-can",
+      "pozo_profundo": "fa-water",
+      "cierre_perimetral": "fa-bars-staggered",
+      "porton": "fa-door-open",
+      "empalme_electrico": "fa-plug",
+      "maquinaria": "fa-tractor",
+      "piscina": "fa-person-swimming",
+      "quincho": "fa-fire-burner",
+      "terraza": "fa-umbrella-beach",
+      "aislacion": "fa-temperature-half"
+    };
+    return iconMap[id] || "fa-plus";
+  }
+
+  function renderExtras() {
+    if (DOM.automaticosBox) DOM.automaticosBox.style.display = Array.isArray(extrasAutomaticos) && extrasAutomaticos.length ? "block" : "none";
+    if (DOM.automaticosContainer) DOM.automaticosContainer.innerHTML = (Array.isArray(extrasAutomaticos) ? extrasAutomaticos : []).map(e => `<div class="extra-row"><span>${e.nombre}</span><strong>${money(e.valor || e.precio || 0)}</strong></div>`).join("");
+    
+    if (!DOM.opcionalesContainer || !Array.isArray(extrasOpcionales)) return;
+    
+    DOM.opcionalesContainer.innerHTML = "";
+    
+    let activeExtrasCount = 0;
+    let activeExtrasTotal = 0;
+
+    const includedExtras = state.installationService ? getPremiumIncludedExtrasList() : [];
+    const planHasIncludedExtras = includedExtras.length > 0;
+    
+    if (planHasIncludedExtras) {
+      const included = document.createElement("div");
+      included.className = "premium-included-card";
+      included.style.gridColumn = "1 / -1";
+      included.innerHTML = `
+        <span class="premium-included-kicker">Incluido en tu plan de instalación</span>
+        <strong>Estos trabajos ya forman parte del plan y no se cobran como extras.</strong>
+        <ul>${includedExtras.map(item => `<li>✓ ${item}</li>`).join("")}</ul>`;
+      DOM.opcionalesContainer.appendChild(included);
+    }
+    
+    extrasOpcionales.forEach(e => {
+      if (planHasIncludedExtras && isPremiumIncludedExtra(e)) return;
+      
+      const id = extraKey(e);
+      const defaultQty = clampExtraQty(e, getDefaultExtraQty(e));
+      const isSelected = state.selectedExtras.has(id);
+      const currentQty = clampExtraQty(e, isSelected ? state.selectedExtras.get(id) : defaultQty);
+      const unitLabel = e.tipoCalculo === "mt2" ? "m²" : (e.tipoCalculo === "metro" ? "ml" : (e.tipoCalculo || "unidad"));
+      
+      const pricePerUnit = e.valor || e.precio || 0;
+      const totalItem = isSelected ? (pricePerUnit * currentQty) : 0;
+      
+      if (isSelected) {
+        activeExtrasCount++;
+        activeExtrasTotal += totalItem;
+      }
+      
+      let cat = "otros";
+      if (id.includes("piso") || id.includes("pintura") || id.includes("revestimiento")) cat = "terminaciones";
+      else if (id.includes("electrica") || id.includes("empalme") || id.includes("sanitaria") || id.includes("cocina") || id.includes("bano")) cat = "instalaciones";
+      else if (id.includes("cierre") || id.includes("porton") || id.includes("piscina") || id.includes("quincho") || id.includes("terraza")) cat = "exterior";
+      else if (id.includes("fosa") || id.includes("pozo")) cat = "sanitario";
+      
+      const card = document.createElement("div");
+      card.className = `extra-card ${isSelected ? "selected" : ""}`;
+      card.setAttribute("data-category", cat);
+      card.innerHTML = `
+        <div class="extra-card-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div class="extra-icon-box" style="width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:${isSelected ? 'var(--primary)' : '#f1f5f9'}; color:${isSelected ? 'white' : 'var(--text-muted)'}; font-size:1.2rem; transition:0.2s;">
+            <i class="fa-solid ${getExtraIcon(id)}"></i>
+          </div>
+          <label class="extra-toggle">
+            <input type="checkbox" class="extra-checkbox" ${isSelected ? "checked" : ""}>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="extra-card-body" style="margin-top:12px; flex-grow:1;">
+          <h4 style="margin:0 0 4px 0; font-size:1rem; color:var(--text);">${e.nombre}</h4>
+          ${e.descripcion ? `<p style="margin:0 0 8px 0; font-size:0.8rem; color:var(--text-muted);">${e.descripcion}</p>` : ''}
+          <div class="extra-price-tag" style="font-size:0.85rem; color:var(--primary); font-weight:600;">
+            ${money(pricePerUnit)} / ${unitLabel}
+          </div>
+        </div>
+        <div class="extra-card-footer" style="margin-top:15px; border-top:1px solid #e2e8f0; padding-top:12px; display:${isSelected ? 'block' : 'none'};">
+          <div class="stepper-modern" style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border-radius:8px; padding:4px;">
+            <button type="button" class="stepper-btn minus" style="width:30px; height:30px; border:none; background:white; border-radius:6px; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><i class="fa-solid fa-minus"></i></button>
+            <div style="font-weight:700; font-size:0.95rem; text-align:center; flex-grow:1;">
+              <span class="stepper-val">${currentQty}</span> <span style="font-size:0.8rem; color:var(--text-muted);">${unitLabel}</span>
+            </div>
+            <button type="button" class="stepper-btn plus" style="width:30px; height:30px; border:none; background:white; border-radius:6px; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.1);"><i class="fa-solid fa-plus"></i></button>
+          </div>
+          <div style="text-align:right; margin-top:10px; font-weight:800; color:var(--primary); font-size:1.1rem;" class="extra-card-total">
+            ${money(totalItem)}
+          </div>
+        </div>
+      `;
+
+      const checkbox = card.querySelector(".extra-checkbox");
+      const btnMinus = card.querySelector(".minus");
+      const btnPlus = card.querySelector(".plus");
+      
+      const sync = (selected, qty = currentQty) => {
+        qty = clampExtraQty(e, qty);
+        if (selected) state.selectedExtras.set(id, qty); 
+        else state.selectedExtras.delete(id);
+        
+        renderExtras();
+        updateCotizacionSummary();
+      };
+
+      checkbox.addEventListener("change", (ev) => sync(ev.target.checked, currentQty));
+      
+      if (btnMinus) {
+        btnMinus.addEventListener("click", () => sync(true, currentQty - 1));
+        btnPlus.addEventListener("click", () => sync(true, currentQty + 1));
+      }
+
+      DOM.opcionalesContainer.appendChild(card);
+    });
+
+    const countInd = document.getElementById("extras-count-indicator");
+    const totalInd = document.getElementById("extras-total-indicator");
+    if (countInd) countInd.textContent = `${activeExtrasCount} extras`;
+    if (totalInd) totalInd.textContent = money(activeExtrasTotal);
+
+    document.querySelectorAll(".extra-filter-btn").forEach(btn => {
+      btn.onclick = (e) => {
+        document.querySelectorAll(".extra-filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const filter = btn.dataset.filter;
+        document.querySelectorAll(".extra-card").forEach(card => {
+          if (filter === "todos" || card.dataset.category === filter) {
+            card.style.display = "flex";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      };
+    });
+
+    const btnLlave = document.getElementById("btn-pack-llave");
+    if (btnLlave) {
+      btnLlave.onclick = () => {
+        const packKeys = ["instalacion_electrica", "empalme_electrico", "instalacion_sanitaria", "fosa_septica", "artefactos_cocina", "artefactos_bano", "pozo_profundo"];
+        let added = false;
+        packKeys.forEach(k => {
+          const normKey = extraKey(k);
+          if (!state.selectedExtras.has(normKey)) {
+            const extra = extrasOpcionales.find(e => extraKey(e) === normKey);
+            if (extra) {
+              state.selectedExtras.set(normKey, clampExtraQty(extra, getDefaultExtraQty(extra)));
+              added = true;
+            }
+          }
+        });
+        if (added) {
+          renderExtras();
+          updateCotizacionSummary();
+        }
+      };
+    }
+  }
+
+  function updateCotizacionSummary() {
+    if (!DOM.summaryItems || !DOM.totalAmount) return;
+    let total = 0;
+    const rows = [];
+    const landTypeEl = document.getElementById("preview-land-type");
+    const landNameEl = document.getElementById("preview-land-name");
+    const landSizeEl = document.getElementById("preview-land-size");
+    const houseNameEl = document.getElementById("preview-house-name");
+    const houseSpecsEl = document.getElementById("preview-house-specs");
+
+    let tipoTerreno = "Parcela";
+    let parcelaM2 = 0;
+
+    if (state.selectedParcela) {
+      parcelaM2 = getParcelaM2(state.selectedParcela);
+      tipoTerreno = parcelaM2 > 10000 ? "Campo" : "Parcela";
+
+      const val = parseClp(state.selectedParcela.precio);
+      total += val;
+      rows.push([`${tipoTerreno}: ${state.selectedParcela.nombre} · ${parcelaM2.toLocaleString("es-CL")} m²
+        <button type="button" class="summary-location-link" data-summary-location="${state.selectedParcela.id}">📍 Ver ubicación</button>`, val]);
+
+      if (DOM.previewParcelaImg) DOM.previewParcelaImg.src = (state.selectedParcela.imagenes && state.selectedParcela.imagenes[0]) || state.selectedParcela.imagen || "";
+      if (DOM.previewLocation) DOM.previewLocation.textContent = state.selectedParcela.comuna || state.selectedParcela.nombre;
+      if (landTypeEl) landTypeEl.textContent = tipoTerreno.toUpperCase();
+      if (landNameEl) landNameEl.textContent = state.selectedParcela.nombre || "Propiedad seleccionada";
+      if (landSizeEl) landSizeEl.textContent = `${parcelaM2.toLocaleString("es-CL")} m² de superficie`;
+    } else {
+      if (landTypeEl) landTypeEl.textContent = "PARCELA";
+      if (landNameEl) landNameEl.textContent = "Por seleccionar";
+      if (landSizeEl) landSizeEl.textContent = "Superficie por definir";
+    }
+
+    if (state.selectedCasa) {
+      const val = Number(state.selectedCasa.valorCasa || state.selectedCasa.precio || 0);
+      const casaM2 = Number(state.selectedCasa.metros || state.selectedCasa.m2 || 0);
+      const habitaciones = Number(state.selectedCasa.habitaciones || state.selectedCasa.dormitorios || 0);
+      const textoHabitaciones = habitaciones === 1 ? "1 habitación" : `${habitaciones} habitaciones`;
+
+      total += val;
+      rows.push([`Casa: ${state.selectedCasa.nombre} · ${textoHabitaciones} · ${casaM2} m²`, val]);
+
+      if (DOM.previewCasaImg) DOM.previewCasaImg.src = state.selectedCasa.foto || (state.selectedCasa.imagenes && state.selectedCasa.imagenes[0]) || "";
+      if (DOM.previewTitle) DOM.previewTitle.textContent = `${state.selectedParcela ? tipoTerreno : "Proyecto"} + Casa ${casaM2} m²`;
+      if (houseNameEl) houseNameEl.textContent = state.selectedCasa.nombre || `Casa ${casaM2} m²`;
+      if (houseSpecsEl) houseSpecsEl.textContent = `${textoHabitaciones} · ${casaM2} m² construidos`;
+    } else {
+      if (DOM.previewTitle) DOM.previewTitle.textContent = state.selectedParcela ? `${tipoTerreno}: ${state.selectedParcela.nombre}` : "Parcela + Casa";
+      if (houseNameEl) houseNameEl.textContent = "Por seleccionar";
+      if (houseSpecsEl) houseSpecsEl.textContent = "Habitaciones y superficie por definir";
+    }
+    if (state.selectedCasa) {
+      if (state.installationService && state.selectedFundacion) {
+        const val = getFundacionValue(state.selectedFundacion, state.selectedCasa);
+        total += val;
+        const premiumNote = isPremiumInstallationPlan() ? `<small class="summary-premium-note">Incluye: pintura, cerámica, instalación eléctrica, sanitaria, artefactos de cocina y baño.</small>` : "";
+        const valorM2Fundacion = Number(state.selectedFundacion.valorM2 || state.selectedFundacion.valor || state.selectedFundacion.precio || 0);
+        const casaM2Fundacion = Number(state.selectedCasa.metros || state.selectedCasa.m2 || 0);
+        rows.push([`Fundación y montaje: ${getInstallationPlanDisplayName()} <small class="summary-calc-note">${money(valorM2Fundacion)} por m² × ${casaM2Fundacion} m²</small>${premiumNote}`, val]);
+      } else {
+        rows.push([`Fundación y montaje: No incluido <small style="display:block;color:#64748b;margin-top:4px;">Puedes agregarlo arriba o realizar esta etapa con tu propio equipo.</small>`, 0]);
+      }
+    }
+    (Array.isArray(extrasAutomaticos) ? extrasAutomaticos : []).forEach(e => {
+      const val = Number(e.valor || e.precio || 0);
+      total += val;
+      rows.push([e.nombre, val]);
+    });
+    
+    let extrasSubtotal = 0;
+    let hasExtras = state.selectedExtras.size > 0;
+    
+    if (hasExtras) {
+      rows.push([`<div style="margin-top:15px; padding-top:15px; border-top:1px solid #e2e8f0; font-weight:700; color:var(--primary);"><i class="fa-solid fa-list-check"></i> Extras seleccionados</div>`, '']);
+    }
+    
+    state.selectedExtras.forEach((qty, id) => {
+      const e = extrasOpcionales.find(x => extraKey(x) === extraKey(id));
+      if (!e) return;
+      if (isPremiumIncludedExtra(e)) return;
+      const safeQty = clampExtraQty(e, qty);
+      const val = Number(e.valor || e.precio || 0) * safeQty;
+      extrasSubtotal += val;
+      const unitLabel = e.tipoCalculo === "mt2" ? "m²" : (e.tipoCalculo === "metro" ? "ml" : (e.tipoCalculo || "unidad"));
+      total += val;
+      rows.push([`<span style="padding-left:15px; font-size:0.9rem;">${e.nombre} — ${safeQty} ${unitLabel}</span>`, val]);
+    });
+
+    if (hasExtras) {
+      rows.push([`<div style="text-align:right; font-weight:600; font-size:0.85rem; color:var(--text-muted);">Subtotal extras:</div>`, `<div style="font-weight:600; font-size:0.85rem;">${money(extrasSubtotal)}</div>`]);
+    }
+    
+    DOM.summaryItems.innerHTML = rows.map(([name, val]) => `<tr><td>${name}</td><td style="text-align:right; white-space:nowrap;">${val === '' ? '' : (typeof val === 'string' ? val : money(val))}</td></tr>`).join("") || `<tr><td>Selecciona parcela y casa</td><td style="text-align:right;">$0</td></tr>`;
+    DOM.totalAmount.textContent = money(total);
+    const baseNote = document.getElementById("summary-base-note");
+    if (baseNote) {
+      const baseTotal = total - extrasSubtotal;
+      baseNote.innerHTML = state.selectedParcela && state.selectedCasa
+        ? `<strong>Proyecto base: ${money(baseTotal)}</strong><span>${extrasSubtotal > 0 ? `Extras agregados: ${money(extrasSubtotal)}` : "Aún no has agregado extras opcionales."}</span>`
+        : "Selecciona parcela y casa para calcular el proyecto.";
+    }
+    if (DOM.changeParcelaBtn) DOM.changeParcelaBtn.style.display = state.selectedParcela ? "inline-flex" : "none";
+    if (DOM.changeCasaBtn) DOM.changeCasaBtn.style.display = state.selectedCasa ? "inline-flex" : "none";
+    updateProjectBar();
+  }
+
+
+  function getCotizacionRowsText() {
+    return [...document.querySelectorAll("#summary-items tr")].map(tr =>
+      [...tr.children].map(td => td.innerText.replace(/\s+/g, " ").trim()).join(": ")
+    ).filter(Boolean).join("\n");
+  }
+
+  function getExtrasText() {
+    if (!state.selectedExtras || !state.selectedExtras.size) return "Sin adicionales seleccionados";
+    return [...state.selectedExtras.entries()].map(([id, qty]) => {
+      const e = (Array.isArray(extrasOpcionales) ? extrasOpcionales : []).find(x => extraKey(x) === extraKey(id));
+      if (!e) return `• ${id}: ${qty}`;
+      if (isPremiumIncludedExtra(e)) return null;
+      const unitLabel = e.tipoCalculo === "mt2" ? "m²" : (e.tipoCalculo === "metro" ? "ml" : (e.tipoCalculo || "unidad"));
+      return `• ${e.nombre}: ${clampExtraQty(e, qty)} ${unitLabel}`;
+    }).filter(Boolean).join("\n") || "Sin adicionales seleccionados";
+  }
+
+  function getCotizacionItems() {
+    const items = [];
+    if (state.installationService && state.selectedFundacion && state.selectedCasa) {
+      const unitPrice = Number(state.selectedFundacion.valorM2 || state.selectedFundacion.valor || state.selectedFundacion.precio || 0);
+      const qty = Number(state.selectedCasa.metros || state.selectedCasa.m2 || 0);
+      items.push({
+        id: state.selectedFundacion.extraId || state.selectedFundacion.id,
+        tipo: "fundacion",
+        nombre: getInstallationPlanDisplayName(),
+        cantidad: qty,
+        unidad: "m²",
+        precio: unitPrice,
+        subtotal: unitPrice * qty,
+        snapshot: { planCode: getFundacionPlanCode(), catalogo: state.selectedFundacion.nombre || "" }
+      });
+    }
+    (Array.isArray(extrasAutomaticos) ? extrasAutomaticos : []).forEach(extra => {
+      const qty = clampExtraQty(extra, getDefaultExtraQty(extra));
+      const price = Number(extra.valor || extra.precio || 0);
+      items.push({ id: extra.extraId || extra.id, tipo: "extra_automatico", nombre: extra.nombre, cantidad: qty, unidad: extra.tipoCalculo || "unidad", precio: price, subtotal: price * qty });
+    });
+    state.selectedExtras.forEach((qty, id) => {
+      const extra = (Array.isArray(extrasOpcionales) ? extrasOpcionales : []).find(item => extraKey(item) === extraKey(id));
+      if (!extra || isPremiumIncludedExtra(extra)) return;
+      const safeQty = clampExtraQty(extra, qty);
+      const price = Number(extra.valor || extra.precio || 0);
+      items.push({ id: extra.extraId || extra.id, tipo: "extra", nombre: extra.nombre, cantidad: safeQty, unidad: extra.tipoCalculo || "unidad", precio: price, subtotal: price * safeQty });
+    });
+    return items;
+  }
+
+  function getCotizacionData() {
+    const parcela = state.selectedParcela || null;
+    const casa = state.selectedCasa || null;
+    const fundacion = state.selectedFundacion || null;
+    const items = getCotizacionItems();
+    const totalNum = parseClp(parcela?.precio) + Number(casa?.valorCasa || casa?.precio || 0) + items.reduce((sum, item) => sum + Number(item.subtotal || 0), 0);
+    return {
+      parcela,
+      casa,
+      fundacion,
+      items,
+      totalNum,
+      total: DOM.totalAmount?.textContent || "$0",
+      rowsText: getCotizacionRowsText(),
+      extrasText: getExtrasText(),
+      fecha: new Date().toLocaleString("es-CL")
+    };
+  }
+
+  function buildCotizacionPlainText(cliente = {}) {
+    const data = getCotizacionData();
+    return [
+      "TU PARCELA LISTA - COTIZACIÓN DE PROYECTO",
+      `Fecha: ${data.fecha}`,
+      "",
+      cliente.nombre ? `Cliente: ${cliente.nombre}` : "Cliente: Por completar",
+      cliente.email ? `Email: ${cliente.email}` : "Email: Por completar",
+      cliente.telefono ? `Teléfono: ${cliente.telefono}` : "Teléfono: Por completar",
+      cliente.ciudad ? `Ciudad: ${cliente.ciudad}` : "",
+      cliente.mensaje ? `Comentario: ${cliente.mensaje}` : "",
+      "",
+      "PROYECTO COTIZADO",
+      `Parcela/Campo: ${data.parcela?.nombre || "por definir"}`,
+      `Comuna: ${data.parcela?.comuna || "por definir"}`,
+      `Tamaño terreno: ${data.parcela ? (data.parcela.tamano || data.parcela.superficie || data.parcela.m2 || "por definir") : "por definir"} m²`,
+      `Casa: ${data.casa?.nombre || "por definir"}`,
+      `Superficie casa: ${data.casa ? (data.casa.metros || data.casa.superficie || data.casa.mt2 || "por definir") : "por definir"} m²`,
+      `Habitaciones: ${data.casa ? (data.casa.habitaciones || data.casa.dormitorios || "por definir") : "por definir"}`,
+      `Fundación e instalación: ${data.fundacion?.nombre || "por definir"}`,
+      "",
+      "RESUMEN DE VALORES",
+      data.rowsText || "Resumen pendiente",
+      "",
+      "ADICIONALES",
+      data.extrasText,
+      "",
+      `TOTAL ESTIMADO: ${data.total}`,
+      "",
+      "Valores referenciales sujetos a disponibilidad, visita técnica, condiciones del terreno y confirmación comercial."
+    ].filter(Boolean).join("\n");
+  }
+
+  function createCotizacionPdfBlob(cliente = {}) {
+    const jsPDF = window.jspdf?.jsPDF;
+    if (!jsPDF) return null;
+
+    const data = getCotizacionData();
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    const margin = 42;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = 48;
+
+    const addPageIfNeeded = (needed = 30) => {
+      if (y + needed > pageHeight - 44) { doc.addPage(); y = 48; }
+    };
+    const addText = (text, size = 10, bold = false, color = [15, 23, 42], maxWidth = pageWidth - margin * 2) => {
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.setFontSize(size);
+      doc.setTextColor(...color);
+      const lines = doc.splitTextToSize(String(text || ""), maxWidth);
+      lines.forEach(line => {
+        addPageIfNeeded(size + 8);
+        doc.text(line, margin, y);
+        y += size + 5;
+      });
+    };
+    const addSectionTitle = (label) => {
+      addPageIfNeeded(34);
+      doc.setFillColor(238, 247, 250);
+      doc.roundedRect(margin, y - 16, pageWidth - margin * 2, 30, 8, 8, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(0, 63, 122);
+      doc.text(label, margin + 12, y + 4);
+      y += 28;
+    };
+    const addImageFromElement = (selector, x, yPos, w, h) => {
+      try {
+        const el = document.querySelector(selector);
+        if (el && el.complete && el.naturalWidth) {
+          doc.addImage(el, "JPEG", x, yPos, w, h, undefined, "FAST");
+          return true;
+        }
+      } catch (_) {}
+      return false;
+    };
+
+    doc.setFillColor(0, 63, 122);
+    doc.rect(0, 0, pageWidth, 104, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("Tu Parcela Lista", margin, 42);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "normal");
+    doc.text("Cotizaci\u00F3n de proyecto parcela + casa" + (cliente.numero_proyecto ? " | N: " + cliente.numero_proyecto : ""), margin, 66);
+    doc.setFontSize(9);
+    doc.text(`Generado: ${data.fecha}`, margin, 84);
+    y = 126;
+
+    addSectionTitle("Datos del cliente");
+    addText(`Nombre: ${cliente.nombre || "Por completar"}`);
+    addText(`Email: ${cliente.email || "Por completar"}`);
+    addText(`Teléfono: ${cliente.telefono || "Por completar"}`);
+    if (cliente.ciudad) addText(`Ciudad: ${cliente.ciudad}`);
+    if (cliente.mensaje) addText(`Comentario: ${cliente.mensaje}`);
+    y += 8;
+
+    addSectionTitle("Fotos referenciales del proyecto");
+    const imgW = (pageWidth - margin * 2 - 16) / 2;
+    const imgH = 130;
+    const yImg = y;
+    doc.setFillColor(245, 248, 252);
+    doc.roundedRect(margin, yImg, imgW, imgH, 12, 12, "F");
+    doc.roundedRect(margin + imgW + 16, yImg, imgW, imgH, 12, 12, "F");
+    addImageFromElement("#preview-parcela-img", margin, yImg, imgW, imgH);
+    addImageFromElement("#preview-casa-img", margin + imgW + 16, yImg, imgW, imgH);
+    y = yImg + imgH + 18;
+
+    addSectionTitle("Ficha rápida");
+    const parcelaLink = data.parcela ? `${location.origin}${location.pathname.replace(/index\.html?$/, "")}parcela.html?id=${encodeURIComponent(data.parcela.id)}` : "";
+    addText(`Parcela/Campo: ${data.parcela?.nombre || "por definir"}`, 11, true);
+    addText(`Comuna: ${data.parcela?.comuna || "por definir"} · Superficie: ${data.parcela ? (data.parcela.tamano || data.parcela.superficie || data.parcela.m2 || "por definir") : "por definir"} m²`);
+    addText(`Casa: ${data.casa?.nombre || "por definir"}`, 11, true);
+    addText(`Superficie casa: ${data.casa ? (data.casa.metros || data.casa.superficie || data.casa.mt2 || "por definir") : "por definir"} m² · Habitaciones: ${data.casa ? (data.casa.habitaciones || data.casa.dormitorios || "por definir") : "por definir"}`);
+    addText(`Fundación e instalación: ${data.fundacion?.nombre || "por definir"}`);
+    if (parcelaLink) {
+      doc.setTextColor(0, 130, 138); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+      doc.textWithLink("Abrir ficha completa de la parcela", margin, y, { url: parcelaLink }); y += 16;
+    }
+    const plano = getCasaPlano(data.casa);
+    if (plano) {
+      const planoUrl = plano.startsWith("http") ? plano : `${location.origin}${location.pathname.replace(/index\.html?$/, "")}${plano}`;
+      doc.setTextColor(0, 130, 138); doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+      doc.textWithLink("Abrir plano de la casa", margin, y, { url: planoUrl }); y += 16;
+    }
+    y += 8;
+
+    addSectionTitle("Resumen de valores");
+    (data.rowsText || "Resumen pendiente").split("\n").forEach(line => addText(line, 10, false));
+    y += 6;
+    addText(`TOTAL ESTIMADO: ${data.total}`, 15, true, [0, 63, 122]);
+    y += 8;
+
+    addSectionTitle("Adicionales seleccionados");
+    addText(data.extrasText || "Sin adicionales seleccionados");
+    y += 8;
+    addText("Valores referenciales sujetos a disponibilidad, visita técnica, condiciones del terreno y confirmación comercial.", 9, false, [100, 116, 139]);
+
+    return doc.output("blob");
+  }
+
+  function downloadBlob(blob, filename) {
+    if (!blob) return false;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  }
+
+  function generateCotizacionPdfIndex(cliente = {}, shouldDownload = true) {
+    const filename = `cotizacion-tu-parcela-lista-${Date.now()}.pdf`;
+    const blob = createCotizacionPdfBlob(cliente);
+    if (blob && shouldDownload) downloadBlob(blob, filename);
+    return { filename, blob };
+  }
+
+  function openActivationModal() {
+    if (!state.selectedParcela) {
+      showFriendlyMessage("Primero selecciona una parcela para activar el proyecto.");
+      (DOM.parcelasContainer || DOM.parcelasAnchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    if (DOM.activationModal) {
+      DOM.activationModal.classList.add("active");
+      DOM.activationModal.setAttribute("aria-hidden", "false");
+      setTimeout(() => DOM.activationModal?.querySelector('input[name="nombre"]')?.focus(), 80);
+    }
+  }
+
+  function closeActivationModal() {
+    if (!DOM.activationModal) return;
+    DOM.activationModal.classList.remove("active");
+    DOM.activationModal.setAttribute("aria-hidden", "true");
+  }
+
+  async function sendActivationRequest(cliente) {
+    const pdfResult = generateCotizacionPdfIndex(cliente, true);
+    const bodyText = buildCotizacionPlainText(cliente);
+    const formData = new FormData();
+    formData.append("_subject", `Nueva activación de proyecto - ${state.selectedParcela?.nombre || "Tu Parcela Lista"}`);
+    formData.append("_cc", cliente.email || "");
+    formData.append("_template", "table");
+    formData.append("nombre", cliente.nombre || "");
+    formData.append("email_cliente", cliente.email || "");
+    formData.append("telefono", cliente.telefono || "");
+    formData.append("ciudad", cliente.ciudad || "");
+    formData.append("comentario", cliente.mensaje || "");
+    formData.append("cotizacion", bodyText);
+    if (pdfResult.blob) formData.append("attachment", pdfResult.blob, pdfResult.filename);
+
+    try {
+      const res = await fetch("https://formsubmit.co/ajax/tuparcelalista@gmail.com", {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: formData
+      });
+      if (!res.ok) throw new Error("No se pudo enviar por FormSubmit");
+      return true;
+    } catch (err) {
+      const subject = encodeURIComponent(`Activación de proyecto - ${state.selectedParcela?.nombre || "Tu Parcela Lista"}`);
+      const body = encodeURIComponent(bodyText + "\n\nAdjunta manualmente el PDF descargado si tu correo lo permite.");
+      window.location.href = `mailto:tuparcelalista@gmail.com?cc=${encodeURIComponent(cliente.email || "")}&subject=${subject}&body=${body}`;
+      return false;
+    }
+  }
+
+  function initMap() {
+    if (map || !DOM.mapContainer || !window.L) return;
+    map = L.map(DOM.mapContainer, { zoomControl: false }).setView([-36.82, -73.05], 8);
+    L.control.zoom({ position: "topright" }).addTo(map);
+    streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+    satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { attribution: "Tiles © Esri", maxZoom: 19 });
+    satelliteLabelsLayer = L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { attribution: "Labels © Esri", pane: "overlayPane", opacity: 1, maxZoom: 19 });
+
+    // TPL Map 2.0: marcadores limpios por defecto.
+    // Las fotos aparecen solo cuando el zoom está muy cerca o cuando se selecciona una parcela.
+    window.tplMapMarkerIcon = function(imgUrl, selected = false, forcePhoto = false) {
+      const safeImg = imgUrl || "image/placeholder-parcela.jpg";
+      const showPhoto = forcePhoto || selected || (map && map.getZoom && map.getZoom() >= 15);
+      if (showPhoto) {
+        return L.divIcon({
+          className: `tpl-clean-marker tpl-clean-marker-photo ${selected ? "selected" : ""}`,
+          html: `<span class="tpl-clean-marker-photo-inner" style="background-image:url('${safeImg.replace(/'/g, "%27")}')"></span>`,
+          iconSize: selected ? [58, 58] : [48, 48],
+          iconAnchor: selected ? [29, 29] : [24, 24],
+          popupAnchor: [0, -30]
+        });
+      }
+      return L.divIcon({
+        className: `tpl-clean-marker tpl-clean-marker-dot ${selected ? "selected" : ""}`,
+        html: `<span class="tpl-clean-marker-dot-inner"></span>`,
+        iconSize: selected ? [28, 28] : [22, 22],
+        iconAnchor: selected ? [14, 14] : [11, 11],
+        popupAnchor: [0, -16]
+      });
+    };
+
+    window.tplPhotoMarkerIcon = window.tplMapMarkerIcon;
+  }
+
+  function renderMapa(focusId = null) {
+    initMap();
+    if (!map) return;
+
+    if (markerClusterLayer) {
+      markerClusterLayer.clearLayers();
+      map.removeLayer(markerClusterLayer);
+      markerClusterLayer = null;
+    }
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    markerClusterLayer = window.L.markerClusterGroup ? L.markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      disableClusteringAtZoom: 15,
+      maxClusterRadius: 48,
+      iconCreateFunction: function(cluster) {
+        const count = cluster.getChildCount();
+        return L.divIcon({
+          html: `<span class="tpl-cluster-count">${count}</span>`,
+          className: "tpl-cluster-marker",
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
+        });
+      }
+    }).addTo(map) : null;
+
+    const list = (window.__mapShowAllParcelas ? [...getAllParcelas()] : getFilteredParcelas())
+      .filter(p => p && Number.isFinite(Number(p.lat)) && Number.isFinite(Number(p.lng)) && !(Number(p.lat) === 0 && Number(p.lng) === 0));
+
+    if (DOM.mapResults) DOM.mapResults.textContent = `${list.length} resultados`;
+    if (DOM.mapCards) DOM.mapCards.innerHTML = "";
+
+    const bounds = [];
+    let focusMarker = null;
+    let focusParcela = null;
+    const markerById = new Map();
+
+    function getVisibleByMap() {
+      if (!map || !list.length) return list;
+      const b = map.getBounds();
+      const center = map.getCenter();
+      const visible = list
+        .filter(p => b.contains([Number(p.lat), Number(p.lng)]))
+        .sort((a, b) =>
+          distanceKm(center.lat, center.lng, Number(a.lat), Number(a.lng)) -
+          distanceKm(center.lat, center.lng, Number(b.lat), Number(b.lng))
+        );
+      return visible.length ? visible : [...list].sort((a, b) =>
+        distanceKm(center.lat, center.lng, Number(a.lat), Number(a.lng)) -
+        distanceKm(center.lat, center.lng, Number(b.lat), Number(b.lng))
+      );
+    }
+
+    function setActiveMarker(activeId) {
+      markerById.forEach((marker, id) => {
+        const parcela = list.find(p => p.id === id);
+        const img = getParcelaCardImage(parcela || {});
+        if (window.tplMapMarkerIcon) marker.setIcon(window.tplMapMarkerIcon(img, id === activeId));
+      });
+      DOM.mapCards?.querySelectorAll('.map-card-item').forEach(card => {
+        card.classList.toggle('active', card.dataset.id === activeId);
+      });
+    }
+
+    function paintMapSidebar(items, forceOne = false) {
+      if (!DOM.mapCards) return;
+      const clean = items.filter(x => x && x.lat && x.lng);
+      const visibleItems = clean.slice(0, forceOne ? 1 : 5);
+      DOM.mapCards.innerHTML = "";
+
+      if (DOM.mapResults) {
+        DOM.mapResults.textContent = forceOne && visibleItems.length
+          ? "1 parcela seleccionada"
+          : `${visibleItems.length} de ${clean.length || list.length} visibles`;
+      }
+
+      visibleItems.forEach(p => {
+        const marker = markerById.get(p.id);
+        const card = document.createElement("article");
+        card.className = "map-card-item";
+        card.dataset.id = p.id;
+        card.innerHTML = `
+          <button class="map-card-main" type="button" aria-label="Ver ${p.nombre} en el mapa">
+            <img src="${getParcelaCardImage(p)}" alt="${p.nombre}">
+            <span class="map-card-info">
+              <b class="map-card-price">${p.precio || "Consultar"}</b>
+              <strong>${p.nombre}</strong>
+              <small>${p.comuna || "Chile"} · ${Number(p.tamano || 0).toLocaleString("es-CL")} m²</small>
+              ${getDistanceBadge(p)}
+            </span>
+          </button>
+          <div class="map-card-actions">
+            <a href="parcela.html?id=${encodeURIComponent(p.id)}">Más detalles</a>
+            <button type="button" data-add-house="${p.id}">Sumar casa</button>
+          </div>`;
+
+        card.querySelector('.map-card-main')?.addEventListener("click", () => {
+          setActiveMarker(p.id);
+          map.flyTo([p.lat, p.lng], 16, { duration: 0.8 });
+          setTimeout(() => marker?.openPopup(), 420);
+        });
+        card.querySelector('[data-add-house]')?.addEventListener("click", () => {
+          selectParcela(p);
+          state.mode = "combo";
+          DOM.casasSection?.classList.add("active");
+          renderCasas();
+          closeMap();
+          scrollTo(DOM.casasSection);
+        });
+        DOM.mapCards.appendChild(card);
+      });
+    }
+
+    list.forEach(p => {
+      bounds.push([p.lat, p.lng]);
+      const img = getParcelaCardImage(p);
+      const popupHtml = `<div class="tpl-map-popup-clean" style="padding: 10px; font-family: Outfit, sans-serif; text-align: center; min-width: 180px;">
+              <img src="${img}" alt="${p.nombre}" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;">
+              <h3 style="margin: 0 0 4px; font-size: 1rem; color: #111; font-weight: 600;">${p.nombre}</h3>
+              <strong style="color: #007185; font-size: 1.15rem; display: block; margin-bottom: 8px;">${money(p.precio)}</strong>
+              ${renderPromotionBadge(p)}
+              ${hasTplBackedValue(p) ? `<div style="margin:0 0 10px;padding:7px 8px;border-radius:8px;background:#eefbf4;border:1px solid #b9e8cc;color:#145c37;font-size:.72rem;font-weight:800;line-height:1.25;">✓ Valor respaldado por TPL<br><span style="font-weight:600;">Precio recomendado</span></div>` : ''}
+              <div style="display: flex; gap: 8px; align-items: stretch;">
+                <a href="parcela.html?id=${encodeURIComponent(p.id)}" style="flex: 1; padding: 10px 0; background: transparent; color: #111; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 500; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center;">Detalles</a>
+                <button type="button" onclick="window.tplSelectMapParcela && window.tplSelectMapParcela('${String(p.id).replace(/'/g, "\'")}')" style="flex: 1; padding: 10px 0; background: #FFD814; color: #111; border: 1px solid #FCD200; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center;">Seleccionar</button>
+              </div>
+            </div>`;
+      const marker = L.marker([p.lat, p.lng], window.tplMapMarkerIcon ? { icon: window.tplMapMarkerIcon(img, focusId === p.id) } : undefined)
+        .bindPopup(popupHtml);
+      if (markerClusterLayer) markerClusterLayer.addLayer(marker);
+      else marker.addTo(map);
+      marker.on("click", () => {
+        setActiveMarker(p.id);
+        paintMapSidebar([p], true);
+      });
+      markerById.set(p.id, marker);
+      markers.push(marker);
+      if (focusId && p.id === focusId) { focusMarker = marker; focusParcela = p; }
+    });
+
+    window.tplSelectMapParcela = function(id) {
+      const p = getAllParcelas().find(x => String(x.id) === String(id));
+      if (!p) return;
+      selectParcela(p);
+      state.mode = "combo";
+      DOM.casasSection?.classList.add("active");
+      renderCasas();
+      closeMap();
+      scrollTo(DOM.casasSection);
+    };
+
+    function updateVisibleMarkerIcons(activeId = null) {
+      markerById.forEach((marker, id) => {
+        const parcela = list.find(p => p.id === id);
+        if (!parcela || !window.tplMapMarkerIcon) return;
+        marker.setIcon(window.tplMapMarkerIcon(getParcelaCardImage(parcela), id === activeId));
+      });
+    }
+
+    if (!map.__tplSidebarMoveBound) {
+      map.__tplSidebarMoveBound = true;
+      map.on("zoomend moveend", () => {
+        updateVisibleMarkerIcons();
+        const currentList = window.__lastMapList || [];
+        if (!currentList.length || !DOM.mapCards) return;
+        const c = map.getCenter();
+        const visible = currentList
+          .filter(p => map.getBounds().contains([Number(p.lat), Number(p.lng)]))
+          .sort((a,b) => distanceKm(c.lat, c.lng, Number(a.lat), Number(a.lng)) - distanceKm(c.lat, c.lng, Number(b.lat), Number(b.lng)));
+        const next = visible.length ? visible : [...currentList].sort((a,b) => distanceKm(c.lat, c.lng, Number(a.lat), Number(a.lng)) - distanceKm(c.lat, c.lng, Number(b.lat), Number(b.lng)));
+        paintMapSidebar(next, false);
+      });
+    }
+
+    window.__lastMapList = list;
+
+    if (focusMarker && focusParcela) {
+      map.flyTo([focusParcela.lat, focusParcela.lng], 15, { duration: 0.8 });
+      setTimeout(() => {
+        focusMarker.openPopup();
+        paintMapSidebar([focusParcela], true);
+        setActiveMarker(focusParcela.id);
+      }, 350);
+    } else if (bounds.length) {
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+      setTimeout(() => paintMapSidebar(getVisibleByMap(), false), 180);
+    }
+  }
+
+  function openMap(focusId = null) {
+    state.viewMode = "map";
+    DOM.mapLayout?.classList.remove("map-hidden");
+    if (DOM.btnMapView) {
+      DOM.btnMapView.innerHTML = '<i data-lucide="map"></i><span>Ocultar mapa</span>';
+      DOM.btnMapView.setAttribute("aria-expanded", "true");
+      if(window.lucide) window.lucide.createIcons();
+    }
+    renderMapa(focusId);
+    requestAnimationFrame(() => {
+      map?.invalidateSize();
+    });
+  }
+
+  function closeMap() {
+    state.viewMode = "grid";
+    DOM.mapLayout?.classList.add("map-hidden");
+    if (DOM.btnMapView) {
+      DOM.btnMapView.innerHTML = '<i data-lucide="globe-2"></i><span>Ver en mapa</span>';
+      DOM.btnMapView.setAttribute("aria-expanded", "false");
+      if(window.lucide) window.lucide.createIcons();
+    }
+  }
+
+  function populateComunas() {
+    if (!DOM.regionDropdown) return;
+    const comunas = [...new Set(getAllParcelas().map(p => p.comuna).filter(Boolean))].sort();
+    DOM.regionDropdown.innerHTML = `<button type="button" class="dropdown-item" data-commune="all">Todas las comunas</button>` + comunas.map(c => `<button type="button" class="dropdown-item" data-commune="${c}">${c}</button>`).join("");
+  }
+
+  function toggleClear() {
+    if (!DOM.filterClear) return;
+    const f = state.activeFilters;
+    if (DOM.filterClear) DOM.filterClear.style.display = f.text || f.gps || f.economic || f.size || f.payment || f.water || f.river || f.native || f.commune !== "all" ? "inline-flex" : "none";
+  }
+
+  function refresh() {
+    if (state.viewMode === "map") renderMapa(); else renderParcelas();
+    toggleClear();
+  }
+
+  function showFriendlyMessage(text, title = "Tu Parcela Lista") {
+    let box = document.getElementById("friendly-message");
+    if (!box) {
+      document.body.insertAdjacentHTML("beforeend", `
+        <div class="friendly-message" id="friendly-message" role="status" aria-live="polite">
+          <button type="button" class="friendly-message-close" aria-label="Cerrar">×</button>
+          <strong></strong>
+          <p></p>
+        </div>`);
+      box = document.getElementById("friendly-message");
+      box.querySelector("button")?.addEventListener("click", () => box.classList.remove("show"));
+    }
+    box.querySelector("strong").textContent = title;
+    box.querySelector("p").textContent = text;
+    box.classList.add("show");
+    clearTimeout(box.__hideTimer);
+    box.__hideTimer = setTimeout(() => box.classList.remove("show"), 5200);
+  }
+
+
+  function ensurePreviewActionButtons() {
+    const parcelaBox = DOM.previewParcelaImg?.closest(".preview-photo-box");
+    const casaBox = DOM.previewCasaImg?.closest(".preview-photo-box");
+    if (parcelaBox && !parcelaBox.querySelector('[data-project-info="parcela"]:not(img)')) {
+      parcelaBox.insertAdjacentHTML("afterbegin", '<button class="preview-ficha-btn" type="button" data-project-info="parcela">Ficha parcela</button>');
+    }
+    if (casaBox && !casaBox.querySelector('[data-project-info="casa"]:not(img)')) {
+      casaBox.insertAdjacentHTML("afterbegin", '<button class="preview-ficha-btn" type="button" data-project-info="casa">Ficha casa</button>');
+    }
+    DOM.previewParcelaImg?.setAttribute("data-project-info", "parcela");
+    DOM.previewCasaImg?.setAttribute("data-project-info", "casa");
+    DOM.changeParcelaBtn?.setAttribute("data-change-project", "parcela");
+    DOM.changeCasaBtn?.setAttribute("data-change-project", "casa");
+  }
+
+  function beginProjectChange(type) {
+    setPendingProjectChange(type);
+    if (type === "parcela") {
+      showFriendlyMessage("Elige una nueva parcela. Ahora las tarjetas mostrarán el botón Agregar parcela y al seleccionarla volverás al cotizador.", "Cambiar parcela");
+      state.viewMode = "grid";
+      state.recommendationActive = false;
+      closeMap();
+      renderParcelas(getAllParcelas());
+      scrollToParcelasResults();
+      return;
+    }
+    showFriendlyMessage("Elige una nueva casa. Al seleccionarla volverás al cotizador con tu proyecto actualizado.", "Cambiar casa");
+    DOM.casasSection?.classList.add("active");
+    renderCasas();
+    scrollTo(DOM.casasSection);
+  }
+
+  function finishProjectChangeIfNeeded(type) {
+    const pending = getPendingProjectChange();
+    if (pending !== type) return false;
+    setPendingProjectChange("");
+    if (type === "parcela" && !state.selectedCasa) {
+      DOM.casasSection?.classList.add("active");
+      setTimeout(() => scrollTo(DOM.casasSection), 120);
+      return true;
+    }
+    DOM.cotizadorSection?.classList.add("active");
+    setTimeout(() => scrollTo(DOM.cotizadorSection), 140);
+    return true;
+  }
+
+  function setupEvents() {
+    ensurePreviewActionButtons();
+
+    DOM.installationServiceToggle?.addEventListener("change", () => {
+      state.installationService = !!DOM.installationServiceToggle.checked;
+      if (state.installationService && !state.selectedFundacion) state.selectedFundacion = getCheapestFundacion();
+      if (!state.installationService) state.selectedFundacion = null;
+      renderFundaciones();
+      renderExtras();
+      updateCotizacionSummary();
+    });
+
+    document.addEventListener("click", e => {
+      const infoBtn = e.target.closest("[data-project-info]");
+      if (infoBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const type = infoBtn.getAttribute("data-project-info");
+        openSummaryInfoModal(type === "casa" ? "casa" : "parcela");
+        return;
+      }
+
+      const changeBtn = e.target.closest("[data-change-project]");
+      if (changeBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        beginProjectChange(changeBtn.getAttribute("data-change-project") === "casa" ? "casa" : "parcela");
+        return;
+      }
+
+      const locationBtn = e.target.closest("[data-summary-location]");
+      if (locationBtn) {
+        const parcela = getParcelaById(locationBtn.dataset.summaryLocation);
+        openLocationModal(parcela || state.selectedParcela);
+      }
+
+      if (e.target.closest("[data-close-location-modal]")) closeLocationModal();
+    });
+
+    document.getElementById("tpl-location-street")?.addEventListener("click", () => setLocationLayer("street"));
+    document.getElementById("tpl-location-satellite")?.addEventListener("click", () => setLocationLayer("satellite"));
+    document.getElementById("tpl-location-geolocate")?.addEventListener("click", activateUserLocationForModal);
+    document.querySelectorAll("[data-close-location-modal]").forEach(el => {
+      el.addEventListener("click", ev => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        closeLocationModal();
+      });
+    });
+    document.addEventListener("keydown", ev => {
+      if (ev.key === "Escape") closeLocationModal();
+    });
+
+    DOM.previewParcelaImg?.addEventListener("click", () => openSummaryInfoModal("parcela"));
+    DOM.previewCasaImg?.addEventListener("click", () => openSummaryInfoModal("casa"));
+    DOM.previewParcelaImg?.setAttribute("title", "Ver ficha de la parcela");
+    DOM.previewCasaImg?.setAttribute("title", "Ver ficha de la casa");
+
+    DOM.optParcela?.addEventListener("click", () => {
+      state.mode = "parcela";
+      state.recommendationActive = false;
+      hideComboProposals();
+      DOM.decisionFlow?.classList.remove("combo-mode");
+      DOM.decisionFlow?.classList.add("budget-active");
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "block";
+      DOM.comboFields?.classList.add("hidden");
+      if (DOM.budgetTitle) DOM.budgetTitle.textContent = "¿Cuál es tu presupuesto?";
+      if (DOM.budgetHelp) DOM.budgetHelp.textContent = "";
+      if (DOM.budgetGo) {
+        const label = DOM.budgetGo.querySelector("span");
+        if (label) label.textContent = "Buscar";
+        else DOM.budgetGo.textContent = "Buscar";
+      }
+      DOM.budgetInput?.focus();
+    });
+
+    DOM.optCombo?.addEventListener("click", () => {
+      state.mode = "combo";
+      hideComboProposals();
+      DOM.decisionFlow?.classList.add("budget-active", "combo-mode");
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "block";
+      DOM.comboFields?.classList.remove("hidden");
+      if (DOM.budgetTitle) DOM.budgetTitle.textContent = "Buscaremos parcela + casa con tu presupuesto";
+      if (DOM.budgetHelp) DOM.budgetHelp.textContent = "";
+      if (DOM.budgetGo) {
+        const label = DOM.budgetGo.querySelector("span");
+        if (label) label.textContent = "Buscar alternativas";
+        else DOM.budgetGo.textContent = "Buscar alternativas";
+      }
+      DOM.budgetInput?.focus();
+    });
+
+    // v0.9.1-fix: listeners en captura para evitar que otros scripts externos bloqueen
+    // los dos botones grandes iniciales.
+    DOM.optParcela?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      state.mode = "parcela";
+      state.recommendationActive = false;
+      hideComboProposals();
+      DOM.decisionFlow?.classList.remove("combo-mode");
+      DOM.decisionFlow?.classList.add("budget-active");
+      DOM.decisionFlow?.classList.remove("choice-combo");
+      DOM.decisionFlow?.classList.add("choice-parcela");
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "block";
+      DOM.comboFields?.classList.add("hidden");
+      if (DOM.budgetTitle) DOM.budgetTitle.textContent = "¿Cuál es tu presupuesto?";
+      if (DOM.budgetHelp) DOM.budgetHelp.textContent = "Te mostraremos 5 parcelas cercanas a tu presupuesto.";
+      if (DOM.budgetGo) {
+        const label = DOM.budgetGo.querySelector("span");
+        if (label) label.textContent = "Buscar parcelas";
+        else DOM.budgetGo.textContent = "Buscar parcelas";
+      }
+      scrollToBudget();
+      setTimeout(() => DOM.budgetInput?.focus(), 520);
+    }, true);
+
+    DOM.optCombo?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      state.mode = "combo";
+      hideComboProposals();
+      DOM.decisionFlow?.classList.add("budget-active", "combo-mode", "choice-combo");
+      DOM.decisionFlow?.classList.remove("choice-parcela");
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "block";
+      DOM.comboFields?.classList.remove("hidden");
+      if (DOM.budgetTitle) DOM.budgetTitle.textContent = "Buscaremos parcela + casa con tu presupuesto";
+      if (DOM.budgetHelp) DOM.budgetHelp.textContent = "Te mostraremos propuestas de parcela + casa cercanas al monto.";
+      if (DOM.budgetGo) {
+        const label = DOM.budgetGo.querySelector("span");
+        if (label) label.textContent = "Buscar alternativas";
+        else DOM.budgetGo.textContent = "Buscar alternativas";
+      }
+      scrollToBudget();
+      setTimeout(() => DOM.budgetInput?.focus(), 520);
+    }, true);
+
+    const setPressedChoice = (container, selector, activeButton) => {
+      container?.querySelectorAll(selector).forEach(button => {
+        const active = button === activeButton;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    };
+
+    DOM.projectTypeOptions?.addEventListener("click", event => {
+      const button = event.target.closest("[data-project-type]");
+      if (!button) return;
+      state.mode = button.dataset.projectType === "combo" ? "combo" : "parcela";
+      setPressedChoice(DOM.projectTypeOptions, "[data-project-type]", button);
+      
+      const combo = state.mode === "combo";
+      state.recommendationActive = false;
+      hideComboProposals();
+      
+      if (DOM.familyGroup) DOM.familyGroup.hidden = !combo;
+      DOM.decisionFlow?.classList.toggle("combo-mode", combo);
+      DOM.decisionFlow?.classList.toggle("choice-combo", combo);
+      DOM.decisionFlow?.classList.toggle("choice-parcela", !combo);
+      DOM.decisionFlow?.classList.add("budget-active");
+      
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "block";
+      
+      if (combo) {
+        DOM.comboFields?.classList.remove("hidden");
+        if (DOM.budgetTitle) DOM.budgetTitle.textContent = "Buscaremos parcela + casa con tu presupuesto";
+        if (DOM.budgetHelp) DOM.budgetHelp.textContent = "Te mostraremos propuestas de parcela + casa cercanas al monto.";
+        if (DOM.budgetGo) {
+          const label = DOM.budgetGo.querySelector("span");
+          if (label) label.textContent = "Buscar alternativas";
+          else DOM.budgetGo.textContent = "Buscar alternativas";
+        }
+      } else {
+        DOM.comboFields?.classList.add("hidden");
+        if (DOM.budgetTitle) DOM.budgetTitle.textContent = "¿Cuál es tu presupuesto?";
+        if (DOM.budgetHelp) DOM.budgetHelp.textContent = "Te mostraremos 5 parcelas cercanas a tu presupuesto.";
+        if (DOM.budgetGo) {
+          const label = DOM.budgetGo.querySelector("span");
+          if (label) label.textContent = "Buscar parcelas";
+          else DOM.budgetGo.textContent = "Buscar parcelas";
+        }
+      }
+      
+      scrollToBudget();
+      setTimeout(() => DOM.budgetInput?.focus(), 520);
+    });
+
+    DOM.priorityOptions?.addEventListener("click", event => {
+      const button = event.target.closest("[data-priority]");
+      if (!button) return;
+      state.searchPreference = button.dataset.priority || "economic";
+      setPressedChoice(DOM.priorityOptions, "[data-priority]", button);
+    });
+
+    DOM.familyOptions?.addEventListener("click", event => {
+      const button = event.target.closest("[data-family]");
+      if (!button) return;
+      state.familyProfile = button.dataset.family || "couple";
+      setPressedChoice(DOM.familyOptions, "[data-family]", button);
+    });
+
+    DOM.budgetInput?.addEventListener("input", () => {
+      const raw = String(DOM.budgetInput.value || "").replace(/\D/g, "");
+      DOM.budgetInput.value = raw ? Number(raw).toLocaleString("es-CL") : "";
+    });
+
+    const budgetLoaderMessages = [
+      ["Buscando las mejores opciones para ti", "Estamos comparando precios, ubicación y características según tu presupuesto."],
+      ["Revisando alternativas cercanas", "Ordenamos las parcelas para mostrarte primero las que mejor se ajustan a tu proyecto."],
+      ["Preparando tus resultados", "Estamos cargando las fotografías y dejando listas tus cinco recomendaciones."]
+    ];
+    let budgetLoaderTimer = null;
+
+    function showBudgetSearchLoader() {
+      const loader = document.getElementById("tpl-budget-loader");
+      const title = document.getElementById("tpl-budget-loader-title");
+      const text = document.getElementById("tpl-budget-loader-text");
+      if (!loader) return;
+      document.body.classList.add("tpl-budget-searching");
+      loader.hidden = false;
+      let index = 0;
+      const update = () => {
+        const message = budgetLoaderMessages[index % budgetLoaderMessages.length];
+        if (title) title.textContent = message[0];
+        if (text) text.textContent = message[1];
+        index += 1;
+      };
+      update();
+      clearInterval(budgetLoaderTimer);
+      budgetLoaderTimer = setInterval(update, 850);
+    }
+
+    function hideBudgetSearchLoader() {
+      clearInterval(budgetLoaderTimer);
+      budgetLoaderTimer = null;
+      const loader = document.getElementById("tpl-budget-loader");
+      if (loader) loader.hidden = true;
+      document.body.classList.remove("tpl-budget-searching");
+    }
+
+    function nextPaint() {
+      return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
+    function preloadBudgetImages(parcelasList, timeoutMs = 1800) {
+      const sources = parcelasList.map(getParcelaCardImage).filter(Boolean);
+      if (!sources.length) return Promise.resolve();
+      const loads = sources.map(src => new Promise(resolve => {
+        const image = new Image();
+        image.onload = resolve;
+        image.onerror = resolve;
+        image.src = src;
+        if (image.complete) resolve();
+      }));
+      return Promise.race([
+        Promise.all(loads),
+        new Promise(resolve => setTimeout(resolve, timeoutMs))
+      ]);
+    }
+
+    async function handleBudgetSearch(ev) {
+      ev?.preventDefault?.();
+      ev?.stopImmediatePropagation?.();
+
+      state.budget = Number(String(DOM.budgetInput?.value || 0).replace(/\D/g, ""));
+      state.wantedRooms = "all";
+      state.wantedMeters = 0;
+
+      if (!state.mode || state.mode === "normal") state.mode = "parcela";
+
+      if (state.searchPreference === "gps" && !state.userCoords && navigator.geolocation) {
+        try {
+          const position = await new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 7000 }));
+          state.userCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+        } catch (_) {
+          state.searchPreference = "economic";
+          showFriendlyMessage("No pudimos obtener tu ubicación. Ordenaremos las opciones por precio para que puedas continuar.");
+        }
+      }
+
+      if (!state.budget) {
+        showFriendlyMessage("Ingresa un presupuesto válido para mostrarte alternativas cercanas.");
+        DOM.budgetInput?.focus();
+        return;
+      }
+
+      DOM.decisionFlow?.classList.add("flow-completed");
+      if (DOM.budgetBox) DOM.budgetBox.style.display = "none";
+
+      if (state.mode === "parcela") {
+        const startedAt = performance.now();
+        showBudgetSearchLoader();
+        try {
+          state.viewMode = "grid";
+          state.recommendationActive = true;
+          state.lastParcelasRenderKey = "";
+          state.parcelasRenderLimit = 5;
+          state.activeFilters = {
+            text: "", gps: false, economic: false, size: false, payment: false,
+            water: false, river: false, native: false, commune: "all"
+          };
+          closeMap();
+          hideComboProposals();
+
+          document.body.classList.add("tpl-guided-revealed", "tpl-show-parcelas");
+          [DOM.parcelasAnchor, DOM.gridView, DOM.parcelasContainer].forEach(el => {
+            if (!el) return;
+            el.hidden = false;
+            el.style.visibility = "visible";
+            el.style.opacity = "1";
+          });
+          if (DOM.gridView) DOM.gridView.style.display = "block";
+          if (DOM.parcelasContainer) DOM.parcelasContainer.style.display = "grid";
+
+          await nextPaint();
+          const recommended = getRecommendedParcelas();
+          await preloadBudgetImages(recommended);
+          state.parcelasRenderLimit = 5;
+          renderParcelas(recommended);
+          toggleClear();
+          await nextPaint();
+
+          const elapsed = performance.now() - startedAt;
+          if (elapsed < 850) await new Promise(resolve => setTimeout(resolve, 850 - elapsed));
+        } finally {
+          hideBudgetSearchLoader();
+        }
+        scrollToParcelasResults();
+        return;
+      }
+
+      const matches = findComboMatches();
+      if (!matches.length) {
+        showFriendlyMessage("No encontramos una combinación exacta, pero te mostramos casas disponibles para ajustar tu proyecto.");
+        DOM.casasSection?.classList.add("active");
+        hideComboProposals();
+        renderCasas();
+        scrollTo(DOM.casasSection);
+        return;
+      }
+      DOM.casasSection?.classList.add("active");
+      const comboTitle = document.querySelector("#combo-proposals-section h2, #combo-proposals-section h3");
+      const familyLabels = { couple: "pareja o persona sola", children: "familia con hijos", large: "familia grande" };
+      if (comboTitle) comboTitle.textContent = `Parcela + casa para ${familyLabels[state.familyProfile] || "tu familia"}`;
+      renderComboProposals(matches);
+      renderCasas(matches.map(m => m.casa).filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i));
+      scrollTo(DOM.comboProposalsSection || DOM.casasSection);
+    }
+
+    // v0.9.1-fix: el sitio tiene scripts complementarios que también escuchan el botón de presupuesto.
+    // Registramos este flujo en captura y detenemos propagación dentro de handleBudgetSearch()
+    // para que "Parcela" siempre renderice primero las 5 alternativas y luego haga scroll.
+    DOM.budgetGo?.addEventListener("click", handleBudgetSearch, true);
+    DOM.budgetInput?.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") handleBudgetSearch(ev);
+    }, true);
+
+    DOM.searchBtn?.addEventListener("click", () => { state.activeFilters.text = DOM.searchInput?.value || ""; applyManualParcelFilter(); });
+    DOM.searchInput?.addEventListener("keydown", e => { if (e.key === "Enter") DOM.searchBtn?.click(); });
+    document.querySelectorAll('a[href="#parcelas-anchor"], a[href="index.html#parcelas-anchor"]').forEach(link => {
+      link.addEventListener("click", () => {
+        window.__mapShowAllParcelas = true;
+        state.recommendationActive = false;
+        state.activeFilters = { text: "", gps: false, economic: false, size: false, payment: false, water: false, river: false, native: false, commune: "all" };
+        document.querySelectorAll(".filter-btn.active").forEach(b => b.classList.remove("active"));
+        closeMap();
+        hideComboProposals();
+        renderParcelas(getAllParcelas());
+        setTimeout(() => scrollTo(DOM.parcelasContainer || DOM.parcelasAnchor), 80);
+      });
+    });
+
+    DOM.filterGps?.addEventListener("click", () => {
+      const activate = !state.activeFilters.gps;
+      if (!activate) {
+        state.activeFilters.gps = false;
+        DOM.filterGps.classList.remove("active");
+        applyManualParcelFilter();
+        return;
+      }
+      if (!navigator.geolocation) { showFriendlyMessage("Tu navegador no permite ubicación. Puedes usar los otros filtros."); return; }
+      navigator.geolocation.getCurrentPosition(pos => {
+        state.userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        state.activeFilters.gps = true;
+        DOM.filterGps.classList.add("active");
+        showFriendlyMessage("Ordenamos las parcelas por distancia. En cada tarjeta verás kilómetros y tiempo estimado en vehículo.");
+        applyManualParcelFilter();
+      }, () => showFriendlyMessage("No pudimos obtener tu ubicación. Revisa los permisos del navegador."));
+    });
+    DOM.filterEconomic?.addEventListener("click", () => { state.activeFilters.economic = !state.activeFilters.economic; DOM.filterEconomic.classList.toggle("active", state.activeFilters.economic); applyManualParcelFilter(); });
+    DOM.filterSize?.addEventListener("click", () => { state.activeFilters.size = !state.activeFilters.size; DOM.filterSize.classList.toggle("active", state.activeFilters.size); applyManualParcelFilter(); });
+    DOM.filterPayment?.addEventListener("click", () => { state.activeFilters.payment = !state.activeFilters.payment; DOM.filterPayment.classList.toggle("active", state.activeFilters.payment); applyManualParcelFilter(); });
+    DOM.filterWater?.addEventListener("click", () => { state.activeFilters.water = !state.activeFilters.water; DOM.filterWater.classList.toggle("active", state.activeFilters.water); applyManualParcelFilter(); });
+    DOM.filterRiver?.addEventListener("click", () => { state.activeFilters.river = !state.activeFilters.river; DOM.filterRiver.classList.toggle("active", state.activeFilters.river); applyManualParcelFilter(); });
+    DOM.filterNative?.addEventListener("click", () => { state.activeFilters.native = !state.activeFilters.native; DOM.filterNative.classList.toggle("active", state.activeFilters.native); applyManualParcelFilter(); });
+    function revealParcelaSidebar(extraOffset = 140) {
+      const sidebar = document.querySelector(".parcelas-sidebar");
+      const target = sidebar || DOM.parcelasAnchor;
+      if (!target) return;
+
+      const y = target.getBoundingClientRect().top + window.pageYOffset - extraOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+
+    DOM.filterRegionBtn?.addEventListener("click", () => {
+      const isOpen = DOM.regionDropdown?.classList.toggle("active");
+      const sidebar = document.querySelector(".parcelas-sidebar");
+      sidebar?.classList.toggle("comunas-open", !!isOpen);
+      if (DOM.filterRegionBtn) DOM.filterRegionBtn.setAttribute("aria-expanded", String(!!isOpen));
+      if (isOpen) {
+        // Al abrir Comunas se activa scroll interno del sidebar y se acomoda la vista.
+        setTimeout(() => revealParcelaSidebar(115), 80);
+      }
+    });
+
+    DOM.regionDropdown?.addEventListener("click", e => {
+      const item = e.target.closest(".dropdown-item");
+      if (!item) return;
+      state.activeFilters.commune = item.dataset.commune;
+      DOM.regionDropdown.classList.remove("active");
+      document.querySelector(".parcelas-sidebar")?.classList.remove("comunas-open");
+      applyManualParcelFilter();
+    });
+    DOM.filterClear?.addEventListener("click", () => {
+      state.activeFilters = { text: "", gps: false, economic: false, size: false, payment: false, water: false, river: false, native: false, commune: "all" };
+      if (DOM.searchInput) DOM.searchInput.value = "";
+      document.querySelectorAll(".filter-btn.active").forEach(b => b.classList.remove("active"));
+      applyManualParcelFilter();
+    });
+
+    DOM.btnMapView?.addEventListener("click", () => {
+      window.__mapShowAllParcelas = false;
+      if (DOM.mapLayout?.classList.contains("map-hidden")) {
+        openMap();
+      } else {
+        closeMap();
+      }
+    });
+    DOM.backToParcelas?.addEventListener("click", () => {
+      closeMap();
+    });
+
+    document.addEventListener("click", e => {
+      if (e.target.id === "map-satellite") {
+        if (map && satelliteLayer && !map.hasLayer(satelliteLayer)) { map.removeLayer(streetLayer); satelliteLayer.addTo(map); satelliteLabelsLayer?.addTo(map); setTimeout(() => map.invalidateSize(), 80); }
+      }
+      if (e.target.id === "map-street") {
+        if (map && streetLayer && !map.hasLayer(streetLayer)) { map.removeLayer(satelliteLayer); if (satelliteLabelsLayer && map.hasLayer(satelliteLabelsLayer)) map.removeLayer(satelliteLabelsLayer); streetLayer.addTo(map); setTimeout(() => map.invalidateSize(), 80); }
+      }
+      if (e.target.classList.contains("popup-select")) {
+        const p = getAllParcelas().find(x => x.id === e.target.dataset.id);
+        if (p) { closeMap(); selectParcela(p); DOM.casasSection?.classList.add("active"); renderCasas(); scrollTo(DOM.casasSection); }
+      }
+    });
+
+    DOM.roomFilterButtons?.forEach(btn => {
+      btn.addEventListener("click", () => {
+        DOM.roomFilterButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.roomFilter = btn.dataset.rooms || "all";
+        renderCasas();
+      });
+    });
+
+    DOM.changeParcelaBtn?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      beginProjectChange("parcela");
+    });
+
+    DOM.changeCasaBtn?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      beginProjectChange("casa");
+    });
+
+    DOM.whatsappBtn?.addEventListener("click", async () => {
+      if (!state.selectedParcela) {
+        showFriendlyMessage("Primero selecciona una parcela para enviar la cotización.");
+        (DOM.parcelasContainer || DOM.parcelasAnchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      // Genera un PDF descargable como respaldo, pero no bloquea WhatsApp si falla la librería.
+      const pdfResult = generateCotizacionPdfIndex({}, true);
+      const data = getCotizacionData();
+      const msg = encodeURIComponent(
+        `Hola Tu Parcela Lista, quiero avanzar con esta cotización.\n\n` +
+        `🏡 PROYECTO COTIZADO (${numeroProyecto})\n` +
+        `Parcela/Campo: ${data.parcela?.nombre || "por definir"}\n` +
+        `Comuna: ${data.parcela?.comuna || "por definir"}\n` +
+        `Tamaño terreno: ${data.parcela ? (data.parcela.tamano || data.parcela.superficie || data.parcela.m2 || "por definir") : "por definir"} m²\n` +
+        `Casa: ${data.casa?.nombre || "por definir"}\n` +
+        `Superficie casa: ${data.casa ? (data.casa.metros || data.casa.superficie || data.casa.mt2 || "por definir") : "por definir"} m²\n` +
+        `Habitaciones: ${data.casa ? (data.casa.habitaciones || data.casa.dormitorios || "por definir") : "por definir"}\n` +
+        `Fundación e instalación: ${data.fundacion?.nombre || "por definir"}\n\n` +
+        `🧾 RESUMEN DE VALORES\n${data.rowsText || "Resumen pendiente"}\n\n` +
+        `➕ ADICIONALES\n${data.extrasText}\n\n` +
+        `💰 TOTAL ESTIMADO: ${data.total}\n\n` +
+        `Se generó un PDF descargable de respaldo${pdfResult?.filename ? ` (${pdfResult.filename})` : ""}.\n\n` +
+        `Quiero que un ejecutivo me contacte para revisar disponibilidad, reserva y pasos de compra.`
+      );
+                  // Guardar en Supabase Cotizaciones usando RPC
+      try {
+        const res = await fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
+          method: 'POST',
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            p_cliente_nombre: 'Cliente Web Anonimo',
+            p_cliente_email: 'anonimo@tuparcelalista.cl',
+            p_cliente_telefono: '',
+            p_parcela_id: state.selectedParcela ? (state.selectedParcela.publicacionId || null) : null,
+            p_casa_codigo: state.selectedCasa ? state.selectedCasa.id.toString() : null,
+            p_total: data.totalNum || 0,
+            p_extras: data.items
+          })
+        });
+        if (res.ok) {
+          const respText = await res.text();
+          numeroProyecto = respText.replace(/"/g, '');
+        }
+      } catch (e) {}
+      DOM.whatsappBtn.textContent = "Quiero este proyecto";
+      if (DOM.whatsappBtn) {
+        DOM.whatsappBtn.style.pointerEvents = "auto";
+        DOM.whatsappBtn.style.opacity = "1";
+      }
+      window.open(`https://wa.me/${CONTACT_PHONE_WA}?text=${msg}`, "_blank");
+
+    });
+
+    DOM.activateProjectBtn?.addEventListener("click", openActivationModal);
+    DOM.downloadProjectPdfBtn?.addEventListener("click", () => generateCotizacionPdfIndex({}, true));
+    DOM.activationModal?.querySelectorAll("[data-close-activation]").forEach(btn => btn.addEventListener("click", closeActivationModal));
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeActivationModal(); });
+
+    DOM.activationForm?.addEventListener("submit", async e => {
+      e.preventDefault();
+      if (!state.selectedParcela) {
+        showFriendlyMessage("Primero selecciona una parcela antes de activar el proyecto.");
+        return;
+      }
+      const fd = new FormData(DOM.activationForm);
+      const cliente = {
+        rut: String(fd.get("rut") || "").trim(),
+        nombre: String(fd.get("nombre") || "").trim(),
+        email: String(fd.get("email") || "").trim(),
+        telefono: String(fd.get("telefono") || "").trim(),
+        ciudad: String(fd.get("ciudad") || "").trim(),
+        mensaje: String(fd.get("mensaje") || "").trim(),
+        parcela_id: state.selectedParcela.id,
+        estado: 'esperando_pago'
+      };
+      if (DOM.activationStatus) DOM.activationStatus.textContent = "Guardando solicitud y redirigiendo a Flow...";
+      
+              try {
+          const data = getCotizacionData();
+          const res = await fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
+            method: 'POST',
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              p_cliente_nombre: cliente.nombre || 'Cliente Web Activacion',
+              p_cliente_email: cliente.email || 'activacion@tuparcelalista.cl',
+              p_cliente_telefono: cliente.telefono || '',
+              p_parcela_id: state.selectedParcela ? (state.selectedParcela.publicacionId || null) : null,
+              p_casa_codigo: state.selectedCasa ? state.selectedCasa.id.toString() : null,
+              p_total: data.totalNum || 0,
+              p_extras: data.items
+            })
+          });
+          if (res.ok) {
+            const respText = await res.text();
+            cliente.mensaje = "Nº Proyecto: " + respText.replace(/"/g, '') + "\n\n" + cliente.mensaje;
+          }
+        } catch (e) { console.warn("No se pudo guardar la cotizacion en DB", e); }
+        try {
+          const leadRes = await window.apiSaveLead(cliente);
+
+        const leadId = leadRes?.data?.[0]?.id || `TPL-${Date.now()}`;
+        const amount = (parseClp(state.selectedParcela.precio) * 0.01) || 10000;
+
+        const flowRes = await fetch('/api/flow-create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount,
+            email: cliente.email,
+            subject: `Reserva Parcela ${state.selectedParcela.nombre}`,
+            leadId
+          })
+        });
+
+        const flowData = await flowRes.json();
+        
+        if (flowData.success && flowData.redirectUrl) {
+          if (DOM.activationStatus) DOM.activationStatus.textContent = "Redirigiendo a pago seguro...";
+          window.location.href = flowData.redirectUrl;
+        } else {
+          throw new Error("No se pudo generar el enlace de pago");
+        }
+      } catch (err) {
+        console.error(err);
+        if (DOM.activationStatus) DOM.activationStatus.textContent = "Error al iniciar el pago. Revisa tu conexión.";
+      }
+    });
+  }
+
+  function addMapToolbarButtons() {
+    const toolbar = document.querySelector(".map-toolbar");
+    if (!toolbar || toolbar.querySelector(".map-actions")) return;
+    toolbar.insertAdjacentHTML("beforeend", `<div class="map-actions"><button id="map-street" type="button">Mapa normal</button><button id="map-satellite" type="button">Vista satelital</button><button id="map-distance" type="button">A cuánta distancia de mí</button><button id="map-back-top" type="button">Ver todas las parcelas</button></div><div id="map-distance-output" class="map-distance-output"></div>`);
+    document.getElementById("map-back-top")?.addEventListener("click", () => {
+      window.__mapShowAllParcelas = true;
+      state.recommendationActive = false;
+      state.activeFilters = { text: "", gps: false, economic: false, size: false, payment: false, water: false, river: false, native: false, commune: "all" };
+      document.querySelectorAll(".filter-btn.active").forEach(b => b.classList.remove("active"));
+      renderMapa();
+    });
+    document.getElementById("map-distance")?.addEventListener("click", showDistancesFromMe);
+  }
+
+  function showDistancesFromMe() {
+    const output = document.getElementById("map-distance-output");
+    const run = () => {
+      const list = (window.__mapShowAllParcelas ? getAllParcelas() : getFilteredParcelas()).filter(p => p.lat && p.lng);
+      const nearest = list.map(p => ({ p, km: distanceKm(state.userCoords.lat, state.userCoords.lng, Number(p.lat), Number(p.lng)) }))
+        .sort((a,b) => a.km - b.km).slice(0, 5);
+      if (output) output.innerHTML = `<strong>Distancia desde tu ubicación:</strong>` + nearest.map(x => `<span>${x.p.nombre}: <b>${x.km.toFixed(1)} km</b></span>`).join("");
+    };
+    if (state.userCoords) return run();
+    if (!navigator.geolocation) { showFriendlyMessage("Tu navegador no permite activar GPS."); return; }
+    navigator.geolocation.getCurrentPosition(pos => {
+      state.userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      run();
+    }, () => showFriendlyMessage("No pudimos obtener tu ubicación. Revisa los permisos del navegador."));
+  }
+
+  function openVisitModal() {
+    let modal = document.getElementById("visit-modal");
+    if (!modal) {
+      document.body.insertAdjacentHTML("beforeend", `
+        <div class="modal-backdrop" id="visit-modal">
+          <div class="lead-modal">
+            <button class="modal-close" type="button" data-close-modal>×</button>
+            <h3>Agendar visita</h3>
+            <p>Completa tus datos y fecha preferida. Se abrirá tu correo con copia para recordatorio.</p>
+            <form id="visit-form">
+              <input required id="visit-name" placeholder="Nombre completo">
+              <input required id="visit-phone" placeholder="Número de contacto">
+              <input required id="visit-email" type="email" placeholder="Correo electrónico">
+              <input required id="visit-date" type="date">
+              <input id="visit-time" type="time">
+              <button class="btn-primary-submit" type="submit">Enviar solicitud de visita</button>
+            </form>
+          </div>
+        </div>`);
+      modal = document.getElementById("visit-modal");
+      modal.querySelector("[data-close-modal]").addEventListener("click", () => modal.classList.remove("active"));
+      modal.querySelector("#visit-form").addEventListener("submit", e => {
+        e.preventDefault();
+        const name = document.getElementById("visit-name").value;
+        const phone = document.getElementById("visit-phone").value;
+        const email = document.getElementById("visit-email").value;
+        const date = document.getElementById("visit-date").value;
+        const time = document.getElementById("visit-time").value || "horario por confirmar";
+        const subject = encodeURIComponent("Solicitud de agendar visita - Tu Parcela Lista");
+        const body = encodeURIComponent(`Hola, quiero agendar una visita.\n\nNombre: ${name}\nTeléfono: ${phone}\nCorreo: ${email}\nFecha preferida: ${date}\nHora: ${time}\n\nParcelas de interés: las parcelas vistas en el mapa.`);
+        showFriendlyMessage("Tu solicitud quedó lista. Se abrirá tu correo para enviarla y también puedes escribirnos directo al WhatsApp +56988508361.", "Solicitud preparada");
+        window.location.href = `mailto:tuparcelalista@gmail.com?cc=${encodeURIComponent(email)}&subject=${subject}&body=${body}`;
+      });
+    }
+    modal.classList.add("active");
+  }
+
+
+  // ------------------------------------------------------------
+
+
+  function openProjectInfoModal(type) {
+    const item = type === "casa" ? state.selectedCasa : state.selectedParcela;
+    if (!item) {
+      showFriendlyMessage(type === "casa" ? "Primero selecciona una casa para ver su ficha." : "Primero selecciona una parcela para ver su ficha.");
+      return;
+    }
+    const modal = document.getElementById("tpl-info-modal");
+    if (!modal) return;
+    const img = document.getElementById("tpl-info-img");
+    const kicker = document.getElementById("tpl-info-kicker");
+    const title = document.getElementById("tpl-info-title");
+    const desc = document.getElementById("tpl-info-desc");
+    const grid = document.getElementById("tpl-info-grid");
+    const actions = document.getElementById("tpl-info-actions");
+    const image = type === "casa"
+      ? (item.foto || item.imagen || (item.imagenes && item.imagenes[0]) || "image/placeholder-casa.jpg")
+      : ((item.imagenes && item.imagenes[0]) || item.imagen || "image/placeholder-parcela.jpg");
+    if (img) img.src = image;
+    if (kicker) kicker.textContent = type === "casa" ? "Ficha informativa · Casa" : "Ficha informativa · Parcela";
+    if (title) title.textContent = item.nombre || (type === "casa" ? "Casa seleccionada" : "Parcela seleccionada");
+    if (desc) desc.textContent = item.descripcion || (type === "casa" ? "Modelo de casa seleccionado para tu proyecto." : "Propiedad seleccionada para tu proyecto.");
+    const fields = type === "casa" ? [
+      ["Valor", money(Number(item.valorCasa || item.precio || item.valor || 0))],
+      ["Superficie", `${Number(item.metros || item.m2 || item.superficie || 0).toLocaleString("es-CL")} m²`],
+      ["Habitaciones", `${Number(item.habitaciones || item.dormitorios || 0) || "-"}`],
+      ["Sistema", item.tipo || item.material || "Prefabricada"]
+    ] : [
+      ["Precio", item.precio || "Consultar"],
+      ["Superficie", `${getParcelaM2(item).toLocaleString("es-CL")} m²`],
+      ["Comuna", item.comuna || "Chile"],
+      ["Rol", item.rol || item.escritura || "Consultar"],
+      ["Agua", item.agua || "Consultar"],
+      ["Luz", item.luz || "Consultar"]
+    ];
+    if (grid) grid.innerHTML = fields.map(([a,b]) => `<div class="tpl-info-item"><small>${a}</small><strong>${b}</strong></div>`).join("");
+    if (actions) {
+      actions.innerHTML = type === "casa"
+        ? `<button type="button" class="primary" data-close-info-modal>Seguir cotizando</button>`
+        : `<a class="primary" href="parcela.html?id=${encodeURIComponent(item.id)}">Ver detalle completo</a><button type="button" class="soft" data-info-location="${item.id}">Ver ubicación</button>`;
+    }
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeProjectInfoModal() {
+    const modal = document.getElementById("tpl-info-modal");
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden", "true");
+  }
+
+  // Mini Mapa Premium: ubicación desde tarjetas Parcela + Casa y cotizador
+  // ------------------------------------------------------------
+  let locationModalMap = null;
+  let locationStreetLayer = null;
+  let locationSatelliteLayer = null;
+  let locationParcelaMarker = null;
+  let locationUserMarker = null;
+  let locationRouteLine = null;
+  let locationCurrentParcela = null;
+
+  function getParcelaById(id) {
+    return getAllParcelas().find(p => String(p.id) === String(id));
+  }
+
+  function ensureLocationModalMap(parcela) {
+    if (!parcela || !parcela.lat || !parcela.lng || !window.L) return;
+
+    const lat = Number(parcela.lat);
+    const lng = Number(parcela.lng);
+
+    if (!locationModalMap) {
+      locationModalMap = L.map("tpl-location-map", { zoomControl: false }).setView([lat, lng], 14);
+      L.control.zoom({ position: "topright" }).addTo(locationModalMap);
+
+      locationStreetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
+      });
+
+      locationSatelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+        attribution: "Tiles © Esri",
+        maxZoom: 19
+      }).addTo(locationModalMap);
+    } else {
+      locationModalMap.setView([lat, lng], 14);
+    }
+
+    if (locationParcelaMarker) locationModalMap.removeLayer(locationParcelaMarker);
+    locationParcelaMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: "tpl-location-pin",
+        html: "<span></span>",
+        iconSize: [34, 34],
+        iconAnchor: [17, 17]
+      })
+    }).addTo(locationModalMap);
+
+    setTimeout(() => locationModalMap?.invalidateSize(), 160);
+  }
+
+  function setLocationLayer(type) {
+    if (!locationModalMap || !locationStreetLayer || !locationSatelliteLayer) return;
+    const streetBtn = document.getElementById("tpl-location-street");
+    const satelliteBtn = document.getElementById("tpl-location-satellite");
+
+    if (type === "satellite") {
+      if (locationModalMap.hasLayer(locationStreetLayer)) locationModalMap.removeLayer(locationStreetLayer);
+      if (!locationModalMap.hasLayer(locationSatelliteLayer)) locationSatelliteLayer.addTo(locationModalMap);
+      streetBtn?.classList.remove("active");
+      satelliteBtn?.classList.add("active");
+    } else {
+      if (locationModalMap.hasLayer(locationSatelliteLayer)) locationModalMap.removeLayer(locationSatelliteLayer);
+      if (!locationModalMap.hasLayer(locationStreetLayer)) locationStreetLayer.addTo(locationModalMap);
+      satelliteBtn?.classList.remove("active");
+      streetBtn?.classList.add("active");
+    }
+  }
+
+  function openLocationModal(parcela) {
+    if (!parcela || !Number.isFinite(Number(parcela.lat)) || !Number.isFinite(Number(parcela.lng)) || (Number(parcela.lat) === 0 && Number(parcela.lng) === 0)) {
+      showFriendlyMessage("Esta parcela aún no tiene coordenadas disponibles para mostrarla en el mapa.");
+      return;
+    }
+
+    locationCurrentParcela = parcela;
+
+    const modal = document.getElementById("tpl-location-modal");
+    const title = document.getElementById("tpl-location-title");
+    const subtitle = document.getElementById("tpl-location-subtitle");
+    const name = document.getElementById("tpl-location-name");
+    const meta = document.getElementById("tpl-location-meta");
+    const distance = document.getElementById("tpl-location-distance");
+    const directions = document.getElementById("tpl-location-directions");
+    const detail = document.getElementById("tpl-location-detail");
+    const waze = document.getElementById("tpl-location-waze");
+
+    if (!modal) return;
+
+    const superficie = Number(parcela.tamano || parcela.superficie || 0).toLocaleString("es-CL");
+    if (title) title.textContent = parcela.nombre || "Ubicación de parcela";
+    if (subtitle) subtitle.textContent = `${parcela.comuna || "Chile"} · ${superficie} m²`;
+    if (name) name.textContent = parcela.nombre || "Parcela seleccionada";
+    if (meta) meta.textContent = `${parcela.comuna || "Chile"} · ${superficie} m² · ${parcela.precio || "Consultar"}`;
+    if (distance) distance.textContent = "Activa tu ubicación para calcular distancia.";
+    if (directions) directions.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parcela.lat + "," + parcela.lng)}`;
+    if (waze) waze.href = `https://waze.com/ul?ll=${encodeURIComponent(parcela.lat + "," + parcela.lng)}&navigate=yes`;
+    if (detail) detail.href = `parcela.html?id=${encodeURIComponent(parcela.id)}`;
+
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("tpl-location-open");
+
+    ensureLocationModalMap(parcela);
+    setLocationLayer("satellite");
+    setTimeout(() => locationModalMap?.invalidateSize(), 220);
+  }
+
+  function closeLocationModal() {
+    const modal = document.getElementById("tpl-location-modal");
+    if (!modal) return;
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("tpl-location-open");
+    if (locationModalMap) {
+      try { locationModalMap.closePopup(); } catch (err) {}
+    }
+  }
+
+  function activateUserLocationForModal() {
+    if (!locationCurrentParcela || !navigator.geolocation) {
+      showFriendlyMessage("Tu navegador no permite obtener ubicación o la parcela no tiene coordenadas.");
+      return;
+    }
+
+    const distanceBox = document.getElementById("tpl-location-distance");
+    if (distanceBox) distanceBox.textContent = "Buscando tu ubicación...";
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      const userLat = pos.coords.latitude;
+      const userLng = pos.coords.longitude;
+      const pLat = Number(locationCurrentParcela.lat);
+      const pLng = Number(locationCurrentParcela.lng);
+      const km = distanceKm(userLat, userLng, pLat, pLng);
+      const mins = Math.max(1, Math.round((km / 55) * 60));
+
+      if (locationModalMap) {
+        if (locationUserMarker) locationModalMap.removeLayer(locationUserMarker);
+        if (locationRouteLine) locationModalMap.removeLayer(locationRouteLine);
+
+        locationUserMarker = L.marker([userLat, userLng], {
+          icon: L.divIcon({
+            className: "tpl-location-user-pin",
+            html: "<span></span>",
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          })
+        }).addTo(locationModalMap);
+
+        locationRouteLine = L.polyline([[userLat, userLng], [pLat, pLng]], {
+          color: "#00828a",
+          weight: 4,
+          opacity: 0.75,
+          dashArray: "8 8"
+        }).addTo(locationModalMap);
+
+        locationModalMap.fitBounds([[userLat, userLng], [pLat, pLng]], { padding: [40, 40] });
+      }
+
+      if (distanceBox) {
+        distanceBox.innerHTML = `<strong>${km.toFixed(1)} km aprox.</strong><span>Estimación en vehículo: ${mins} min</span>`;
+      }
+    }, () => {
+      if (distanceBox) distanceBox.textContent = "No se pudo activar tu ubicación. Puedes usar “Cómo llegar”.";
+    }, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 60000
+    });
+  }
+
+
+  window.openLocationModal = openLocationModal;
+  window.closeLocationModal = closeLocationModal;
+  window.setLocationLayer = setLocationLayer;
+  window.activateUserLocationForModal = activateUserLocationForModal;
+
+
+  function renderProjectPromos() {
+
+      const grid = document.getElementById("promos-grid");
+      if (!grid) return;
+  
+      const parcelasList = getAllParcelas()
+        .filter(p => p && p.id && parseClp(p.precio) > 0)
+        .slice()
+        .sort((a, b) => parseClp(a.precio) - parseClp(b.precio))
+        .slice(0, 10);
+  
+      const casasList = getAllCasas()
+        .filter(c => c && c.id && Number(c.valorCasa || c.precio || 0) > 0)
+        .slice()
+        .sort((a, b) => Number(a.valorCasa || a.precio || 0) - Number(b.valorCasa || b.precio || 0))
+        .slice(0, 10);
+  
+      if (!parcelasList.length || !casasList.length) return;
+  
+      const promos = [];
+      parcelasList.forEach(p => {
+        casasList.forEach(c => {
+          const houseVal = Number(c.valorCasa || c.precio || 0);
+          const total = parseClp(p.precio) + houseVal + getFundacionValue(getCheapestFundacion(), c);
+          promos.push({ p, c, total });
+        });
+      });
+  
+      const used = new Set();
+      const picks = promos
+        .sort((a, b) => a.total - b.total)
+        .filter(item => {
+          const key = item.p.id; // Only 1 promo per parcel
+          if (used.has(key)) return false;
+          used.add(key);
+          return true;
+        })
+        .slice(0, 5);
+  
+      const promoBadges = ["MÁS VENDIDO", "OFERTA DEL DÍA", "AMAZON'S CHOICE", "REBAJADO", "MÁS POPULAR"];
+      
+      grid.className = "amazon-grid"; 
+      grid.innerHTML = "";
+      
+      picks.forEach((item, index) => {
+        const p = item.p;
+        const c = item.c;
+        const landVal = parseClp(p.precio);
+        const houseVal = Number(c.valorCasa || c.precio || 0);
+        const m2 = getParcelaM2(p);
+        
+        const card = document.createElement("article");
+        card.className = "amazon-promo-card";
+        
+        const priceStr = money(item.total).replace('$', '').trim();
+        const reviews = Math.floor(Math.random() * 300) + 50;
+        
+        card.innerHTML = '<div class="amazon-badge" style="background: ' + (index === 2 ? '#232F3E' : '#C45500') + '">' + promoBadges[index] + '</div>' +
+          '<div class="amazon-img-container">' +
+            '<img src="' + getParcelaMainImage(p) + '" alt="' + (p.nombre||'') + '" class="amazon-img-main">' +
+            '<img src="' + (c.foto || 'image/placeholder-casa.jpg') + '" alt="' + (c.nombre||'') + '" class="amazon-house-inset">' +
+          '</div>' +
+          '<div class="amazon-content">' +
+            '<div class="amazon-title">' + (p.nombre || "Parcela seleccionada") + ' con ' + (c.nombre || "Casa") + (c.habitaciones ? ' (' + c.habitaciones + ' habs.)' : '') + '</div>' +
+            '<div class="amazon-rating">⭐⭐⭐⭐⭐ <span class="amazon-reviews">(' + reviews + ')</span></div>' +
+            '<div class="amazon-price">' +
+              '<span class="amazon-currency">$</span><span class="amazon-whole">' + priceStr + '</span>' +
+            '</div>' +
+            '<div class="amazon-prime">✓ <span>Prime</span> Entrega llave en mano</div>' +
+            '<ul class="amazon-bullets">' +
+              '<li>Terreno: ' + m2.toLocaleString("es-CL") + ' m²</li>' +
+              '<li>Casa: ' + (c.metros || c.m2 || "-") + ' m² construidos</li>' +
+              '<li>Ubicación: ' + (p.comuna || "Sur de Chile") + '</li>' +
+            '</ul>' +
+            '<a href="parcela.html?id=' + encodeURIComponent(p.id) + '" class="amazon-btn promo-cta-button" style="text-decoration:none; display:block; text-align:center;">Ver proyecto completo</a>' +
+          '</div>';
+        
+        card.addEventListener('click', (e) => {
+          if(e.target.tagName === 'BUTTON' || e.target.closest('.amazon-btn')) {
+             if (window.selectParcela) window.selectParcela(p);
+             if (window.selectCasa) window.selectCasa(c);
+             const el = document.getElementById("cotizador-premium-section") || document.getElementById("casas-section");
+             if (el) {
+               el.classList.add("active");
+               el.scrollIntoView({behavior: "smooth"});
+             }
+          }
+        });
+        
+        grid.appendChild(card);
+      });
+
+}
+
+
+  document.getElementById("share-project-btn")?.addEventListener("click", () => {
+    if (!state.selectedParcela) return;
+    const shareUrl = window.location.href.split('?')[0] + `?selectParcela=${state.selectedParcela.id}` + (state.selectedCasa ? `&selectCasa=${state.selectedCasa.id}` : '');
+    const shareText = "Te quiero enseñar esta parcela, dime qué te parece";
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Tu Parcela Lista - Proyecto',
+        text: shareText,
+        url: shareUrl
+      }).catch(console.error);
+    } else {
+      // Fallback a WhatsApp Web/App
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+      window.open(waUrl, '_blank');
+    }
+  });
+
+  function hydrateFromUrlOrStorage() {
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.get("flow") === "success") {
+      showFriendlyMessage("¡Pago de reserva exitoso! Tu cotización ha sido confirmada y nos pondremos en contacto contigo.", "Reserva Confirmada");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const preselectId = params.get("selectParcela") || localStorage.getItem("selectedParcelaId");
+    const preselectCasaId = params.get("selectCasa") || localStorage.getItem("selectedCasaId");
+    if (preselectId) {
+      const p = getAllParcelas().find(x => String(x.id) === String(preselectId));
+      if (p) {
+        state.selectedParcela = p;
+        localStorage.setItem("selectedParcelaId", p.id);
+        localStorage.setItem("selectedParcelaData", JSON.stringify(p));
+        DOM.casasSection?.classList.add("active");
+        if (params.get("selectParcela")) setTimeout(() => scrollTo(DOM.casasSection), 250);
+      }
+    }
+    if (preselectCasaId) {
+      const c = getAllCasas().find(x => String(x.id) === String(preselectCasaId));
+      if (c) {
+        state.selectedCasa = c;
+        if (state.installationService) state.selectedFundacion = getCheapestFundacion();
+        localStorage.setItem("selectedCasaId", c.id);
+        localStorage.setItem("selectedCasaData", JSON.stringify(c));
+        DOM.casasSection?.classList.add("active");
+        DOM.cotizadorSection?.classList.add("active");
+        if (params.get("selectCasa")) setTimeout(() => scrollTo(DOM.cotizadorSection), 350);
+      }
+    }
+    if (window.location.hash === "#cotizador-section" && state.selectedParcela) {
+      DOM.casasSection?.classList.add("active");
+      if (state.selectedCasa) DOM.cotizadorSection?.classList.add("active");
+      setTimeout(() => scrollTo(state.selectedCasa ? DOM.cotizadorSection : DOM.casasSection), 450);
+    }
+  }
+
+  window.TPLSelectProyectoListo = function(parcelaId, casaId) {
+    const p = getAllParcelas().find(x => String(x.id) === String(parcelaId));
+    const c = getAllCasas().find(x => String(x.id) === String(casaId));
+    if (!p || !c) {
+      showFriendlyMessage("No pudimos cargar este proyecto. Revisa que la parcela y la casa existan en los archivos de datos.");
+      return;
+    }
+    if (state.installationService) state.selectedFundacion = getCheapestFundacion();
+    selectParcela(p);
+    selectCasa(c);
+    DOM.casasSection?.classList.add("active");
+    DOM.cotizadorSection?.classList.add("active");
+    renderCasas();
+    renderFundaciones();
+    updateCotizacionSummary();
+    scrollTo(DOM.cotizadorSection);
+  };
+
+
+  window.TPLUpdateCotizadorFromSelection = function(options = {}) {
+    const parcelaId = localStorage.getItem("selectedParcelaId");
+    const casaId = localStorage.getItem("selectedCasaId");
+
+    if (parcelaId) {
+      const p = getAllParcelas().find(x => String(x.id) === String(parcelaId));
+      if (p) state.selectedParcela = p;
+      else {
+        try { state.selectedParcela = JSON.parse(localStorage.getItem("selectedParcelaData") || "null") || state.selectedParcela; } catch(e) {}
+      }
+    }
+    if (casaId) {
+      const c = getAllCasas().find(x => String(x.id) === String(casaId));
+      if (c) state.selectedCasa = c;
+      else {
+        try { state.selectedCasa = JSON.parse(localStorage.getItem("selectedCasaData") || "null") || state.selectedCasa; } catch(e) {}
+      }
+    }
+
+    if (localStorage.getItem("tplComboAutoInstallation") === "si") state.installationService = true;
+    if (state.installationService && !state.selectedFundacion) state.selectedFundacion = getCheapestFundacion();
+
+    DOM.cotizadorSection?.classList.add("active");
+    if (state.selectedCasa) DOM.casasSection?.classList.add("active");
+    renderCasas();
+    renderFundaciones();
+    renderExtras();
+    updateCotizacionSummary();
+    ensurePreviewActionButtons();
+    if (window.lucide) lucide.createIcons();
+    if (options.scroll) setTimeout(() => scrollTo(DOM.cotizadorSection), 120);
+  };
+
+  window.addEventListener("tpl:combo-selected", (event) => {
+    if (event.detail?.parcela) state.selectedParcela = event.detail.parcela;
+    if (event.detail?.casa) state.selectedCasa = event.detail.casa;
+    window.TPLUpdateCotizadorFromSelection({ scroll: false });
+  });
+
+  populateComunas();
+  addMapToolbarButtons();
+  
+  if (window.TPLCatalog?.ready) {
+    window.TPLCatalog.ready.then((catalog) => {
+      const parcelas = Array.isArray(catalog?.parcelas) ? catalog.parcelas : [];
+      const casas = Array.isArray(catalog?.casas) ? catalog.casas : [];
+      const extras = Array.isArray(catalog?.extras) ? catalog.extras : [];
+      const planesFundacion = Array.isArray(catalog?.fundaciones) ? catalog.fundaciones : [];
+
+      window.SERVER_PARCELAS = parcelas;
+      window.SERVER_CASAS = casas;
+      extrasOpcionales = extras;
+      fundaciones = planesFundacion;
+      extrasAutomaticos = Array.isArray(window.extrasAutomaticos) ? window.extrasAutomaticos : [];
+      window.extrasOpcionales = extrasOpcionales;
+      window.fundaciones = fundaciones;
+      hydrateFromUrlOrStorage();
+      renderParcelas();
+      renderCasas();
+      renderFundaciones();
+      renderExtras();
+      renderProjectPromos();
+      populateComunas(); 
+      return window.apiGetParcelasConCasa?.();
+    }).then((combined) => {
+      if (combined) renderParcelasConCasa(combined);
+    }).catch((error) => {
+      console.error('No fue posible cargar el catálogo público desde Supabase:', error);
+      const container = document.getElementById('parcelas-container');
+      if (container) container.innerHTML = '<p class="tpl-catalog-error">No pudimos cargar las propiedades. Recarga la página para intentarlo nuevamente.</p>';
+    });
+  } else {
+    console.error('TPLCatalog no está disponible.');
+  }
+  renderCasas();
+  renderFundaciones();
+  renderExtras();
+  renderProjectPromos();
+  updateCotizacionSummary();
+  ensurePreviewActionButtons();
+  setupEvents();
+  
+  // Location Filter Bar Logic
+  const locBar = document.querySelector(".location-filter-bar");
+  if (locBar) {
+    locBar.addEventListener("click", e => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      
+      const type = btn.dataset.filterType;
+      const val = btn.dataset.value;
+      
+      // Update UI active states
+      locBar.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      
+      // Reset other location filters
+      state.activeFilters.commune = "all";
+      state.activeFilters.region = "all";
+      
+      if (type === "region") {
+        state.activeFilters.region = val;
+      } else if (type === "commune") {
+        state.activeFilters.commune = val;
+      }
+      
+      // Trigger refresh and scroll
+      refresh();
+      const parcelasSec = document.getElementById("parcelas-container");
+      if (parcelasSec) {
+        const headerOffset = 140;
+        parcelasSec.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }
+
+  
+  // View Switchers
+  const switchers = document.querySelectorAll('.view-switcher');
+  switchers.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const view = e.currentTarget.dataset.view;
+      switchers.forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      
+      const grid = document.getElementById('parcelas-container');
+      if (grid) {
+        grid.className = 'parcelas-grid view-' + view;
+      }
+    });
+  });
+
+  // Hover Grid -> Map
+  document.addEventListener('mouseover', e => {
+    const card = e.target.closest('.card-parcela-v5');
+    if (card && window.mapMarkers && !DOM.mapLayout?.classList.contains('map-hidden')) {
+      const id = card.dataset.id;
+      if (window.mapMarkers[id]) {
+        window.mapMarkers[id].openPopup();
+      }
+    }
+  });
+
+  // Store markers in renderMapa
+  window.mapMarkers = {};
+
+if (window.lucide) lucide.createIcons();
+});
+
+
+/* TPL producción: garantiza que Parcelas y Casas estén disponibles
+   incluso al abrir un enlace compartido, restaurar caché o navegar desde móvil. */
+(function ensurePublicSectionsAreAvailable(){
+  const reveal = () => {
+    document.body.classList.add("tpl-guided-revealed");
+    document.body.classList.remove("tpl-guided-mode");
+    const casas = document.getElementById("casas-section");
+    if (casas) {
+      casas.classList.add("active");
+      casas.style.removeProperty("display");
+      casas.style.removeProperty("opacity");
+      casas.style.removeProperty("pointer-events");
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", reveal, { once:true });
+  } else {
+    reveal();
+  }
+
+  window.addEventListener("pageshow", reveal);
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href="#casas-section"], a[href$="index.html#casas-section"]');
+    if (!link) return;
+    reveal();
+    requestAnimationFrame(() => {
+      document.getElementById("casas-section")?.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+  });
+})();
+
+/* Respaldo global de imágenes: evita tarjetas vacías ante una ruta dañada. */
+document.addEventListener('error', (event) => {
+  const img = event.target;
+  if (!(img instanceof HTMLImageElement) || img.dataset.fallbackApplied === '1') return;
+  img.dataset.fallbackApplied = '1';
+  img.dataset.imageError = 'true';
+  img.alt = img.alt || 'Imagen temporalmente no disponible';
+  img.src = 'image/logo_compartir.png';
+}, true);
+
+window.tplToggleFavorite = function(id, btn) {
+    if (btn) {
+        const icon = btn.querySelector('i');
+        const isFav = btn.style.color === 'red';
+        btn.style.color = isFav ? '#4a5568' : 'red';
+        if (icon) {
+            icon.style.fill = isFav ? 'none' : 'red';
+        }
+    }
+};
+
+// --- GENERADOR DE VIDEO IA (Automated Flow) ---
+document.addEventListener('DOMContentLoaded', () => {
+  // Since the button is recreated dynamically inside updateCotizacionSummary,
+  // we will attach the listener to the document and delegate the event.
+  document.addEventListener('click', (e) => {
+    const btnAi = e.target.closest('#btn-generate-ai-video');
+    if (btnAi) {
+      e.preventDefault();
+      let prompt = 'A photorealistic cinematic drone shot over a beautiful terrain. ';
+      if (state.selectedCasa) {
+        const isWood = state.selectedCasa.nombre.toLowerCase().includes('madera');
+        prompt += 'A ' + (state.selectedCasa.habitaciones || 3) + '-bedroom modern ' + (isWood ? 'wooden' : 'prefabricated') + ' house is built on this plot. ';
+      }
+      if (state.selectedExtras && state.selectedExtras.size > 0) {
+         let extrasArr = Array.from(state.selectedExtras.keys()).map(id => {
+           let e = [...extrasAutomaticos, ...extrasOpcionales].find(x => extraKey(x) === extraKey(id));
+           return e ? e.nombre.toLowerCase() : null;
+         }).filter(Boolean);
+         if (extrasArr.length > 0) {
+           prompt += 'The property features: ' + extrasArr.join(', ') + '. ';
+         }
+      }
+      prompt += 'Highly detailed, sunny day, architectural visualization style, 8k resolution, smooth camera movement.';
+      const email = window.prompt('Para procesar tu pago de $2.990 y enviarte el video cinemático con IA a tu correo, por favor ingresa tu email:');
+      if (email && email.includes('@')) {
+        const oldHtml = btnAi.innerHTML;
+        btnAi.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Generando Orden de Pago...';
+        fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/cotizaciones_proyectos', {
+          method: 'POST',
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            cliente_nombre: 'ORDEN VIDEO IA',
+            cliente_email: email,
+            parcela_id: state.selectedParcela ? state.selectedParcela.id.toString() : 'Desconocido',
+            casa_id: 'PROMPT: ' + prompt,
+            presupuesto_estimado: 2990
+          })
+                }).then(() => {
+          window.location.href = 'https://www.flow.cl/btn.php?token=b690b8a295495a95b1d4770e58bb8f169ded2f14';
+        }).catch(() => {
+          alert('Error de conexión.');
+          btnAi.innerHTML = oldHtml;
+        });
+      }
+    }
+  });
+});

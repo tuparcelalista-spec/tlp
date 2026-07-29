@@ -1,0 +1,26 @@
+CORRECCION MIME / LIVE SERVER - 29-07-2026
+
+Causa confirmada:
+TPL Business cargaba recursos mediante rutas que no coincidían con la estructura local bajo /frontend-v2/.
+Cuando Live Server no encontraba esos CSS/JS devolvía HTML (404), y Firefox bloqueaba la respuesta por MIME nosniff.
+
+Correcciones:
+- frontend-v2/plataforma/tpl-business/index.html usa ./tpl-business.css y ./tpl-business-*.js.
+- favicon de TPL Business usa ../../assets/.
+- tpl-business-config.js detecta si se ejecuta bajo /frontend-v2/ en Live Server.
+- index.html principal enlaza TPL Business dentro de ./plataforma/.
+- parcela.html enlaza parcelas.js dentro de ./ y TPL Business dentro de ./plataforma/.
+- cotizador.html enlaza parcelas.js dentro de ./.
+- eliminadas cargas duplicadas ../parcelas.js y ../casas.js del index.
+- hero corregido para imágenes ubicadas en ../image/.
+
+Validacion HTTP:
+- tpl-business.css => 200 text/css
+- tpl-business-config.js => 200 text/javascript
+- tpl-business-auth.js => 200 text/javascript
+- tpl-business-service.js => 200 text/javascript
+- tpl-business.js => 200 text/javascript
+- parcelas.js => 200 text/javascript
+- imagen hero => 200 image/png
+
+Abrir con Live Server desde esta carpeta, donde index.html y frontend-v2/ están al mismo nivel.

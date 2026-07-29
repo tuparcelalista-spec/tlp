@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Informes de tasación | TPL</title>
+<meta name="description" content="Consulta, compara y administra tus informes de tasación TPL.">
+<link rel="stylesheet" href="tasador.css?v=20260728-1">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tasador TPL</span></a>
+  <nav><a href="../publicar/index.html">Nueva publicación</a><a href="../../index.html">Inicio</a></nav>
+</header>
+<main>
+  <section class="hero">
+    <div><span>Informes TPL</span><h1>Tus tasaciones, claras y comparables</h1><p>Revisa el valor recomendado, la estrategia de venta y los antecedentes usados en cada informe.</p></div>
+    <button id="newValuation" type="button">Crear nueva tasación</button>
+  </section>
+
+  <section class="summary-grid">
+    <article><small>Informes guardados</small><strong id="countReports">0</strong></article>
+    <article><small>Valor total estimado</small><strong id="totalValue">$0</strong></article>
+    <article><small>Última tasación</small><strong id="lastDate">—</strong></article>
+  </section>
+
+  <section class="toolbar">
+    <div class="search"><span>⌕</span><input id="searchInput" placeholder="Buscar por comuna, tipo o título"></div>
+    <select id="statusFilter"><option value="">Todos los estados</option><option value="borrador">Borrador</option><option value="publicada">Publicada</option></select>
+  </section>
+
+  <section id="emptyState" class="empty" hidden>
+    <span>📐</span><h2>Aún no tienes informes</h2><p>Realiza una tasación desde el publicador y quedará guardada aquí.</p><a href="../publicar/index.html">Crear primera tasación</a>
+  </section>
+  <section id="reportsGrid" class="reports-grid"></section>
+</main>
+
+<dialog id="reportDialog">
+  <div class="dialog-head"><strong>Informe TPL</strong><button id="closeDialog" type="button">×</button></div>
+  <div id="dialogContent"></div>
+  <div class="dialog-actions"><button id="printBtn" type="button">Imprimir / PDF</button><button id="deleteBtn" type="button">Eliminar</button></div>
+</dialog>
+<script src="tasador.js?v=20260728-1"></script>
+</body>
+</html>

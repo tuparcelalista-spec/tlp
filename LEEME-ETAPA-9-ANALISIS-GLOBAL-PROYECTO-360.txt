@@ -1,0 +1,25 @@
+ETAPA 9 — ANÁLISIS GLOBAL + VISTA 360° DEL PROYECTO
+
+IMPLEMENTADO
+- Nuevo acceso principal “Análisis Global” en CRM V2.
+- Panel con proyectos activos, actores conectados, bloqueos, riesgos y recomendaciones.
+- Radar de proyectos y alertas operativas.
+- Vista 360° al abrir un proyecto.
+- Red visual de actores con estados: al día, pendiente, esperando y bloquea.
+- Línea de tiempo por proyecto.
+- Recomendación operativa según bloqueo.
+- Migración 202607280006 con relaciones proyecto-actor, análisis global y base de automatizaciones.
+- Flow no fue modificado.
+
+PRUEBA
+1. Abrir frontend-v2/plataforma/crm-v2/index.html
+2. Entrar a “Análisis Global”.
+3. Abrir Proyecto Los Aromos o Proyecto El Roble.
+4. Revisar actores, estados y línea de tiempo.
+
+SUPABASE
+Ejecutar desde la raíz del proyecto:
+  npx supabase db push
+
+SIGUIENTE ETAPA RECOMENDADA
+Conectar esta interfaz a datos reales de tpl_vista_proyecto_360 y construir el ejecutor de automatizaciones: evento -> condición -> espera -> acción -> historial.

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tasador Integral TPL | Tu Parcela Lista</title>
+<meta name="description" content="Estima el valor comercial de parcela, campo o propiedad rural con vivienda usando el motor unificado TPL.">
+<link rel="stylesheet" href="tasador-publico.css?v=20260729-1">
+<script src="tpl-land-engine.js"></script>
+<script src="tpl-house-engine.js"></script>
+<script type="module" src="tpl-national-catalog.mjs"></script>
+<script defer src="tasador-publico.js?v=20260729-1"></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
+<main class="shell">
+<section class="hero"><span class="eyebrow">Tasador Integral TPL</span><h1>Una referencia comercial clara antes de publicar</h1><p>El mismo motor alimenta este tasador y el cálculo dentro del publicador. Así evitamos resultados distintos para una misma propiedad.</p></section>
+<div class="layout">
+<form id="tasadorForm" class="card form-card">
+<h2>1. Terreno</h2>
+<div class="grid">
+<label><span>Región</span><select id="region" required><option value="">Selecciona región</option></select></label>
+<label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona región</option></select></label>
+<label><span>Superficie terreno (m²)</span><input id="superficie" type="number" min="100" step="100" value="5000" required></label>
+<label><span>Distancia a ciudad principal (km)</span><input id="distanceKm" type="number" min="0" step=".5" value="12" required></label>
+<label><span>Rol</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
+<label><span>Electricidad</span><select id="electricity"><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
+<label><span>Topografía</span><select id="topography"><option>Plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
+<label><span>Distancia a ruta principal (km)</span><input id="routeDistanceKm" type="number" min="0" step=".5" value="0"></label>
+</div>
+<div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa el tasador de casa y construcción.</small></label></div>
+<section id="houseFields" hidden>
+<h2>2. Vivienda</h2>
+<div class="grid">
+<label><span>Superficie casa (m²)</span><input id="areaCasa" type="number" min="0" step="1"></label>
+<label><span>Material principal</span><select id="materialCasa"><option value="madera">Madera</option><option value="metalcon">Metalcon</option><option value="albanileria">Albañilería</option><option value="hormigon">Hormigón</option><option value="mixta">Mixta</option></select></label>
+<label><span>Año construcción</span><input id="anioConstruccion" type="number" min="1900"></label>
+<label><span>Estado</span><select id="estadoCasa"><option value="excelente">Excelente / nueva</option><option value="bueno">Bueno</option><option value="aceptable">Aceptable</option><option value="necesita mejoras">Necesita mejoras</option><option value="para remodelar">Para remodelar</option></select></label>
+<label><span>Fundación</span><select id="tipoFundacion"><option value="sin_fundacion">No valorizar aparte</option><option value="base_simple">Base simple / pilotes</option><option value="radier_terminado">Radier terminado</option></select></label>
+<label><span>Año remodelación integral</span><input id="anioRemodelacion" type="number" min="1900"></label>
+<label><span>Dormitorios</span><input id="dormitorios" type="number" min="0"></label>
+<label><span>Baños</span><input id="banos" type="number" min="0"></label>
+</div>
+<details class="extras"><summary>Obras adicionales</summary><div id="worksGrid" class="works-grid"></div></details>
+<label class="full"><span>Característica realmente diferenciadora</span><textarea id="caracteristicaDiferenciadora" rows="3" placeholder="Ej. acceso privado al río, vista despejada al volcán, quincho equipado..."></textarea><small>Solo se considera si la descripción es concreta y suficiente.</small></label>
+</section>
+<button class="primary" type="submit">Calcular tasación</button>
+</form>
+<aside class="card result-card">
+<span class="eyebrow">Resultado orientativo</span><div id="status">Completa los datos y calcula.</div>
+<div id="result" hidden>
+<div class="main-price"><small>Valor recomendado</small><strong id="ideal">—</strong></div>
+<div class="strategies"><div><small>Venta rápida</small><b id="quick">—</b></div><div><small>Venta paciente</small><b id="patient">—</b></div></div>
+<div class="breakdown"><h3>Desglose</h3><div id="breakdown"></div></div>
+<p class="note">Tasación comercial orientativa. No reemplaza una tasación bancaria, judicial ni peritaje presencial.</p>
+<a id="publishLink" class="secondary" href="index.html">Usar estos datos para publicar</a>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

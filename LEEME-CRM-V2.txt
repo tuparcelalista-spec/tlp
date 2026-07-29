@@ -1,0 +1,10 @@
+ENTREGA CRM V2 BASE OPERATIVA
+
+1. Copia plataforma/crm-v2 dentro de tu proyecto.
+2. Prueba: /plataforma/crm-v2/index.html
+3. Esta versión no reemplaza el CRM antiguo.
+4. Incluye vistas de personas, propietarios, corredores, partners, parcelas, proyectos 1/7–7/7, negociaciones, visitas, agenda, TPL Business, TPL Studio y Oficina.
+5. Publicador y Partner quedan sin selección obligatoria de planes.
+6. TPL Business incluye modalidad.html para elegir Autogestión o Administración por TPL.
+7. Los datos demo/localStorage deben conectarse luego a Supabase mediante una migración canónica.
+8. No se modificaron archivos Flow.

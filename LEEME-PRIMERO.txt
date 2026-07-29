@@ -1,0 +1,34 @@
+TPL PROYECTO NUEVO CONSOLIDADO — 28-07-2026
+
+Esta carpeta reúne todo lo desarrollado hasta esta etapa:
+
+1. Frontend V2
+   - index.html
+   - parcela.html
+   - cotizador.html
+   - búsqueda por GPS/comuna
+   - filtros y combinaciones parcela + casa
+   - ficha de inversión y negociación
+
+2. Plataforma V2
+   - Publicador V2
+   - Tasador e informes
+   - CRM V2
+   - TPL Business y modalidad
+   - Partners
+
+INSTALACIÓN RECOMENDADA
+
+A) Copia esta carpeta completa junto a tu proyecto antiguo.
+B) Desde el proyecto antiguo copia dentro de esta carpeta raíz:
+   - parcelas.js
+   - casas.js
+   - carpeta image completa
+C) Abre con Live Server:
+   http://127.0.0.1:5500/index.html
+
+IMPORTANTE
+- La carpeta correcta se llama frontend-v2, con "en".
+- Elimina cualquier carpeta llamada fronted-v2.
+- No reemplaces los archivos Flow actuales.
+- CRM, correos, reservas, visitas, negociaciones y publicaciones todavía usan datos demostrativos o localStorage en varias partes. La conexión definitiva con Supabase es la siguiente etapa.

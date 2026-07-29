@@ -1,0 +1,14 @@
+CORRECCION PUBLICADOR V2
+
+1. El nombre correcto de la carpeta es: frontend-v2
+2. Elimina por completo cualquier carpeta llamada: fronted-v2
+3. Copia la carpeta frontend-v2 de este ZIP en la raíz del proyecto.
+4. Abre exactamente:
+   http://127.0.0.1:5500/frontend-v2/plataforma/publicar/index.html
+5. Este publicador carga solo:
+   publicar.css
+   tpl-land-engine.js
+   tpl-report-generator.js
+   publicar.js
+
+No debe cargar app.js, tpl-lead-advisor.js ni tpl-site-shell.js.

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cotizador de casa y proyecto rural | Tu Parcela Lista</title>
+  <meta name="description" content="Construye y guarda tu proyecto de parcela y vivienda con acompañamiento TPL.">
+  <link rel="icon" href="./assets/logo-tu-parcela-lista.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/cotizador.css">
+  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <script src="js/tpl-seo.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html"><img src="./assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"></a>
+    <nav><a href="./index.html">Parcelas</a><a href="./red-partner/index.html">Red Partner</a><a href="./plataforma/publicar/index.html">Publicar</a></nav>
+  </header>
+  <section class="tpl-emotional-hero" aria-label="Ahora imagina lo que puedes construir aquí">
+    <div class="tpl-emotional-hero__content">
+      <span class="tpl-emotional-hero__eyebrow">TU PROYECTO TOMA FORMA</span>
+      <h2>Ahora imagina lo que puedes construir aquí</h2>
+      <p>Compara una casa prefabricada o diseña una a tu medida. Avanza por etapas, entiende los costos y guarda tu proyecto cuando estés listo.</p>
+    </div>
+  </section>
+  <div class="tpl-positive-strip">No necesitas resolver todo hoy. <strong>Construye tu proyecto paso a paso.</strong></div>
+
+
+  <main class="page-shell">
+    <section class="welcome card">
+      <div>
+        <span class="eyebrow">TU PROYECTO YA COMENZÓ</span>
+        <h1>¡Felicitaciones! Vamos a darle forma a tu proyecto.</h1>
+        <p id="advisor-message">Elegiste una parcela. Ahora TPL te ayudará a definir la vivienda, mantener el presupuesto bajo control y elegir tu próximo paso.</p>
+      </div>
+      <div class="progress" aria-label="Avance del proyecto">
+        <span class="done">Parcela</span><span class="active">Vivienda</span><span>Guardar</span><span>Visita o reserva</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="content-column">
+        <section class="parcel-summary card">
+          <img id="parcel-image" alt="Parcela seleccionada">
+          <div>
+            <span class="mini-label">Tu parcela seleccionada</span>
+            <h2 id="parcel-name">Cargando parcela…</h2>
+            <p id="parcel-meta"></p>
+            <div class="virtues" id="parcel-virtues"></div>
+          </div>
+        </section>
+
+        <section class="card step" id="housing-step">
+          <div class="step-heading"><span>1</span><div><h2>¿Cómo quieres construir tu vivienda?</h2><p>Ambas alternativas pueden adaptarse a tu parcela y presupuesto.</p></div></div>
+          <div class="choice-grid housing-grid">
+            <button class="choice-card" data-housing="prefabricada" type="button">
+              <strong>Casa prefabricada</strong>
+              <small>Más rápida, modelos definidos y precio más predecible.</small>
+              <ul><li>Modelos disponibles</li><li>Menor tiempo de decisión</li><li>Instalación según modelo y ubicación</li></ul>
+            </button>
+            <button class="choice-card" data-housing="diseno-propio" type="button">
+              <strong>Diseño propio</strong>
+              <small>Una vivienda pensada para tu forma de vivir y para esta parcela.</small>
+              <ul><li>Distribución personalizada</li><li>Elección de superficie</li><li>Material y nivel de terminación</li></ul>
+            </button>
+          </div>
+        </section>
+
+        <section class="card step" id="prefab-panel" hidden>
+          <div class="step-heading"><span>2</span><div><h2>Elige una casa prefabricada</h2><p>Te mostramos modelos compatibles con tu presupuesto disponible.</p></div></div>
+          <div class="prefab-filters">
+            <label>Dormitorios<select id="prefab-rooms"><option value="all">Todos</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4 o más</option></select></label>
+            <label>Tamaño<select id="prefab-size"><option value="all">Todos</option><option value="small">Hasta 59 m²</option><option value="medium">60 a 109 m²</option><option value="large">110 m² o más</option></select></label>
+          </div>
+          <div class="prefab-grid" id="prefab-grid"></div>
+        </section>
+
+        <section class="card step" id="custom-panel" hidden>
+          <div class="step-heading"><span>2</span><div><h2>Define el tamaño de tu diseño</h2><p>Puedes elegir una referencia o ingresar exactamente los metros cuadrados que imaginas.</p></div></div>
+          <div class="size-grid">
+            <button data-size="52" type="button"><strong>Pequeña</strong><small>45–60 m²</small></button>
+            <button data-size="72" type="button"><strong>Mediana</strong><small>61–85 m²</small></button>
+            <button data-size="100" type="button"><strong>Grande</strong><small>86–120 m²</small></button>
+            <button data-size="140" type="button"><strong>Muy grande</strong><small>121–180 m²</small></button>
+          </div>
+          <div class="manual-fields">
+            <label>Metros cuadrados<input id="custom-m2" type="number" min="18" max="300" value="72"></label>
+            <label>Dormitorios<input id="custom-rooms" type="number" min="1" max="10" value="3"></label>
+          </div>
+          <h3>Selecciona el sistema constructivo</h3>
+          <div class="material-grid" id="material-grid"></div>
+        </section>
+
+        <section class="card step save-step" id="save-step">
+          <div class="step-heading"><span>3</span><div><h2>Guarda o envía tu proyecto</h2><p>Completa tus datos para conservarlo, recibirlo en WhatsApp o pedir ayuda.</p></div></div>
+          <div class="form-grid">
+            <label>Nombre<input id="client-name" autocomplete="name" placeholder="Tu nombre"></label>
+            <label>WhatsApp<input id="client-phone" inputmode="tel" autocomplete="tel" placeholder="9 1234 5678"></label>
+            <label>Correo<input id="client-email" type="email" autocomplete="email" placeholder="nombre@correo.cl"></label>
+            <label>Comuna de residencia<input id="client-commune" placeholder="Tu comuna"></label>
+          </div>
+          <label class="consent"><input id="client-consent" type="checkbox"> Autorizo a Tu Parcela Lista a contactarme por este proyecto.</label>
+          <div class="action-row">
+            <button class="secondary" id="save-project" type="button">Guardar proyecto</button>
+            <button class="primary" id="send-whatsapp" type="button">Enviar a mi WhatsApp</button>
+          </div>
+          <p class="status" id="save-status" aria-live="polite"></p>
+        </section>
+
+        <section class="card step advisor-step">
+          <div class="step-heading"><span>4</span><div><h2>¿Quieres que te asesoremos?</h2><p>Elige cuándo prefieres que te llamemos y qué necesitas revisar.</p></div></div>
+          <div class="form-grid">
+            <label>Motivo<select id="advice-reason"><option>Revisar presupuesto</option><option>Casa prefabricada</option><option>Diseño propio</option><option>Dudas sobre la parcela</option><option>Preparación del terreno</option><option>Financiamiento</option></select></label>
+            <label>Fecha preferida<input id="advice-date" type="date"></label>
+            <label>Horario<select id="advice-time"><option>Mañana</option><option>Mediodía</option><option>Tarde</option><option>Después de las 18:00</option></select></label>
+          </div>
+          <button class="secondary" id="request-advice" type="button">Solicitar asesoría</button>
+        </section>
+
+        <section class="card step next-step">
+          <div class="step-heading"><span>5</span><div><h2>Antes de seguir, asegura tu próximo paso</h2><p>Puedes conocer la parcela o consultar una reserva. Ninguna reserva queda confirmada hasta la aceptación del propietario.</p></div></div>
+          <div class="choice-grid final-actions">
+            <button id="visit-option" type="button"><strong>Agendar visita</strong><small>Selecciona fecha, horario y cantidad de asistentes.</small></button>
+            <button id="reserve-option" type="button"><strong>Solicitar reserva</strong><small>Consulta disponibilidad y condiciones antes de pagar.</small></button>
+          </div>
+          <div id="visit-form" class="inline-form" hidden>
+            <label>Fecha<input id="visit-date" type="date"></label><label>Horario<select id="visit-time"><option>Mañana</option><option>Mediodía</option><option>Tarde</option></select></label><label>Asistentes<input id="visit-guests" type="number" min="1" value="2"></label>
+            <button class="primary" id="submit-visit" type="button">Enviar solicitud de visita</button>
+          </div>
+          <div id="reserve-form" class="inline-form" hidden>
+            <label>Forma de compra<select id="reserve-method"><option>Pago al contado</option><option>Pie alto y saldo</option><option>Crédito</option><option>Necesito asesoría</option></select></label>
+            <label>Comentario<input id="reserve-note" placeholder="Ej: quiero reservar durante este mes"></label>
+            <button class="primary" id="submit-reserve" type="button">Enviar solicitud de reserva</button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="summary card">
+        <span class="mini-label">Resumen en tiempo real</span>
+        <h2>Tu proyecto TPL</h2>
+        <div class="summary-row"><span>Parcela</span><strong id="sum-parcel">$0</strong></div>
+        <div class="summary-row"><span>Vivienda</span><strong id="sum-house">Por definir</strong></div>
+        <div class="summary-row"><span>Superficie</span><strong id="sum-size">—</strong></div>
+        <div class="summary-row total"><span>Total estimado</span><strong id="sum-total">$0</strong></div>
+        <div class="budget-box" id="budget-box" hidden><span>Presupuesto informado</span><strong id="sum-budget"></strong><small id="budget-difference"></small></div>
+        <div class="advisor-note" id="summary-advice">Elige el tipo de vivienda para continuar.</div>
+        <small class="disclaimer">Valores referenciales. Instalación, traslado, permisos y condiciones del terreno deben confirmarse antes de contratar.</small>
+      </aside>
+    </section>
+  </main>
+
+  <script src="./parcelas.js"></script>
+  <script src="./casas.js"></script>
+  <script defer src="./js/cotizador.js"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Cotizador de casa y proyecto rural | Tu Parcela Lista",description:"Compara casas prefabricadas o dise\u00f1a una casa a tu medida y arma paso a paso el presupuesto de tu proyecto rural."}));</script>
+</body>
+</html>

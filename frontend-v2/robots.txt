@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /plataforma/
+Sitemap: https://www.parcelalista.cl/sitemap.xml

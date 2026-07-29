@@ -1,0 +1,13 @@
+VERIFICACION RAPIDA
+
+1. Abre frontend-v2/index.html en VS Code.
+2. La linea cercana al inicio debe contener:
+   TPL HOME CORRECTO 2026-07-29-MIME-FINAL
+3. El titulo debe ser:
+   Tu Parcela Lista | Ecosistema para tu proyecto de vida rural
+4. NO debe contener tpl-business.css en frontend-v2/index.html.
+
+TPL Business correcto vive en:
+frontend-v2/plataforma/tpl-business/index.html
+
+Si Firefox intenta cargar /frontend-v2/tpl-business.css, entonces estas ejecutando una carpeta anterior o frontend-v2/index.html fue reemplazado por otro archivo.

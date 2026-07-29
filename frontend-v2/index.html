@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tu Parcela Lista | Ecosistema para tu proyecto de vida rural</title>
+  <meta name="description" content="Encuentra parcelas cercanas a tu ubicación o busca por comuna. Ordena por facilidad de pago, naturaleza, servicios, precio o superficie.">
+  <meta name="theme-color" content="#003f7a">
+  <link rel="canonical" href="https://www.parcelalista.cl/">
+  <link rel="preload" href="./assets/logo-tu-parcela-lista.png" as="image">
+  <link rel="stylesheet" href="./css/index.css?v=20260728-2">
+  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <script src="js/tpl-seo.js"></script>
+  <script src="parcelas.js" defer></script>
+  <script src="casas.js" defer></script>
+  <script src="js/tpl-public-stats.js" defer></script>
+</head>
+<body>
+  <header class="tpl-header">
+    <a class="tpl-brand" href="./index.html" aria-label="Tu Parcela Lista, inicio">
+      <img src="./assets/logo-tu-parcela-lista.png" width="158" height="68" alt="Tu Parcela Lista">
+    </a>
+
+    <nav class="tpl-nav" aria-label="Navegación principal">
+      <a href="#buscador">Buscar parcelas</a>
+      <a href="../como-comprar.html">Cómo comprar</a>
+      <a href="./red-partner/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business/index.html">TPL Business</a>
+      <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
+    </nav>
+
+    <div class="tpl-mobile-actions">
+      <a href="#resultados">Parcelas</a>
+      <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
+      <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+    </div>
+
+    <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+      <a href="#buscador">Buscar parcelas</a>
+      <a href="../como-comprar.html">Cómo comprar</a>
+      <a href="./red-partner/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business/index.html">TPL Business</a>
+    </nav>
+  </header>
+  <section class="tpl-emotional-hero" aria-label="Tu proyecto de campo empieza aquí">
+    <div class="tpl-emotional-hero__content">
+      <span class="tpl-emotional-hero__eyebrow">TU PARCELA LISTA · ECOSISTEMA RURAL</span>
+      <h2>Tu proyecto de campo empieza aquí</h2>
+      <p>Encuentra un lugar que se adapte a tu vida, tus planes y tu presupuesto. Primero elegimos el lugar; después construimos contigo lo que viene.</p>
+    </div>
+  </section>
+  <div class="tpl-positive-strip">Encuentra tu lugar. <strong>Construye tu proyecto.</strong> Vive una nueva etapa.</div>
+
+  <section class="tpl-public-stats" aria-label="Tu Parcela Lista en números">
+    <div class="tpl-public-stats__shell">
+      <div class="tpl-public-stats__intro">
+        <small>TPL EN NÚMEROS</small>
+        <strong>Un ecosistema que crece junto a cada proyecto rural.</strong>
+      </div>
+      <div class="tpl-public-stat" data-tpl-stat="parcelas">
+        <span class="tpl-public-stat__value">0</span>
+        <span class="tpl-public-stat__label">Parcelas y campos</span>
+      </div>
+      <div class="tpl-public-stat" data-tpl-stat="casas">
+        <span class="tpl-public-stat__value">0</span>
+        <span class="tpl-public-stat__label">Casas</span>
+      </div>
+      <div class="tpl-public-stat" data-tpl-stat="empresas">
+        <span class="tpl-public-stat__value">0</span>
+        <span class="tpl-public-stat__label">Empresas</span>
+      </div>
+      <div class="tpl-public-stat" data-tpl-stat="proyectos">
+        <span class="tpl-public-stat__value">0</span>
+        <span class="tpl-public-stat__label">Proyectos</span>
+      </div>
+      <div class="tpl-public-stat" data-tpl-stat="visitas">
+        <span class="tpl-public-stat__value">0</span>
+        <span class="tpl-public-stat__label">Visitas</span>
+      </div>
+    </div>
+    <div class="tpl-public-stat__note" data-tpl-stats-note aria-live="polite"></div>
+  </section>
+
+
+
+  <main>
+    <section id="buscador" class="search-hero" aria-labelledby="search-title">
+      <div class="search-copy">
+        <span>EN TU PROYECTO DE CAMPO TE ACOMPAÑAMOS</span>
+        <h1 id="search-title">Encuentra primero el lugar correcto.</h1>
+        <p>Busca por distancia desde tu ubicación o elige directamente una comuna.</p>
+      </div>
+
+      <div class="search-panel">
+        <div class="search-methods" role="group" aria-label="Método de búsqueda">
+          <button id="nearby-method" class="search-method is-active" type="button" data-method="nearby">
+            <strong>Cercanas a mí</strong>
+            <small>Ordenadas por distancia real</small>
+          </button>
+          <button id="commune-method" class="search-method" type="button" data-method="commune">
+            <strong>Buscar por comuna</strong>
+            <small>Elige una zona específica</small>
+          </button>
+        </div>
+
+        <div id="nearby-panel" class="method-panel">
+          <p>Usaremos tu ubicación solamente para calcular la distancia a las parcelas.</p>
+          <button id="locate-button" class="primary-button" type="button">Usar mi ubicación</button>
+          <small id="location-status" class="status-text" aria-live="polite"></small>
+        </div>
+
+        <div id="commune-panel" class="method-panel" hidden>
+          <label for="commune-select">Comuna</label>
+          <select id="commune-select">
+            <option value="">Selecciona una comuna</option>
+          </select>
+          <button id="commune-search-button" class="primary-button" type="button">Ver parcelas de esta comuna</button>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="proyecto-presupuesto" class="combo-budget-section" aria-labelledby="combo-budget-title">
+      <div class="combo-budget-copy">
+        <span>PARCELA + CASA PREFABRICADA</span>
+        <h2 id="combo-budget-title">¿Cuánto quieres invertir en tu proyecto?</h2>
+        <p>Combinamos parcelas y casas cuyo valor total se acerque a tu presupuesto. Cada búsqueda mezcla alternativas distintas para mostrarte nuevas posibilidades.</p>
+      </div>
+
+      <form id="combo-budget-form" class="combo-budget-form">
+        <label for="combo-budget-input">Presupuesto total</label>
+        <div class="combo-budget-input-wrap">
+          <b>$</b>
+          <input id="combo-budget-input" type="text" inputmode="numeric" autocomplete="off" placeholder="50.000.000" aria-describedby="combo-budget-help">
+        </div>
+        <div class="combo-budget-quick" aria-label="Presupuestos sugeridos">
+          <button type="button" data-combo-budget="35000000">$35 millones</button>
+          <button type="button" data-combo-budget="50000000">$50 millones</button>
+          <button type="button" data-combo-budget="70000000">$70 millones</button>
+          <button type="button" data-combo-budget="100000000">$100 millones</button>
+        </div>
+        <button class="primary-button combo-search-button" type="submit">Buscar parcela + casa</button>
+        <small id="combo-budget-help">Valores referenciales según los precios disponibles en parcelas.js y casas.js.</small>
+      </form>
+
+      <div id="combo-results-wrap" class="combo-results-wrap" hidden>
+        <div class="combo-results-head">
+          <div>
+            <span class="context-label">PROYECTOS COMPATIBLES</span>
+            <h2>Alternativas para imaginar tu proyecto</h2>
+            <p id="combo-results-summary"></p>
+          </div>
+          <button id="combo-refresh" class="map-button" type="button">Ver otras opciones</button>
+        </div>
+        <div id="combo-grid" class="combo-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="resultados" class="results-section" aria-labelledby="results-title">
+      <div class="results-toolbar" id="scroll-anchor">
+        <div>
+          <span id="search-context" class="context-label">Selecciona cómo quieres buscar</span>
+          <h2 id="results-title">Parcelas disponibles</h2>
+          <p id="results-count">Preparando catálogo…</p>
+        </div>
+        <button id="map-button" class="map-button" type="button" disabled>Mapa</button>
+      </div>
+
+      <div id="priority-bar" class="priority-bar" aria-label="Prioridad de resultados">
+        <button type="button" class="is-active" data-priority="distance">Más cercanas</button>
+        <button type="button" data-priority="payment">Facilidad de pago</button>
+        <button type="button" data-priority="nature">Más naturales</button>
+        <button type="button" data-priority="services">Servicios cerca</button>
+        <button type="button" data-priority="economic">Más económicas</button>
+        <button type="button" data-priority="large">1 hectárea o más</button>
+      </div>
+
+      <div id="map-panel" class="map-panel" hidden>
+        <div class="map-panel-head">
+          <strong>Ubicación de las parcelas encontradas</strong>
+          <button id="map-close" type="button">Cerrar</button>
+        </div>
+        <div id="map" class="map-canvas" aria-label="Mapa de parcelas"></div>
+      </div>
+
+      <div id="parcel-grid" class="parcel-grid" aria-live="polite"></div>
+      <button id="load-more" class="load-more" type="button" hidden>Ver más parcelas</button>
+    </section>
+  </main>
+
+  <footer class="tpl-footer">
+    <img src="./assets/logo-tu-parcela-lista.png" width="130" height="56" alt="Tu Parcela Lista">
+    <p>Encuentra tu parcela. Después construimos contigo el proyecto completo.</p>
+    <nav aria-label="Enlaces legales">
+      <a href="../terminos.html">Términos</a>
+      <a href="../politica-privacidad.html">Privacidad</a>
+      <a href="./red-partner/index.html">Red Partner</a>
+    </nav>
+  </footer>
+
+  <script src="../parcelas.js" defer></script>
+  <script src="../casas.js" defer></script>
+  <script src="./js/index.js?v=20260728-2" defer></script>
+<script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Tu Parcela Lista | Ecosistema para tu proyecto de vida rural",description:"Encuentra parcelas y campos, compara alternativas y da forma a tu proyecto de vida rural con acompa\u00f1amiento, casas y servicios en un solo ecosistema."}));</script>
+</body>
+</html>

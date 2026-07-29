@@ -1,0 +1,28 @@
+ETAPA 8 — NÚCLEO CANÓNICO TPL
+
+OBJETIVO
+Conectar el primer recorrido real:
+Publicador V2 -> Supabase -> CRM V2 -> TPL Business.
+
+QUÉ SE AGREGÓ
+1. Migración: supabase/migrations/202607280005_tpl_core_canonical.sql
+2. Servicio compartido: frontend-v2/js/core/tpl-data-service.js
+3. Diagnóstico técnico y mejoras negociables en el Publicador.
+4. Registro de actor, rol, propiedad, necesidades, onboarding y evento.
+5. Respaldo local automático si Supabase aún no está configurado.
+6. CRM V2 muestra el estado de sincronización canónica.
+7. TPL Business queda preparado para leer propiedades y decisiones.
+
+IMPORTANTE
+- No se modificó ningún archivo api/flow-*.js.
+- Antes de producción, ejecutar la migración en Supabase y revisar políticas RLS.
+- La RPC tpl_publicar_propiedad_v2 permite alta anónima; debe protegerse con CAPTCHA/rate-limit antes de campañas públicas.
+- Las fotografías todavía conservan nombres en el prototipo. La próxima etapa debe subirlas a Storage con optimización WebP.
+
+PRUEBA LOCAL
+1. Abrir frontend-v2/plataforma/publicar/index.html
+2. Completar los siete pasos.
+3. En diagnóstico, seleccionar al menos una mejora o “No necesita mejoras”.
+4. Enviar.
+5. Si Supabase no está disponible, aparecerá “respaldo local”.
+6. Abrir frontend-v2/plataforma/crm-v2/index.html y comprobar el indicador “Núcleo canónico”.

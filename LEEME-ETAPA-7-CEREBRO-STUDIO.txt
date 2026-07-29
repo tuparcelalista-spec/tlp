@@ -1,0 +1,14 @@
+ETAPA 7 — CEREBRO TPL + STUDIO MARK II
+
+Rutas nuevas:
+/frontend-v2/plataforma/tpl-business/studio-mark-ii/index.html
+/docs/CEREBRO-TPL-ARQUITECTURA-V1.md
+
+Esta versión es un prototipo funcional local:
+- comparte actores, proyectos, necesidades, acuerdos, Studio y aprobaciones mediante tpl-brain.js;
+- Studio prepara Landing, contenido, campañas y guiones;
+- ninguna acción externa se ejecuta sin aprobación;
+- no simula métricas ni publica realmente en Google/Facebook.
+
+Próximo paso técnico:
+crear tablas y políticas Supabase para actores, roles, necesidades, acuerdos, aprobaciones y eventos.

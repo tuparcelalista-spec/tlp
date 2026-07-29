@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Parcelas y campos | Tu Parcela Lista</title>
+  <meta name="description" content="Conoce la ubicación, superficie, características y diagnóstico TPL de esta parcela antes de elegir tu vivienda.">
+  <meta name="theme-color" content="#003f7a">
+  <link rel="stylesheet" href="./css/parcela.css?v=20260728-2">
+  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <script src="js/tpl-seo.js"></script>
+</head>
+<body>
+  <header class="tpl-header">
+    <a class="tpl-brand" href="./index.html" aria-label="Volver al buscador">
+      <img src="./assets/logo-tu-parcela-lista.png" width="158" height="68" alt="Tu Parcela Lista">
+    </a>
+    <nav class="tpl-nav" aria-label="Navegación principal">
+      <a href="./index.html">Buscar parcelas</a>
+      <a href="../como-comprar.html">Cómo comprar</a>
+      <a href="./red-partner/index.html">Red Partner</a>
+      <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
+    </nav>
+    <div class="tpl-mobile-actions">
+      <a href="./index.html">Parcelas</a>
+      <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
+      <button id="menu-toggle" class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+    </div>
+    <nav id="mobile-menu" class="mobile-menu" hidden>
+      <a href="./index.html">Buscar parcelas</a>
+      <a href="../como-comprar.html">Cómo comprar</a>
+      <a href="./red-partner/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business/index.html">TPL Business</a>
+    </nav>
+  </header>
+  <section class="tpl-emotional-hero" aria-label="Puede ser mucho más que una parcela">
+    <div class="tpl-emotional-hero__content">
+      <span class="tpl-emotional-hero__eyebrow">CONOCE ANTES DE DECIDIR</span>
+      <h2>Puede ser mucho más que una parcela</h2>
+      <p>Descubre su entorno, valor y posibilidades. Queremos que llegues a una visita sabiendo por qué este lugar puede encajar contigo.</p>
+    </div>
+  </section>
+  <div class="tpl-positive-strip">Menos visitas por curiosidad. <strong>Más decisiones bien informadas.</strong></div>
+
+
+  <main id="parcel-page" hidden>
+    <section class="hero-detail">
+      <div class="gallery" id="gallery">
+        <button id="gallery-prev" class="gallery-arrow gallery-prev" type="button" aria-label="Foto anterior">‹</button>
+        <img id="main-image" src="./assets/logo-tu-parcela-lista.png" width="1200" height="800" alt="Parcela" fetchpriority="high" decoding="async">
+        <button id="gallery-next" class="gallery-arrow gallery-next" type="button" aria-label="Foto siguiente">›</button>
+        <span id="gallery-count" class="gallery-count"></span>
+      </div>
+
+      <div class="hero-summary">
+        <a class="back-link" href="./index.html">← Volver a resultados</a>
+        <p id="search-memory" class="search-memory"></p>
+        <h1 id="parcel-name"></h1>
+        <p id="parcel-price" class="main-price"></p>
+        <div class="key-facts">
+          <article><span>Distancia</span><strong id="fact-distance">Por calcular</strong></article>
+          <article><span>Comuna</span><strong id="fact-commune">Por confirmar</strong></article>
+          <article><span>Superficie</span><strong id="fact-size">Por confirmar</strong></article>
+          <article><span>Tipo de suelo</span><strong id="fact-soil">Por confirmar</strong></article>
+        </div>
+        <div id="primary-tags" class="primary-tags"></div>
+        <div class="hero-actions">
+          <a id="visit-link" class="primary-action" href="#contact-section">Agendar visita</a>
+          <button id="share-button" class="secondary-action" type="button">Compartir</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="main-column">
+        <section class="clean-section">
+          <div class="section-heading"><span>LO ESENCIAL</span><h2>Lo que debes saber antes de avanzar</h2></div>
+          <p id="parcel-description" class="lead-description"></p>
+          <div id="confirmed-grid" class="status-grid"></div>
+        </section>
+
+        <section class="clean-section diagnosis-section">
+          <div class="section-heading"><span>DIAGNÓSTICO TPL</span><h2>Qué tiene y qué conviene revisar</h2></div>
+          <div class="diagnosis-columns">
+            <article class="diagnosis-card positive-card">
+              <h3>Confirmado en la publicación</h3>
+              <ul id="included-list"></ul>
+            </article>
+            <article class="diagnosis-card pending-card">
+              <h3>Antes de construir</h3>
+              <ul id="pending-list"></ul>
+            </article>
+          </div>
+          <p class="diagnosis-note">Los antecedentes pendientes no significan que la parcela tenga un problema. Indican qué información u obra debe confirmarse antes de calcular el proyecto completo.</p>
+        </section>
+
+        <section class="clean-section valuation-section">
+          <div class="section-heading"><span>REFERENCIA TPL</span><h2>Lectura preliminar del valor publicado</h2></div>
+          <div class="valuation-box">
+            <div><span>Precio publicado</span><strong id="valuation-price"></strong></div>
+            <div><span>Valor por m²</span><strong id="valuation-m2"></strong></div>
+            <div><span>Lectura preliminar</span><strong id="valuation-position"></strong></div>
+          </div>
+          <p id="valuation-explanation"></p>
+          <small>Esta lectura es orientativa y no reemplaza una tasación formal ni una revisión legal de la propiedad.</small>
+        </section>
+
+
+        <section class="clean-section investment-section" id="investment-section">
+          <div class="section-heading"><span>ANÁLISIS DE INVERSIÓN</span><h2>Precio publicado frente al valor de referencia</h2></div>
+          <div class="investment-layout">
+            <article class="investment-chart-card">
+              <div class="investment-chart-head">
+                <div><strong id="investment-reading">Calculando referencia…</strong><small id="investment-source">Referencia preliminar TPL</small></div>
+                <span id="investment-badge" class="investment-badge">En análisis</span>
+              </div>
+              <div class="investment-scale" aria-label="Comparación de valor por metro cuadrado">
+                <div class="investment-track"><i id="investment-range"></i><b id="investment-marker"></b></div>
+                <div class="investment-labels"><span id="investment-low">—</span><span id="investment-reference">—</span><span id="investment-high">—</span></div>
+              </div>
+              <div class="investment-bars">
+                <article><span>Referencia comunal</span><div><i id="bar-reference"></i></div><strong id="bar-reference-value">—</strong></article>
+                <article><span>Esta parcela</span><div><i id="bar-published"></i></div><strong id="bar-published-value">—</strong></article>
+              </div>
+              <p id="investment-explanation"></p>
+              <small id="investment-disclaimer">Comparación orientativa. Debe validarse con antecedentes legales, ubicación exacta, servicios y estado real del terreno.</small>
+            </article>
+
+            <article class="owner-action-card">
+              <span class="owner-action-kicker">ANTES DE RESERVAR</span>
+              <h3>Conversa una mejor condición con el propietario</h3>
+              <p id="owner-action-advice">Puedes presentar una oferta o pedir una mejora concreta antes de solicitar la reserva.</p>
+              <div class="owner-action-options">
+                <button class="owner-option is-active" type="button" data-owner-action="oferta">Ofertar al dueño</button>
+                <button class="owner-option" type="button" data-owner-action="mejoras">Pedir mejoras</button>
+              </div>
+              <form id="owner-proposal-form" class="owner-proposal-form">
+                <input type="hidden" id="proposal-type" value="oferta">
+                <label id="offer-amount-field"><span>Mi oferta</span><input id="proposal-amount" inputmode="numeric" placeholder="$18.500.000"></label>
+                <fieldset id="improvement-field" hidden>
+                  <legend>¿Qué mejora te ayudaría a avanzar?</legend>
+                  <label><input type="checkbox" name="improvement" value="Cerco perimetral"> Cerco perimetral</label>
+                  <label><input type="checkbox" name="improvement" value="Portón de acceso"> Portón de acceso</label>
+                  <label><input type="checkbox" name="improvement" value="Puntera o solución de agua"> Puntera o solución de agua</label>
+                  <label><input type="checkbox" name="improvement" value="Panel solar básico"> Panel solar básico</label>
+                  <label><input type="checkbox" name="improvement" value="Aporte para fosa séptica"> Aporte para fosa séptica</label>
+                </fieldset>
+                <label><span>Condición de compra</span><select id="proposal-condition"><option value="">Selecciona una opción</option><option>Compra al contado</option><option>Reserva durante este mes</option><option>Pie alto</option><option>Compra inmediata si acepta</option><option>Necesito financiamiento</option></select></label>
+                <label><span>Mensaje al propietario</span><textarea id="proposal-message" rows="3" placeholder="Ej.: Puedo avanzar este mes si se incluye el portón de acceso."></textarea></label>
+                <div class="proposal-contact-grid">
+                  <label><span>Nombre</span><input id="proposal-name" autocomplete="name" required></label>
+                  <label><span>Correo</span><input id="proposal-email" type="email" autocomplete="email" required></label>
+                  <label><span>Teléfono</span><input id="proposal-phone" type="tel" autocomplete="tel" required></label>
+                </div>
+                <label class="proposal-consent"><input id="proposal-consent" type="checkbox" required> Autorizo a TPL a enviar esta propuesta y contactarme con la respuesta.</label>
+                <button class="proposal-submit" type="submit">Enviar al propietario</button>
+                <p id="proposal-status" class="proposal-status" role="status" aria-live="polite"></p>
+              </form>
+              <div class="proposal-process"><span>1. Enviamos</span><span>2. El dueño responde</span><span>3. Te confirmamos por correo</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="clean-section location-section">
+          <div class="section-heading"><span>UBICACIÓN</span><h2>Entorno y referencia geográfica</h2></div>
+          <div id="map" class="map-box"><button id="load-map" type="button">Ver ubicación en mapa</button></div>
+        </section>
+      </div>
+
+      <aside class="aside-summary">
+        <div class="sticky-card">
+          <span>Tu parcela seleccionada</span>
+          <strong id="aside-name"></strong>
+          <p id="aside-meta"></p>
+          <div class="progress-line"><i></i></div>
+          <small>Paso 1 completado: elegiste el terreno.</small>
+          <a href="#home-choice">Continuar con la vivienda</a>
+        </div>
+      </aside>
+    </section>
+
+    <section id="home-choice" class="home-choice">
+      <div class="home-choice-intro">
+        <span>SIGUIENTE PASO</span>
+        <h2>¿Cómo quieres construir tu vivienda?</h2>
+        <p>La parcela quedará guardada. Ahora elige el camino que mejor se adapta a tu tiempo, presupuesto y forma de vivir.</p>
+      </div>
+      <div class="choice-grid">
+        <article class="choice-card">
+          <div class="choice-icon">⌂</div>
+          <h3>Casa prefabricada</h3>
+          <p>Ideal para avanzar con mayor rapidez y comparar modelos con precios más definidos.</p>
+          <ul>
+            <li>Modelos y distribuciones disponibles</li>
+            <li>Plazos de construcción más previsibles</li>
+            <li>Precio desde, con instalación según modelo y ubicación</li>
+          </ul>
+          <a id="prefab-link" href="./cotizador.html">Explorar casas prefabricadas</a>
+        </article>
+        <article class="choice-card choice-featured">
+          <div class="choice-icon">✦</div>
+          <h3>Diseño propio</h3>
+          <p>Ideal para adaptar la casa a las vistas, orientación, familia y posibilidades del terreno.</p>
+          <ul>
+            <li>Distribución personalizada</li>
+            <li>Materiales y terminaciones a elección</li>
+            <li>Diseño pensado para esta parcela</li>
+          </ul>
+          <a id="custom-link" href="./cotizador.html">Comenzar diseño propio</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="contact-section" class="contact-section">
+      <div><span>ASESORÍA HUMANA</span><h2>¿Quieres revisar esta parcela antes de decidir?</h2><p>Podemos ayudarte a confirmar antecedentes, coordinar una visita y preparar el siguiente paso.</p></div>
+      <a id="contact-link" href="https://wa.me/56900000000" target="_blank" rel="noopener">Hablar con un asesor</a>
+    </section>
+  </main>
+
+  <section id="not-found" class="not-found" hidden>
+    <h1>No encontramos esta parcela</h1>
+    <p>Puede que el enlace esté incompleto o la publicación ya no esté disponible.</p>
+    <a href="./index.html">Volver al buscador</a>
+  </section>
+
+  <footer class="tpl-footer">
+    <img src="./assets/logo-tu-parcela-lista.png" width="130" height="56" alt="Tu Parcela Lista">
+    <p>Primero encuentras la parcela. Después construimos contigo el proyecto completo.</p>
+  </footer>
+
+  <script src="./parcelas.js" defer></script>
+  <script src="./js/parcela.js?v=20260728-2" defer></script>
+<script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Parcelas y campos | Tu Parcela Lista",description:"Conoce cada parcela con informaci\u00f3n clara de ubicaci\u00f3n, superficie, valor, entorno y posibilidades para tomar una decisi\u00f3n mejor informada."}));</script>
+</body>
+</html>

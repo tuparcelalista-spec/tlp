@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TPL Studio Mark II | TPL Business</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><span>TPL</span><strong>Studio Mark II<small>Asesor de imagen, comunicación y crecimiento</small></strong></a>
+    <nav><a href="../index.html">TPL Business</a><a href="../../crm-v2/index.html">CRM</a></nav>
+  </header>
+  <main>
+    <section class="hero">
+      <div><span class="eyebrow">TPL STUDIO MARK II</span><h1>Tu director de crecimiento digital.</h1><p>Studio utiliza la información existente del CRM para preparar tu marca, Landing, contenido, campañas y recomendaciones. Nada se publica sin tu aprobación.</p></div>
+      <div class="profile-select"><label>Vista de actor<select id="actorSelect"></select></label><span id="roleBadge"></span></div>
+    </section>
+
+    <section class="summary" id="summary"></section>
+
+    <div class="layout">
+      <aside id="studioNav"></aside>
+      <section id="studioContent" class="workspace"></section>
+    </div>
+  </main>
+  <dialog id="approvalDialog"><form method="dialog"><header><h2>Vista previa para aprobación</h2><button value="cancel">×</button></header><pre id="approvalPreview"></pre><footer><button value="cancel" class="secondary">Volver</button><button value="default" id="approveAction">Aprobar borrador</button></footer></form></dialog>
+  <script src="../../../js/core/tpl-brain.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>
