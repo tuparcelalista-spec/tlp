@@ -7,14 +7,19 @@
       Object.freeze({ upTo: 10000, rate: 1000 }),
       Object.freeze({ upTo: Infinity, rate: 500 })
     ]),
-    cityDistanceMultipliers: Object.freeze([
-      Object.freeze({ maxKm: 10, multiplier: 10, label: '0 a 10 km' }),
-      Object.freeze({ maxKm: 15, multiplier: 6, label: 'Más de 10 hasta 15 km' }),
+    majorCityDistanceMultipliers: Object.freeze([
+      Object.freeze({ maxKm: 10, multiplier: 9, label: '0 a 10 km' }),
+      Object.freeze({ maxKm: 15, multiplier: 5, label: 'Más de 10 hasta 15 km' }),
       Object.freeze({ maxKm: 25, multiplier: 4, label: 'Más de 15 hasta 25 km' }),
       Object.freeze({ maxKm: 35, multiplier: 3, label: 'Más de 25 hasta 35 km' }),
-      Object.freeze({ maxKm: 45, multiplier: 2, label: 'Más de 35 hasta 45 km' }),
-      Object.freeze({ maxKm: 60, multiplier: 1.5, label: 'Más de 45 hasta 60 km' }),
-      Object.freeze({ maxKm: Infinity, multiplier: 1, label: 'Más de 60 km' })
+      Object.freeze({ maxKm: Infinity, multiplier: 1, label: 'Más de 35 km' })
+    ]),
+    localTownDistanceMultipliers: Object.freeze([
+      Object.freeze({ maxKm: 10, multiplier: 3.5, label: '0 a 10 km' }),
+      Object.freeze({ maxKm: 15, multiplier: 2, label: 'Más de 10 hasta 15 km' }),
+      Object.freeze({ maxKm: 25, multiplier: 1, label: 'Más de 15 hasta 25 km' }),
+      Object.freeze({ maxKm: 35, multiplier: 1, label: 'Más de 25 hasta 35 km' }),
+      Object.freeze({ maxKm: Infinity, multiplier: 1, label: 'Más de 35 km' })
     ]),
     quickFactor: 0.90,
     patientFactor: 1.10,
@@ -48,10 +53,66 @@
     return { base: Math.round(total), area: safeArea, bands };
   }
 
-  function distanceRule(distanceKm){
+  const MAJOR_URBAN_POLES = Object.freeze([
+    'concepcion','los angeles','chillan','temuco','puerto montt','valdivia',
+    'santiago','vina del mar','valparaiso','rancagua','talca','curico',
+    'osorno','antofagasta','la serena','coquimbo','iquique','arica'
+  ]);
+
+  // Referencias observadas: se usan como señal de mercado y control de coherencia,
+  // no reemplazan la valoración territorial ni los atributos de la propiedad.
+  const MARKET_REFERENCES = Object.freeze({
+    quillon: Object.freeze({
+      segment:'parcela_sola', medianM2:4800, p25M2:3626, p75M2:5928,
+      sampleSize:22, observedAt:'2026-07-29', confidence:'media-alta',
+      sources:['Portal Inmobiliario','Yapo','Portal Terreno'],
+      scope:'comunal', note:'Referencia comunal rural. No usa localidades ni microzonas.'
+    }),
+    florida: Object.freeze({
+      segment:'parcela_sola', medianM2:5000, p25M2:3800, p75M2:7143,
+      sampleSize:9, observedAt:'2026-07-29', confidence:'media',
+      sources:['Portal Inmobiliario','Yapo','Portal Terreno'],
+      scope:'comunal', note:'Referencia preliminar comunal; excluir casas y casos atípicos.'
+    }),
+    nacimiento: Object.freeze({
+      segment:'parcela_sola', medianM2:4294, p25M2:3508, p75M2:5015,
+      sampleSize:4, observedAt:'2026-07-29', confidence:'baja-media',
+      sources:['Portal Inmobiliario','Yapo','Portal Terreno'],
+      scope:'comunal', note:'Muestra reducida: usar como señal de mercado, no como valor determinante.'
+    }),
+    pucon: Object.freeze({
+      segment:'parcela_sola', medianM2:10300, p25M2:9625, p75M2:12385,
+      sampleSize:8, observedAt:'2026-07-29', confidence:'media',
+      sources:['Portal Inmobiliario','Yapo','Portal Terreno'],
+      scope:'comunal', note:'Referencia comunal. No premia localidades; atributos reales de cada parcela explican diferencias.'
+    })
+  });
+
+  function isMajorUrbanPole(nearestCity){
+    const name = normalize(nearestCity?.name);
+    const category = normalize(nearestCity?.category);
+    if(MAJOR_URBAN_POLES.some(city => name === city || name.includes(city))) return true;
+    return /capital regional|metropolitana|gran ciudad|polo regional/.test(category);
+  }
+
+  function distanceRule(distanceKm, nearestCity){
     const km = Math.max(0, Number(distanceKm) || 0);
-    const band = RULES.cityDistanceMultipliers.find(item => km <= item.maxKm) || RULES.cityDistanceMultipliers.at(-1);
-    return { distanceKm: km, multiplier: band.multiplier, label: band.label };
+    const major = isMajorUrbanPole(nearestCity);
+    const bands = major ? RULES.majorCityDistanceMultipliers : RULES.localTownDistanceMultipliers;
+    const band = bands.find(item => km <= item.maxKm) || bands.at(-1);
+    return { distanceKm: km, multiplier: band.multiplier, label: band.label, urbanClass: major ? 'ciudad_grande' : 'comuna_pueblo_menor' };
+  }
+
+  function marketReference(comuna, area){
+    const ref = MARKET_REFERENCES[normalize(comuna)];
+    if(!ref) return null;
+    const safeArea = Math.max(0, Number(area) || 0);
+    return {
+      ...ref,
+      medianValue: roundPrice(safeArea * ref.medianM2),
+      p25Value: roundPrice(safeArea * ref.p25M2),
+      p75Value: roundPrice(safeArea * ref.p75M2)
+    };
   }
 
   function santiagoAdjustment(region, comuna, sector){
@@ -67,9 +128,12 @@
   }
 
   function citySpecialAdjustment(region, comuna, sector){
+    const c = normalize(comuna);
+    // Para comunas con referencia TPL, el nombre de localidad/sector NO agrega premio automático.
+    // La diferencia debe provenir de atributos verificables de la parcela y de su distancia real.
+    if(MARKET_REFERENCES[c]) return null;
     const santiago = santiagoAdjustment(region, comuna, sector);
     if(santiago) return santiago;
-    const c = normalize(comuna);
     if(c.includes('vina del mar')) return { key:'vina_del_mar', label:'Viña del Mar', pct:1.00 };
     return null;
   }
@@ -81,7 +145,7 @@
     if(!Number.isFinite(distanceKm) || distanceKm < 0) return { error:'No fue posible determinar la distancia a una ciudad principal.' };
 
     const surfacePricing = calculateSurfaceBase(area);
-    const distance = distanceRule(distanceKm);
+    const distance = distanceRule(distanceKm, input.nearestCity);
     const commercialBase = Math.round(surfacePricing.base * distance.multiplier);
     const adjustments = [];
     const add = (key, label, pct, detail='') => adjustments.push({ key, label, pct, detail, amount:Math.round(commercialBase * pct) });
@@ -102,8 +166,10 @@
     if(nature.some(item => item.includes('vertiente'))) add('vertiente','Vertiente natural',0.20);
 
     const tourism = normalize(input.tourism);
-    if(tourism === 'nacional') add('turismo_nacional','Sector turístico nacional',3.00);
-    else if(tourism === 'local') add('turismo_local','Sector turístico local',0.20);
+    // Premio territorial normalizado: evita el antiguo error de escala +300%.
+    // El publicador lo resuelve desde el catálogo nacional (comuna + eje urbano/turístico).
+    if(tourism === 'nacional') add('turismo_nacional','Destino turístico de alcance nacional/internacional',0.30);
+    else if(tourism === 'local') add('turismo_local','Zona turística regional',0.20);
 
     const view = normalize(input.view);
     if(view.includes('mar')) add('vista_mar','Vista al mar',0.30);
@@ -144,13 +210,16 @@
     const patient = roundPrice(ideal * RULES.patientFactor);
     const asking = Number(input.asking) || 0;
     const diff = asking && ideal ? ((asking - ideal) / ideal * 100) : 0;
+    const market = marketReference(input.comuna, area);
 
     return {
       quick, ideal, patient, reference:ideal, low:quick, high:patient,
       asking, diff, area, location:input.location || '', region:input.region || '', comuna:input.comuna || '',
       base:surfacePricing.base, surfacePricing, commercialBase,
       cityDistance:distance, distanceMultiplier:distance.multiplier,
-      nearestCity: input.nearestCity ? { name:input.nearestCity.name, distanceKm:Number(distanceKm.toFixed(1)) } : null,
+      nearestCity: input.nearestCity ? { name:input.nearestCity.name, category:input.nearestCity.category||'', weight:Number(input.nearestCity.weight||1), distanceKm:Number(distanceKm.toFixed(1)) } : null,
+      territorial: input.territorial || null, communeProfile: input.communeProfile || null,
+      marketReference:market,
       adjustments, totalPct, adjustmentFactor:appliedFactor,
       score:Math.max(35,Math.min(95,55 + Math.min(30, adjustments.length * 3))),
       coverage:'reglas_tpl_propietario_v1', source:'tpl_land_engine_local', persisted:false,
@@ -159,7 +228,7 @@
     };
   }
 
-  const exportObj = Object.freeze({ RULES, calculateSurfaceBase, distanceRule, calculate });
+  const exportObj = Object.freeze({ RULES, MARKET_REFERENCES, MAJOR_URBAN_POLES, calculateSurfaceBase, distanceRule, marketReference, calculate });
   if (typeof module !== 'undefined' && module.exports) module.exports = exportObj;
   global.TPLLandEngine = exportObj;
 })(typeof window !== 'undefined' ? window : globalThis);

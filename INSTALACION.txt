@@ -1,0 +1,12 @@
+CAMPO CHILENO — TPL
+
+1. Copiar campo-chileno.html a la raíz del proyecto, junto a index.html.
+2. El archivo utiliza el logo existente en: image/logo-tu-parcela-lista.png
+3. Las fotografías se cargan desde Wikimedia Commons y conservan créditos/licencias dentro de la página.
+4. banner-campo-chileno.html contiene el bloque listo para insertar antes del footer del index principal.
+5. El banner enlaza a campo-chileno.html.
+
+Antes de producción, probar:
+- campo-chileno.html desde Live Server.
+- enlaces de "Volver a TPL", "Explorar parcelas" y Tasador.
+- carga de imágenes con conexión a internet.

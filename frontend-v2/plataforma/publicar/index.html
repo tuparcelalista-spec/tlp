@@ -6,7 +6,8 @@
 <title>Publica tu Parcela Gratis y Descubre Cuánto Vale | Tasador Gratis TPL</title>
 <meta name="robots" content="index,follow">
 <meta name="description" content="Publica tu parcela, campo o casa con terreno en Tu Parcela Lista y obtén una tasación gratuita. Descubre cuánto vale tu propiedad, su valor recomendado TPL y una estrategia de venta según tu nivel de urgencia.">
-<link rel="stylesheet" href="publicar.css?v=20260729-2">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="publicar.css?v=20260729-3">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cómo saber cuánto vale mi parcela?","acceptedAnswer":{"@type":"Answer","text":"El Tasador TPL analiza superficie, ubicación, conectividad, servicios, documentación y características de la propiedad para entregar una referencia comercial."}},{"@type":"Question","name":"¿La tasación de parcelas es gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. Tu Parcela Lista permite obtener una referencia de tasación gratuita al completar los antecedentes necesarios de la propiedad."}},{"@type":"Question","name":"¿Qué factores influyen en el valor de un terreno?","acceptedAnswer":{"@type":"Answer","text":"Entre otros factores influyen la superficie, ubicación, distancia a centros urbanos y rutas, acceso, agua, electricidad, documentación y topografía."}}]}</script>
 </head>
 <body>
@@ -46,7 +47,16 @@
           <label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona una región</option></select></label>
           <label class="full"><span>Sector o localidad</span><input id="localidad" placeholder="Ej. Río Claro, camino interior"></label>
           <label class="full"><span>Ruta, camino o referencia</span><input id="ubicacionTexto" placeholder="Ej. Ruta N-48-O, km 12, acceso por camino interior"></label>
-          <label class="full"><span>Enlace de Google Maps</span><div class="inline-field"><input id="googleMapsLink" type="url" placeholder="https://maps.google.com/... o coordenadas -37.123,-72.456"><button id="geoBtn" type="button">Usar GPS</button></div><small id="geoStatus">Puedes pegar un enlace de Maps o guardar tu ubicación actual.</small></label>
+          <label class="full"><span>Enlace de Google Maps (opcional)</span><div class="inline-field"><input id="googleMapsLink" type="text" placeholder="Pega el enlace o escribe coordenadas: -37.123, -72.456"><button id="geoBtn" type="button">Usar GPS</button><button id="mapToggleBtn" type="button">Ubicar en mapa</button></div><small id="geoStatus">Si no tienes el enlace, abre el mapa y marca el punto exacto de la parcela.</small></label>
+          <div id="mapPickerBox" class="map-picker full" hidden>
+            <div class="map-picker-head"><div><strong>Marca la ubicación de la parcela</strong><small>Haz clic en el mapa o arrastra el marcador.</small></div><button id="mapCloseBtn" type="button" aria-label="Cerrar mapa">×</button></div>
+            <div id="parcelMap" class="parcel-map" aria-label="Mapa para seleccionar ubicación"></div>
+            <div class="coordinate-grid">
+              <label><span>Latitud</span><input id="latitude" type="text" readonly placeholder="—"></label>
+              <label><span>Longitud</span><input id="longitude" type="text" readonly placeholder="—"></label>
+            </div>
+            <div class="map-picker-actions"><button id="mapUseLocationBtn" class="secondary" type="button">Usar mi ubicación</button><button id="mapConfirmBtn" class="primary" type="button" disabled>Confirmar ubicación</button></div>
+          </div>
           <label class="consent full compact-consent"><input id="publicApproximate" type="checkbox" checked><span>Mostrar públicamente solo una ubicación aproximada.</span></label>
         </div>
       </section>
@@ -55,7 +65,7 @@
         <div class="step-head"><span class="eyebrow">Características</span><h2>Cuéntanos cómo es la propiedad</h2><p>Esta información alimenta la ficha y mejora la tasación.</p></div>
         <div class="form-grid">
           <label><span>Superficie del terreno</span><div class="suffix"><input id="superficie" type="number" min="1" required><b>m²</b></div></label>
-          <label><span>Tipo de suelo</span><select id="suelo"><option value="">Selecciona</option><option>Plano</option><option>Semiplano</option><option>Con pendiente</option><option>Mixto</option></select></label>
+          <label><span>Tipo de suelo</span><select id="suelo"><option value="">Selecciona</option><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
           <label><span>Distancia a ciudad principal</span><div class="suffix"><input id="distanciaCiudad" type="number" min="0" step="0.1"><b>km</b></div></label>
           <label><span>Acceso</span><select id="acceso"><option>Camino público</option><option>Camino interior</option><option>Servidumbre</option><option>Por confirmar</option></select></label>
         </div>
@@ -71,8 +81,8 @@
             <label><span>Topografía</span><select id="topografia"><option value="">Selecciona</option><option>Completamente plana</option><option>Mayormente plana</option><option>Mixta</option><option>Lomaje suave</option><option>Con pendiente</option><option>Escarpada</option></select></label>
             <label><span>Condición del suelo</span><select id="condicionSuelo"><option value="">Selecciona</option><option>Seco y firme</option><option>Pradera</option><option>Suelo agrícola</option><option>Húmedo</option><option>Pedregoso</option><option>Arenoso</option><option>No evaluado</option></select></label>
             <label><span>Vegetación predominante</span><select id="vegetacion"><option value="">Selecciona</option><option>Pradera despejada</option><option>Bosque nativo</option><option>Bosque mixto</option><option>Plantación forestal</option><option>Pinos o eucaliptus</option><option>Árboles frutales</option><option>Matorral</option><option>Sin vegetación relevante</option></select></label>
-            <label><span>Vista principal</span><select id="vistaPrincipal"><option value="">Selecciona</option><option>Vista a cordillera</option><option>Vista a valle</option><option>Vista al mar</option><option>Vista a lago o laguna</option><option>Vista al río</option><option>Vista panorámica</option><option>Entorno interior protegido</option></select></label>
-            <label><span>Orientación / exposición</span><select id="orientacion"><option value="">Selecciona</option><option>Norte</option><option>Nororiente</option><option>Norponiente</option><option>Oriente</option><option>Poniente</option><option>Sur</option><option>Buena exposición solar</option></select></label>
+            <label><span>Vista principal</span><select id="vistaPrincipal"><option value="">Selecciona</option><option>Panorámica desde arriba</option><option>Panorámica desde abajo</option><option>Poca visibilidad</option><option>Distante</option></select></label>
+            <label><span>Orientación / exposición</span><select id="orientacion"><option value="">Selecciona</option><option>Muy soleado</option><option>Soleado medio</option><option>Poco soleado</option></select></label>
             <label><span>Privacidad</span><select id="privacidad"><option value="">Selecciona</option><option>Alta privacidad</option><option>Vecinos distantes</option><option>Sector consolidado</option><option>Condominio o loteo</option><option>Zona aislada</option></select></label>
           </div>
         </section>
@@ -88,14 +98,12 @@
         <section class="detail-panel soft">
           <div class="detail-panel-head"><strong>Servicios, acceso y deslindes</strong><small>Indica la situación real, aunque sea “No lo sé”.</small></div>
           <div class="form-grid">
-            <label><span>Agua</span><select id="aguaDetalle"><option value="">Selecciona</option><option>Pozo inscrito</option><option>Pozo</option><option>APR conectada</option><option>APR cercana</option><option>Vertiente</option><option>Derechos de agua</option><option>Factibilidad</option><option>Sin agua habilitada</option><option>No lo sé</option></select></label>
+            <label><span>Agua</span><select id="aguaDetalle"><option value="">Selecciona</option><option>Factibilidad</option><option>Sin factibilidad</option><option>Puntera</option><option>Pozo</option><option>APR</option></select></label>
             <label><span>Electricidad</span><select id="luzDetalle"><option value="">Selecciona</option><option>Conectada</option><option>Empalme instalado</option><option>Postación en el frente</option><option>Postación cercana</option><option>Factibilidad</option><option>Sistema solar</option><option>Sin electricidad</option><option>No lo sé</option></select></label>
             <label><span>Acceso detallado</span><select id="accesoDetalle"><option value="">Selecciona</option><option>Camino pavimentado</option><option>Ripio en buen estado</option><option>Ripio transitable</option><option>Camino de tierra</option><option>Servidumbre inscrita</option><option>Acceso por mejorar</option></select></label>
             <label><span>Distancia a ruta principal</span><div class="suffix"><input id="distanciaRutaPrincipalKm" type="number" min="0" step="0.1" placeholder="Ej. 12"><b>km</b></div></label>
             <label><span>Cierre perimetral</span><select id="cierreDetalle"><option value="">Selecciona</option><option>Completamente cercada</option><option>Parcialmente cercada</option><option>Deslindes marcados</option><option>Sin cierre</option></select></label>
             <label><span>Portón / control de acceso</span><select id="portonDetalle"><option value="">Selecciona</option><option>Portón instalado</option><option>Portón automático</option><option>Acceso controlado</option><option>Sin portón</option></select></label>
-            <label><span>Frente aproximado</span><div class="suffix"><input id="frente" type="number" min="0" step="0.1"><b>m</b></div></label>
-            <label><span>Forma del terreno</span><select id="formaTerreno"><option value="">Selecciona</option><option>Regular</option><option>Rectangular</option><option>Irregular</option><option>Amplio frente</option><option>Fondo largo</option></select></label>
           </div>
         </section>
 
@@ -127,13 +135,7 @@
         </section>
         <section class="diagnosis-box" aria-labelledby="diagnosisTitle">
           <div class="step-head compact"><span class="eyebrow">Diagnóstico de la parcela</span><h3 id="diagnosisTitle">¿Qué necesita para estar mejor preparada?</h3><p>La información veraz evita visitas innecesarias y ayuda a que solo vayan compradores realmente informados.</p></div>
-          <div class="diagnosis-grid">
-            <label><span>Estado del cerco</span><select id="estadoCerco"><option value="completo">Completo</option><option value="parcial">Parcial</option><option value="no_tiene">No tiene</option></select></label>
-            <label><span>Estado del portón</span><select id="estadoPorton"><option value="instalado">Instalado</option><option value="por_mejorar">Necesita mejora</option><option value="no_tiene">No tiene</option></select></label>
-            <label><span>Camino interior</span><select id="estadoCamino"><option value="bueno">Bueno</option><option value="regular">Regular</option><option value="requiere_mejora">Requiere mejoramiento</option></select></label>
-            <label><span>Limpieza del terreno</span><select id="estadoLimpieza"><option value="limpio">Limpio</option><option value="requiere_roce">Requiere roce</option><option value="limpieza_completa">Requiere limpieza completa</option></select></label>
-          </div>
-          <fieldset class="needs-fieldset"><legend>Selecciona al menos una mejora necesaria, o indica que no necesita mejoras</legend>
+          <fieldset class="needs-fieldset"><legend>Selecciona al menos una mejora necesaria.</legend>
             <div class="needs-grid">
               <label><input type="checkbox" name="necesidad" value="cerco"> Cerco</label><label><input type="checkbox" name="necesidad" value="porton"> Portón</label>
               <label><input type="checkbox" name="necesidad" value="puntera_agua"> Puntera o agua</label><label><input type="checkbox" name="necesidad" value="empalme_electrico"> Empalme eléctrico</label>
@@ -145,31 +147,43 @@
           <div class="agreement-box">
             <h3>Facilidades para llegar a un acuerdo</h3>
             <p>Estas respuestas no son un compromiso. Ayudan a TPL a mediar de forma justa y amigable.</p>
-            <label class="full"><span>Si un comprador paga el precio acordado, ¿qué mejoras estaría dispuesto a evaluar?</span><div class="needs-grid negotiable-needs">
+            <label class="full"><span>Si un comprador paga el precio acordado, ¿estaría dispuesto a realizar alguna mejora? ¿Cuál?</span><div class="needs-grid negotiable-needs">
               <label><input type="checkbox" name="mejoraNegociable" value="cerco"> Cerco</label><label><input type="checkbox" name="mejoraNegociable" value="porton"> Portón</label>
               <label><input type="checkbox" name="mejoraNegociable" value="puntera_agua"> Puntera o agua</label><label><input type="checkbox" name="mejoraNegociable" value="empalme_electrico"> Empalme eléctrico</label>
               <label><input type="checkbox" name="mejoraNegociable" value="roce_limpieza"> Limpieza</label><label><input type="checkbox" name="mejoraNegociable" value="camino_acceso"> Mejorar acceso</label>
               <label><input type="checkbox" name="mejoraNegociable" value="caso_a_caso"> Evaluar caso a caso</label><label><input type="checkbox" name="mejoraNegociable" value="ninguna"> Ninguna por ahora</label>
             </div></label>
-            <label class="full"><span>¿En qué condiciones lo conversaría?</span><select id="condicionMejora"><option value="acuerdo_partes">Si ambas partes llegan a un acuerdo</option><option value="precio_publicado">Si pagan el precio publicado</option><option value="pago_contado">Si la compra es al contado</option><option value="reserva_mes">Si reservan durante este mes</option><option value="caso_a_caso">Prefiero evaluarlo caso a caso</option></select></label>
-            <label class="full"><span>Comentario opcional</span><textarea id="comentarioMejoras" rows="3" placeholder="Ej. Si la compra es al contado, podría aportar con el cerco."></textarea></label>
           </div>
         </section>
       </section>
 
       <section class="wizard-step" data-step="2">
         <div class="step-head"><span class="eyebrow">Precio y tasación</span><h2>Define un valor con respaldo</h2><p>El tasador funciona como referencia orientativa; tú decides el precio final.</p></div>
-        <div class="price-layout">
+<section class="detail-panel sales-strategy">
+          <div class="detail-panel-head"><strong>Estrategia y urgencia de venta</strong><small>Cuéntanos tu plazo y nivel de urgencia antes de calcular. Esto nos ayuda a recomendar una estrategia de venta adecuada.</small></div>
+          <div class="urgency-grid">
+            <label><input type="radio" name="urgencia" value="sin_apuro" required><span><strong>Sin apuro</strong><small>0% · Puedo esperar al comprador adecuado.</small></span></label>
+            <label><input type="radio" name="urgencia" value="algo_apuro" required><span><strong>Algo de apuro</strong><small>-5% · Quiero comenzar a moverla.</small></span></label>
+            <label><input type="radio" name="urgencia" value="apurado" required><span><strong>Apurado</strong><small>-10% · Necesito vender pronto.</small></span></label>
+            <label><input type="radio" name="urgencia" value="muy_apurado" required><span><strong>Muy apurado</strong><small>-15% · Necesito una venta más rápida.</small></span></label>
+          </div>
+          <div class="form-grid">
+            <label><span>¿En qué plazo esperas vender?</span><select id="plazoVenta"><option value="">Selecciona</option><option>No tengo plazo</option><option>Durante los próximos 6 meses</option><option>Durante los próximos 3 meses</option><option>Durante el próximo mes</option></select></label>
+            <label><span>¿Hace cuánto intentas vender?</span><select id="tiempoEnVenta"><option value="">Selecciona</option><option>Aún no la he publicado</option><option>Menos de 3 meses</option><option>Entre 3 y 6 meses</option><option>Más de 6 meses</option></select></label>
+            <label><span>¿Cómo prefieres negociar?</span><select id="negociacionPrecio"><option value="">Selecciona</option><option value="precio_fijo">El precio es fijo</option><option value="ofertas">Puedo evaluar ofertas</option><option value="mejoras">Mantener precio e incluir mejoras</option><option value="ofertas_y_mejoras">Puedo evaluar ofertas o mejoras</option></select></label>
+            <label><span>Disponibilidad para visitas</span><select id="disponibilidadVisitas"><option value="">Selecciona</option><option>Con coordinación previa</option><option>Durante la semana</option><option>Fines de semana</option><option>Tengo alta disponibilidad</option><option>Necesito que TPL coordine todo</option></select></label>
+          </div>
+        </section>
+                <div class="price-layout">
           <div class="price-form">
             <label><span>Precio que tienes en mente</span><div class="money-input"><b>$</b><input id="precio" inputmode="numeric" placeholder="25.000.000"></div></label>
-            <label><span>Valor base por m² de la zona</span><div class="money-input"><b>$</b><input id="valorM2" inputmode="numeric" placeholder="4.500"></div><small>Puede venir del catálogo comunal administrado por TPL.</small></label>
             <button class="primary" id="calculateBtn" type="button">Calcular tasación TPL</button>
           </div>
           <article class="valuation-card" id="valuationCard">
             <span class="valuation-kicker">Resultado orientativo</span>
             <h3 id="valuationMain">Completa los datos para calcular</h3>
             <div class="valuation-range"><div><small>Venta rápida</small><strong id="quickValue">—</strong></div><div><small>Valor recomendado</small><strong id="marketValue">—</strong></div><div><small>Venta paciente</small><strong id="patientValue">—</strong></div></div>
-            <p id="valuationExplanation">Consideraremos superficie, valor base comunal, distancia y características declaradas.</p>
+            <p id="valuationExplanation">Consideraremos superficie, ubicación, distancia y características declaradas.</p>
           <div id="valuationVirtues" class="valuation-virtues" hidden>
             <h3>Las mejores virtudes de tu propiedad</h3>
             <ul id="valuationVirtuesList"></ul>
@@ -184,21 +198,6 @@
             <button id="openReportBtn" type="button" disabled>Ver informe</button>
           </article>
         </div>
-        <section class="detail-panel sales-strategy">
-          <div class="detail-panel-head"><strong>Estrategia y urgencia de venta</strong><small>No cambia el valor real de la propiedad; nos ayuda a recomendar seguimiento y exposición.</small></div>
-          <div class="urgency-grid">
-            <label><input type="radio" name="urgencia" value="sin_apuro" required><span><strong>Sin apuro</strong><small>0% · Puedo esperar al comprador adecuado.</small></span></label>
-            <label><input type="radio" name="urgencia" value="algo_apuro" required><span><strong>Algo de apuro</strong><small>-5% · Quiero comenzar a moverla.</small></span></label>
-            <label><input type="radio" name="urgencia" value="apurado" required><span><strong>Apurado</strong><small>-10% · Necesito vender pronto.</small></span></label>
-            <label><input type="radio" name="urgencia" value="muy_apurado" required><span><strong>Muy apurado</strong><small>-15% · Necesito una venta más rápida.</small></span></label>
-          </div>
-          <div class="form-grid">
-            <label><span>¿En qué plazo esperas vender?</span><select id="plazoVenta"><option value="">Selecciona</option><option>No tengo plazo</option><option>Durante los próximos 6 meses</option><option>Durante los próximos 3 meses</option><option>Durante el próximo mes</option></select></label>
-            <label><span>¿Hace cuánto intentas vender?</span><select id="tiempoEnVenta"><option value="">Selecciona</option><option>Aún no la he publicado</option><option>Menos de 3 meses</option><option>Entre 3 y 6 meses</option><option>Más de 6 meses</option></select></label>
-            <label><span>¿Cómo prefieres negociar?</span><select id="negociacionPrecio"><option value="">Selecciona</option><option value="precio_fijo">El precio es fijo</option><option value="ofertas">Puedo evaluar ofertas</option><option value="mejoras">Mantener precio e incluir mejoras</option><option value="ofertas_y_mejoras">Puedo evaluar ofertas o mejoras</option></select></label>
-            <label><span>Disponibilidad para visitas</span><select id="disponibilidadVisitas"><option value="">Selecciona</option><option>Con coordinación previa</option><option>Durante la semana</option><option>Fines de semana</option><option>Tengo alta disponibilidad</option><option>Necesito que TPL coordine todo</option></select></label>
-          </div>
-        </section>
       </section>
 
       <section class="wizard-step" data-step="3">
@@ -211,19 +210,19 @@
       </section>
 
       <section class="wizard-step" data-step="4">
-        <div class="step-head"><span class="eyebrow">Descripción</span><h2>Resume lo que hace especial esta propiedad</h2><p>Evita textos largos; prioriza ubicación, servicios y atributos reales.</p></div>
+        <div class="step-head"><span class="eyebrow">Descripción</span><h2>Tu publicación ya tiene una propuesta inteligente</h2><p>Generamos el título y la descripción con los antecedentes ingresados. Puedes mejorarlos antes de publicar.</p></div>
         <div class="form-grid">
           <label class="full"><span>Título</span><input id="titulo" maxlength="85" placeholder="Parcela plana con agua y luz en Quillón"></label>
           <label class="full"><span>Descripción</span><textarea id="descripcion" rows="7" maxlength="1600" placeholder="Describe acceso, entorno, servicios, documentación y oportunidades..."></textarea><small><span id="descCount">0</span>/1600</small></label>
         </div>
-        <div class="assistant-box"><div><strong>Asistente TPL</strong><p id="descriptionHint">Cuando completes los datos te sugeriremos una estructura breve.</p></div><button id="suggestDescription" type="button">Generar borrador</button></div>
+        <div class="assistant-box"><div><strong>Asistente TPL</strong><p id="descriptionHint">La redacción considera ubicación, superficie, suelo, topografía, servicios, vista, acceso, mejoras y otros antecedentes declarados.</p></div><button id="suggestDescription" type="button">Mejorar redacción</button></div>
       </section>
 
       <section class="wizard-step" data-step="5">
-        <div class="step-head"><span class="eyebrow">Contacto</span><h2>¿Quién administrará esta publicación?</h2><p>Después de enviar recibirás un acceso a TPL Business. Los servicios se eligen allí, no aquí.</p></div>
+        <div class="step-head"><span class="eyebrow">Contacto</span><h2>Datos de quien publica</h2><p>Indica quién publica la propiedad y sus datos de contacto.</p></div>
         <div class="choice-grid compact">
-          <label class="choice-card"><input type="radio" name="responsable" value="propietario" checked><span>👤</span><strong>Propietario</strong><small>Publico mi propiedad</small></label>
-          <label class="choice-card"><input type="radio" name="responsable" value="corredor"><span>🤝</span><strong>Corredor</strong><small>Administro para un propietario</small></label>
+          <label class="choice-card"><input type="radio" name="responsable" value="propietario" checked><span class="choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path></svg></span><strong>Propietario</strong><small>Publico mi propiedad</small></label>
+          <label class="choice-card"><input type="radio" name="responsable" value="corredor"><span class="choice-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20h18"></path><path d="M5 20V8l7-5 7 5v12"></path><path d="M9 20v-6h6v6"></path></svg></span><strong>Corredor</strong><small>Administro para un propietario</small></label>
         </div>
         <div class="form-grid">
           <label><span>Nombre completo</span><input id="nombre" required></label>
@@ -237,8 +236,7 @@
       <section class="wizard-step" data-step="6">
         <div class="step-head"><span class="eyebrow">Revisión final</span><h2>Tu publicación está casi lista</h2><p>Revisa el resumen. Después de enviarla, TPL validará la información y te dará acceso a tu panel.</p></div>
         <div class="review-card" id="reviewCard"></div>
-        <div class="welcome-box"><span>✓</span><div><strong>Sin planes antes de publicar</strong><p>Primero revisamos tu propiedad. Luego, desde TPL Business, podrás elegir autogestión o administración por TPL y activar servicios.</p></div></div>
-        <button class="submit-button" id="submitBtn" type="submit">Enviar publicación a revisión</button>
+        <button class="submit-button" id="submitBtn" type="submit"><span>Publicar mi propiedad</span><small>Enviar a revisión TPL</small></button>
         <p class="submit-status" id="submitStatus"></p>
       </section>
 
@@ -260,16 +258,40 @@
 
 </main>
 
+<dialog id="valuationResultDialog" class="valuation-result-dialog">
+  <div class="valuation-thinking" id="valuationThinking">
+    <div class="thinking-orbit" aria-hidden="true"><span></span><span></span><span></span></div>
+    <span class="eyebrow">Tasador TPL</span><h2>Estamos analizando tu propiedad</h2>
+    <p id="valuationThinkingText">Revisando ubicación, superficie, características y referencias de mercado…</p>
+    <div class="thinking-progress"><span></span></div>
+  </div>
+  <div class="valuation-result-content" id="valuationResultContent" hidden>
+    <div class="dialog-head"><div><span class="eyebrow">Resultado TPL</span><strong>Alternativas de valoración</strong></div><button id="closeValuationResult" type="button">×</button></div>
+    <div class="valuation-result-body">
+      <p class="result-intro">Comparamos el análisis propio de TPL con la referencia general observada para la comuna. Tú decides qué lectura quieres usar.</p>
+      <div class="valuation-option-grid">
+        <button class="valuation-option is-selected" type="button" data-valuation-choice="tpl"><small>Modelo TPL</small><strong id="popupTplValue">—</strong><span>Ubicación + distancia + atributos de la propiedad.</span></button>
+        <button class="valuation-option" type="button" data-valuation-choice="market"><small>Referencia comunal</small><strong id="popupMarketValue">—</strong><span id="popupMarketMeta">Mercado publicado comparable.</span></button>
+        <button class="valuation-option" type="button" data-valuation-choice="blend"><small>Promedio TPL + mercado</small><strong id="popupBlendValue">—</strong><span>Equilibra ambas referencias en partes iguales.</span></button>
+      </div>
+      <div class="selected-valuation-summary"><span>Valor seleccionado</span><strong id="popupSelectedValue">—</strong><p id="popupSelectedExplanation">Puedes cambiar de alternativa antes de continuar.</p></div>
+      <div class="premium-preview"><div><span class="eyebrow">Informe Premium TPL</span><h3>Una lectura completa de la propiedad</h3><p>Ordena los antecedentes declarados, valoración, cercanía a servicios, fortalezas, conectividad y contexto de mercado en un solo informe.</p></div><button id="popupPremiumBtn" type="button">Ver informe premium</button></div>
+    </div>
+    <div class="dialog-actions valuation-result-actions"><button id="useValuationBtn" type="button" class="primary">Usar este valor</button><button id="closeValuationResultBottom" type="button">Seguir editando</button></div>
+  </div>
+</dialog>
+
 <dialog id="reportDialog">
   <div class="dialog-head"><strong>Informe de tasación TPL</strong><button id="closeReport" type="button">×</button></div>
   <div id="reportContent"></div>
   <div class="dialog-actions"><button id="printReport" type="button">Imprimir / Guardar PDF</button><a href="../tasador/index.html">Ver mis informes</a></div>
 </dialog>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>
-<script src="tpl-land-engine.js"></script>
+<script src="tpl-land-engine.js?v=20260730-1"></script>
 <script src="tpl-house-engine.js"></script>
 <script src="tpl-market-observed.js"></script>
 <script src="tpl-report-generator.js"></script>
-<script src="publicar.js?v=20260729-2"></script>
+<script src="publicar.js?v=20260730-4"></script>
 </body>
 </html>

@@ -4,10 +4,10 @@
   const $ = (id) => document.getElementById(id);
   const state = {
     method: "nearby",
-    priority: "distance",
+    priority: "economic",
     coords: null,
     commune: "",
-    visible: 9,
+    visible: 20,
     active: false,
     map: null,
     mapReady: false
@@ -87,7 +87,15 @@
 
   function getResults() {
     let list = [...catalog()];
-    if (!state.active) return [];
+    if (!state.active) {
+      list = list.filter((p) => money(p.precio) > 0);
+      if (state.priority === "payment") list.sort((a, b) => Number(hasPayment(b)) - Number(hasPayment(a)) || money(a.precio) - money(b.precio));
+      else if (state.priority === "nature") list.sort((a, b) => Number(hasNature(b)) - Number(hasNature(a)) || money(a.precio) - money(b.precio));
+      else if (state.priority === "services") list.sort((a, b) => Number(hasServices(b)) - Number(hasServices(a)) || money(a.precio) - money(b.precio));
+      else if (state.priority === "large") list.sort((a, b) => Number(sizeOf(b) >= 10000) - Number(sizeOf(a) >= 10000) || sizeOf(b) - sizeOf(a));
+      else list.sort((a, b) => money(a.precio) - money(b.precio));
+      return list;
+    }
     if (state.method === "commune") {
       list = list.filter((p) => normalize(p.comuna) === normalize(state.commune));
     } else {
@@ -175,12 +183,12 @@
     const list = getResults();
     const visible = list.slice(0, state.visible);
     $("parcel-grid").innerHTML = visible.length ? visible.map(parcelCard).join("") : `<div class="empty-state">${state.active ? "No encontramos parcelas para esta búsqueda." : "Elige Cercanas a mí o selecciona una comuna para comenzar."}</div>`;
-    $("results-count").textContent = state.active ? `${list.length} ${list.length === 1 ? "parcela encontrada" : "parcelas encontradas"}` : "Selecciona una búsqueda para ver resultados";
+    $("results-count").textContent = state.active ? `${list.length} ${list.length === 1 ? "parcela encontrada" : "parcelas encontradas"}` : `${list.length} parcelas disponibles · mostrando las más económicas primero`;
     $("load-more").hidden = visible.length >= list.length;
     $("map-button").disabled = !list.some((p) => latOf(p) && lngOf(p));
     if (state.method === "nearby" && state.active) $("search-context").textContent = "Ordenadas desde tu ubicación actual";
     else if (state.method === "commune" && state.active) $("search-context").textContent = `Resultados en ${state.commune}`;
-    else $("search-context").textContent = "Selecciona cómo quieres buscar";
+    else $("search-context").textContent = "Oportunidades disponibles · catálogo general";
     if (state.mapReady && !$("map-panel").hidden) paintMap(list);
     if (scroll) scrollToResults();
   }
@@ -203,7 +211,7 @@
     navigator.geolocation.getCurrentPosition((position) => {
       state.coords = { lat: position.coords.latitude, lng: position.coords.longitude };
       state.active = true;
-      state.visible = 9;
+      state.visible = 20;
       state.priority = "distance";
       syncPriorityButtons();
       $("location-status").textContent = "Ubicación lista. Mostrando las parcelas más cercanas.";
@@ -411,8 +419,14 @@
 
     document.querySelectorAll("[data-method]").forEach((button) => button.addEventListener("click", () => setMethod(button.dataset.method)));
     document.querySelectorAll("[data-priority]").forEach((button) => button.addEventListener("click", () => {
+      if (button.dataset.priority === "distance" && !state.coords) {
+        setMethod("nearby");
+        $("location-status").textContent = "Usa tu ubicación para ordenar por distancia real.";
+        $("locate-button").focus();
+        return;
+      }
       state.priority = button.dataset.priority;
-      state.visible = 9;
+      state.visible = 20;
       syncPriorityButtons();
       render({ scroll: state.active });
     }));
@@ -420,7 +434,7 @@
     $("locate-button").addEventListener("click", locate);
     $("commune-search-button").addEventListener("click", searchCommune);
     $("commune-select").addEventListener("change", () => { if ($("commune-select").value) searchCommune(); });
-    $("load-more").addEventListener("click", () => { state.visible += 9; render(); });
+    $("load-more").addEventListener("click", () => { state.visible += 12; render(); });
     $("map-button").addEventListener("click", openMap);
     $("map-close").addEventListener("click", () => { $("map-panel").hidden = true; });
     $("menu-toggle").addEventListener("click", () => {

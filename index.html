@@ -1,12 +1,65 @@
 <!doctype html>
-<html lang="es">
+<html lang="es-CL">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TPL Proyecto Nuevo</title>
-  <meta http-equiv="refresh" content="0; url=frontend-v2/index.html">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Tu Parcela Lista | Tu proyecto de campo empieza aquí</title>
+  <meta name="description" content="Tu Parcela Lista conecta parcelas, casas y servicios para acompañarte en tu proyecto de campo.">
+  <meta name="theme-color" content="#073a5a">
+  <link rel="preload" href="frontend-v2/assets/tpl-bienvenida-campo.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="frontend-v2/assets/logo-tu-parcela-lista.png" as="image">
+  <link rel="prefetch" href="frontend-v2/index.html">
+  <style>
+    :root{--blue:#073a5a;--blue2:#005e9d;--yellow:#f2be1a;--white:#fff}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:#082e46;color:#fff}
+    body{min-height:100vh;overflow:hidden}
+    .welcome{position:relative;min-height:100vh;display:grid;place-items:center;isolation:isolate;background:#0b3854 url('frontend-v2/assets/tpl-bienvenida-campo.webp') center 58%/cover no-repeat}
+    .welcome::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(105deg,rgba(2,36,60,.82) 0%,rgba(3,54,83,.66) 43%,rgba(3,46,69,.25) 74%,rgba(2,29,45,.40) 100%)}
+    .welcome::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 45%,rgba(0,24,38,.55))}
+    .card{width:min(760px,calc(100% - 36px));padding:42px 42px 34px;border:1px solid rgba(255,255,255,.18);border-radius:30px;background:rgba(4,46,72,.46);box-shadow:0 28px 80px rgba(0,0,0,.27);backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px);text-align:center;animation:enter .8s cubic-bezier(.2,.8,.2,1) both}
+    .logo-wrap{display:inline-flex;align-items:center;justify-content:center;padding:10px 16px;border-radius:20px;background:rgba(255,255,255,.94);box-shadow:0 14px 38px rgba(0,0,0,.18)}
+    .logo-wrap img{display:block;width:min(190px,44vw);height:auto}
+    .eyebrow{display:block;margin:25px 0 12px;font-size:.76rem;font-weight:850;letter-spacing:.17em;text-transform:uppercase;color:#f7d557}
+    h1{margin:0 auto;max-width:650px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.25rem,6vw,4.55rem);line-height:1.02;letter-spacing:-.035em;text-wrap:balance}
+    p{max-width:600px;margin:19px auto 0;color:rgba(255,255,255,.88);font-size:clamp(.98rem,2vw,1.12rem);line-height:1.65;text-wrap:balance}
+    .actions{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:27px;flex-wrap:wrap}
+    .enter{appearance:none;border:0;border-radius:999px;background:var(--yellow);color:#17334a;padding:13px 22px;font:inherit;font-weight:900;cursor:pointer;box-shadow:0 12px 28px rgba(242,190,26,.28);transition:transform .2s ease,filter .2s ease}
+    .enter:hover{transform:translateY(-2px);filter:brightness(1.04)}
+    .wait{font-size:.82rem;color:rgba(255,255,255,.72);font-weight:650}
+    .progress{height:4px;margin:29px auto 0;max-width:500px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.18)}
+    .progress span{display:block;width:100%;height:100%;transform-origin:left;background:linear-gradient(90deg,#f2be1a,#fff3b5);animation:load 5s linear forwards}
+    .brand-note{margin-top:16px;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.61)}
+    @keyframes load{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @keyframes enter{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+    @media(max-width:620px){.welcome{background-position:62% center}.card{padding:30px 20px 26px;border-radius:24px}.eyebrow{margin-top:20px}h1{font-size:clamp(2.05rem,11vw,3rem)}p{font-size:.96rem}.wait{width:100%}}
+    @media(prefers-reduced-motion:reduce){.card,.progress span{animation:none}.progress span{transform:none}}
+  </style>
 </head>
 <body>
-  <p>Abriendo <a href="frontend-v2/index.html">Tu Parcela Lista V2</a>…</p>
+  <main class="welcome" aria-label="Bienvenida a Tu Parcela Lista">
+    <section class="card">
+      <div class="logo-wrap"><img src="frontend-v2/assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"></div>
+      <span class="eyebrow">Naturaleza · Hogar · Proyecto</span>
+      <h1>Tu proyecto de campo puede ser tu nueva etapa.</h1>
+      <p>Encuentra parcelas, compara alternativas y avanza hacia tu proyecto con información, casas y servicios en un solo lugar.</p>
+      <div class="actions">
+        <button class="enter" id="enter-now" type="button">Entrar ahora →</button>
+        <span class="wait">Ingresando automáticamente…</span>
+      </div>
+      <div class="progress" aria-hidden="true"><span></span></div>
+      <div class="brand-note">En tu proyecto de campo te acompañamos</div>
+    </section>
+  </main>
+  <script>
+    (()=>{
+      const target='frontend-v2/index.html';
+      let leaving=false;
+      const go=()=>{if(leaving)return;leaving=true;document.body.style.transition='opacity .45s ease';document.body.style.opacity='0';setTimeout(()=>location.replace(target),420)};
+      document.getElementById('enter-now')?.addEventListener('click',go);
+      setTimeout(go,5000);
+    })();
+  </script>
+  <noscript><meta http-equiv="refresh" content="5;url=frontend-v2/index.html"><p style="position:fixed;bottom:20px;left:20px"><a href="frontend-v2/index.html" style="color:white">Entrar a Tu Parcela Lista</a></p></noscript>
 </body>
 </html>

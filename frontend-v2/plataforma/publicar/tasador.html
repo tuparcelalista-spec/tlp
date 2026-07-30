@@ -4,58 +4,95 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tasador Integral TPL | Tu Parcela Lista</title>
-<meta name="description" content="Estima el valor comercial de parcela, campo o propiedad rural con vivienda usando el motor unificado TPL.">
-<link rel="stylesheet" href="tasador-publico.css?v=20260729-1">
+<meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
+<link rel="stylesheet" href="tasador-publico.css?v=20260730-2">
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
-<script defer src="tasador-publico.js?v=20260729-1"></script>
+<script defer src="tasador-publico.js?v=20260730-2"></script>
 </head>
 <body>
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
 <main class="shell">
-<section class="hero"><span class="eyebrow">Tasador Integral TPL</span><h1>Una referencia comercial clara antes de publicar</h1><p>El mismo motor alimenta este tasador y el cálculo dentro del publicador. Así evitamos resultados distintos para una misma propiedad.</p></section>
+<section class="hero"><span class="eyebrow">Tasador Integral TPL</span><h1>Elige cuánto detalle quieres entregar</h1><p>La tasación rápida entrega una referencia en pocos pasos. La tasación precisa incorpora más antecedentes del terreno, ubicación y vivienda para mejorar el análisis y enriquecer el Informe Premium TPL.</p></section>
+
+<section class="mode-picker" aria-label="Tipo de tasación">
+<button type="button" class="mode-card is-active" data-mode="rapida"><span>Rápida</span><strong>Quiero una referencia ahora</strong><small>Ubicación, superficie y factores esenciales.</small></button>
+<button type="button" class="mode-card" data-mode="precisa"><span>Precisa</span><strong>Quiero un análisis más completo</strong><small>Más atributos, coordenadas, vivienda y mejor Informe Premium.</small></button>
+</section>
+
 <div class="layout">
 <form id="tasadorForm" class="card form-card">
-<h2>1. Terreno</h2>
+<div class="section-heading"><span class="step-pill">1</span><div><h2>Ubicación y terreno</h2><p>Estos datos siempre son necesarios.</p></div></div>
 <div class="grid">
-<label><span>Región</span><select id="region" required><option value="">Selecciona región</option></select></label>
+<label><span>Región</span><select id="region" required><option value="">Cargando regiones…</option></select></label>
 <label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona región</option></select></label>
 <label><span>Superficie terreno (m²)</span><input id="superficie" type="number" min="100" step="100" value="5000" required></label>
-<label><span>Distancia a ciudad principal (km)</span><input id="distanceKm" type="number" min="0" step=".5" value="12" required></label>
-<label><span>Rol</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
+<label><span>Distancia a ciudad principal (km)</span><input id="distanceKm" type="number" min="0" step=".5" placeholder="Ej. 12" required></label>
+<label><span>Rol / situación legal</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
 <label><span>Electricidad</span><select id="electricity"><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
-<label><span>Topografía</span><select id="topography"><option>Plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
-<label><span>Distancia a ruta principal (km)</span><input id="routeDistanceKm" type="number" min="0" step=".5" value="0"></label>
+<label><span>Topografía</span><select id="topography"><option>Completamente plana</option><option>Mayormente plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
+<label><span>Agua</span><select id="water"><option value="factibilidad">Factibilidad</option><option value="sin factibilidad">Sin factibilidad</option><option value="puntera">Puntera</option><option value="pozo">Pozo</option><option value="apr">APR</option></select></label>
 </div>
-<div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa el tasador de casa y construcción.</small></label></div>
+
+<section id="preciseFields" class="precise-fields" hidden>
+<div class="section-heading"><span class="step-pill">2</span><div><h2>Características que diferencian la parcela</h2><p>Se usan en el análisis cuando el motor tiene regla definida y siempre se incorporan al Informe Premium.</p></div></div>
+<div class="grid">
+<label><span>Acceso</span><select id="access"><option value="pavimentado">Pavimentado</option><option value="ripio bueno">Ripio en buen estado</option><option value="ripio regular">Ripio regular</option><option value="camino tierra">Camino de tierra</option><option value="servidumbre">Servidumbre / acceso interior</option></select></label>
+<label><span>Distancia a ruta principal (km)</span><input id="routeDistanceKm" type="number" min="0" step=".5" value="0"></label>
+<label><span>Tipo de suelo</span><select id="soil"><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
+<label><span>Exposición solar</span><select id="exposure"><option>Muy soleado</option><option>Soleado medio</option><option>Poco soleado</option></select></label>
+<label><span>Vista principal</span><select id="view"><option value="panoramica arriba">Panorámica desde arriba</option><option value="panoramica abajo">Panorámica desde abajo</option><option value="poca visibilidad">Poca visibilidad</option><option value="distante">Distante</option><option value="lago">Vista a lago o laguna</option><option value="mar">Vista al mar</option><option value="cordillera">Vista a cordillera</option></select></label>
+<label><span>Vegetación</span><select id="vegetation"><option value="sin especial">Sin característica especial</option><option value="bosque nativo">Bosque nativo</option><option value="pradera">Pradera</option><option value="frutales">Frutales / productiva</option></select></label>
+<label><span>Cierre perimetral</span><select id="fencing"><option>Completamente cercada</option><option>Parcialmente cercada</option><option>Sin cierre</option></select></label>
+<label><span>Acceso controlado</span><select id="gate"><option value="sin porton">Sin portón</option><option value="porton instalado">Portón instalado</option><option value="porton automatico">Portón automático</option><option value="acceso controlado">Acceso controlado</option></select></label>
+<label><span>Condominio o loteo</span><select id="condominium"><option value="no">No</option><option value="si">Sí</option></select></label>
+<label><span>Precio que esperas obtener</span><input id="asking" inputmode="numeric" placeholder="Ej. 35.000.000"></label>
+</div>
+
+<fieldset class="feature-fieldset"><legend>Atributos naturales</legend><div class="check-grid">
+<label><input type="checkbox" value="rio dentro" data-nature><span>Río dentro o acceso directo</span></label>
+<label><input type="checkbox" value="vertiente" data-nature><span>Vertiente natural</span></label>
+<label><input type="checkbox" value="bosque nativo" data-nature><span>Bosque nativo</span></label>
+<label><input type="checkbox" value="lago cercano" data-nature><span>Lago o laguna cercana</span></label>
+</div></fieldset>
+
+<div class="coordinates-card"><div><strong>Ubicación exacta para cercanías</strong><p>Las coordenadas permiten enriquecer el Informe Premium con salud, Carabineros, comercio, educación y otros puntos útiles.</p></div><div class="grid coordinates-grid"><label><span>Latitud</span><input id="lat" type="number" step="any" placeholder="-36.000000"></label><label><span>Longitud</span><input id="lng" type="number" step="any" placeholder="-72.000000"></label></div><button id="useMyLocation" type="button" class="ghost">Usar mi ubicación actual</button></div>
+</section>
+
+<div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa los antecedentes de casa y construcción.</small></label></div>
 <section id="houseFields" hidden>
-<h2>2. Vivienda</h2>
+<div class="section-heading"><span class="step-pill">3</span><div><h2>Vivienda</h2><p>Separa el valor de construcción del terreno.</p></div></div>
 <div class="grid">
 <label><span>Superficie casa (m²)</span><input id="areaCasa" type="number" min="0" step="1"></label>
 <label><span>Material principal</span><select id="materialCasa"><option value="madera">Madera</option><option value="metalcon">Metalcon</option><option value="albanileria">Albañilería</option><option value="hormigon">Hormigón</option><option value="mixta">Mixta</option></select></label>
 <label><span>Año construcción</span><input id="anioConstruccion" type="number" min="1900"></label>
 <label><span>Estado</span><select id="estadoCasa"><option value="excelente">Excelente / nueva</option><option value="bueno">Bueno</option><option value="aceptable">Aceptable</option><option value="necesita mejoras">Necesita mejoras</option><option value="para remodelar">Para remodelar</option></select></label>
-<label><span>Fundación</span><select id="tipoFundacion"><option value="sin_fundacion">No valorizar aparte</option><option value="base_simple">Base simple / pilotes</option><option value="radier_terminado">Radier terminado</option></select></label>
 <label><span>Año remodelación integral</span><input id="anioRemodelacion" type="number" min="1900"></label>
 <label><span>Dormitorios</span><input id="dormitorios" type="number" min="0"></label>
 <label><span>Baños</span><input id="banos" type="number" min="0"></label>
+<label><span>Pisos</span><input id="pisos" type="number" min="1" value="1"></label>
 </div>
 <details class="extras"><summary>Obras adicionales</summary><div id="worksGrid" class="works-grid"></div></details>
-<label class="full"><span>Característica realmente diferenciadora</span><textarea id="caracteristicaDiferenciadora" rows="3" placeholder="Ej. acceso privado al río, vista despejada al volcán, quincho equipado..."></textarea><small>Solo se considera si la descripción es concreta y suficiente.</small></label>
+<label class="full"><span>Característica realmente diferenciadora</span><textarea id="caracteristicaDiferenciadora" rows="3" placeholder="Ej. acceso privado al río, piscina, vista despejada al volcán, quincho equipado..."></textarea><small>Descríbela de forma concreta. Quedará registrada en el informe.</small></label>
 </section>
-<button class="primary" type="submit">Calcular tasación</button>
+<button class="primary" type="submit">Calcular tasación TPL</button>
 </form>
+
 <aside class="card result-card">
-<span class="eyebrow">Resultado orientativo</span><div id="status">Completa los datos y calcula.</div>
+<span class="eyebrow">Resultado orientativo</span><div id="status">Elige el tipo de tasación y completa los datos.</div>
 <div id="result" hidden>
-<div class="main-price"><small>Valor recomendado</small><strong id="ideal">—</strong></div>
+<div class="main-price"><small>Valor recomendado TPL</small><strong id="ideal">—</strong></div>
 <div class="strategies"><div><small>Venta rápida</small><b id="quick">—</b></div><div><small>Venta paciente</small><b id="patient">—</b></div></div>
+<div id="marketReference" class="market-reference" hidden></div>
 <div class="breakdown"><h3>Desglose</h3><div id="breakdown"></div></div>
 <p class="note">Tasación comercial orientativa. No reemplaza una tasación bancaria, judicial ni peritaje presencial.</p>
+<button id="premiumReportBtn" class="premium-btn" type="button">Ver Informe Premium TPL</button>
 <a id="publishLink" class="secondary" href="index.html">Usar estos datos para publicar</a>
 </div>
 </aside>
 </div>
 </main>
+
+<dialog id="premiumDialog" class="premium-dialog"><div class="premium-head"><div><span class="eyebrow">Informe Premium TPL</span><strong>Análisis detallado de la propiedad</strong></div><button id="closePremium" type="button">×</button></div><div id="premiumContent" class="premium-content"></div></dialog>
 </body></html>

@@ -8,12 +8,26 @@
   <meta name="theme-color" content="#003f7a">
   <link rel="canonical" href="https://www.parcelalista.cl/">
   <link rel="preload" href="./assets/logo-tu-parcela-lista.png" as="image">
-  <link rel="stylesheet" href="./css/index.css?v=20260728-2">
+  <link rel="stylesheet" href="./css/index.css?v=20260730-3">
   <link rel="stylesheet" href="css/tpl-identity-seo.css">
   <script src="js/tpl-seo.js"></script>
   <script src="parcelas.js" defer></script>
   <script src="casas.js" defer></script>
   <script src="js/tpl-public-stats.js" defer></script>
+
+  <style>
+    .tpl-campo-story{position:relative;isolation:isolate;overflow:hidden;min-height:420px;display:grid;align-items:end;margin:0;background:#173b2b;color:#fff}
+    .tpl-campo-story::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(5,27,24,.86),rgba(5,27,24,.46) 55%,rgba(5,27,24,.22)),url("https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Valle_del_Elqui%2C_Chile.jpg/1280px-Valle_del_Elqui%2C_Chile.jpg") center/cover no-repeat;transform:scale(1.01)}
+    .tpl-campo-story::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(0,0,0,.22),transparent 55%)}
+    .tpl-campo-story__inner{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:72px 0 64px}
+    .tpl-campo-story__eyebrow{display:inline-block;margin-bottom:14px;font-size:.76rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#f2cf4a}
+    .tpl-campo-story h2{max-width:760px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.35rem,5.6vw,5.1rem);font-weight:500;line-height:.98;letter-spacing:-.035em}
+    .tpl-campo-story p{max-width:680px;margin:0 0 26px;font-size:clamp(1rem,1.6vw,1.16rem);line-height:1.7;color:rgba(255,255,255,.88)}
+    .tpl-campo-story__action{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:999px;background:#f2cf4a;color:#103654;text-decoration:none;font-weight:800;box-shadow:0 12px 32px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease}
+    .tpl-campo-story__action:hover{transform:translateY(-2px);background:#ffdb4d}
+    .tpl-campo-story__note{display:block;margin-top:15px;font-size:.76rem;color:rgba(255,255,255,.62)}
+    @media(max-width:700px){.tpl-campo-story{min-height:390px}.tpl-campo-story__inner{width:min(100% - 28px,1180px);padding:56px 0 48px}.tpl-campo-story h2{font-size:clamp(2.4rem,13vw,3.7rem)}}
+  </style>
 </head>
 <body>
   <header class="tpl-header">
@@ -42,14 +56,24 @@
       <a href="./plataforma/tpl-business/index.html">TPL Business</a>
     </nav>
   </header>
-  <section class="tpl-emotional-hero" aria-label="Tu proyecto de campo empieza aquí">
+  <section class="tpl-emotional-hero tpl-emotional-hero--family" aria-label="Una nueva vida en el campo">
+    <div class="tpl-emotional-hero__shade"></div>
     <div class="tpl-emotional-hero__content">
-      <span class="tpl-emotional-hero__eyebrow">TU PARCELA LISTA · ECOSISTEMA RURAL</span>
-      <h2>Tu proyecto de campo empieza aquí</h2>
-      <p>Encuentra un lugar que se adapte a tu vida, tus planes y tu presupuesto. Primero elegimos el lugar; después construimos contigo lo que viene.</p>
+      <span class="tpl-emotional-hero__eyebrow">TU PARCELA LISTA · TU NUEVA ETAPA</span>
+      <h1>Más espacio para vivir.<br><em>Más campo para volver a lo esencial.</em></h1>
+      <p>Una casa que puedas imaginar a tu manera, naturaleza para compartir en familia y un terreno donde cada proyecto tenga espacio para crecer.</p>
+      <div class="tpl-emotional-hero__actions">
+        <a href="#resultados" class="tpl-hero-primary">Ver parcelas disponibles</a>
+        <a href="#proyecto-presupuesto" class="tpl-hero-secondary">Imaginar parcela + casa</a>
+      </div>
+      <div class="tpl-emotional-hero__promises" aria-label="Lo que puedes construir">
+        <span><b>Campo</b><small>naturaleza y libertad</small></span>
+        <span><b>Hogar</b><small>diseñado para tu vida</small></span>
+        <span><b>Familia</b><small>espacio para compartir</small></span>
+      </div>
     </div>
   </section>
-  <div class="tpl-positive-strip">Encuentra tu lugar. <strong>Construye tu proyecto.</strong> Vive una nueva etapa.</div>
+  <div class="tpl-positive-strip">Encuentra tu lugar. <strong>Diseña tu vida de campo.</strong> Construye una nueva etapa.</div>
 
   <section class="tpl-public-stats" aria-label="Tu Parcela Lista en números">
     <div class="tpl-public-stats__shell">
@@ -159,19 +183,19 @@
     <section id="resultados" class="results-section" aria-labelledby="results-title">
       <div class="results-toolbar" id="scroll-anchor">
         <div>
-          <span id="search-context" class="context-label">Selecciona cómo quieres buscar</span>
+          <span id="search-context" class="context-label">OPORTUNIDADES DISPONIBLES</span>
           <h2 id="results-title">Parcelas disponibles</h2>
-          <p id="results-count">Preparando catálogo…</p>
+          <p id="results-count">Mostrando primero las parcelas más económicas.</p>
         </div>
         <button id="map-button" class="map-button" type="button" disabled>Mapa</button>
       </div>
 
       <div id="priority-bar" class="priority-bar" aria-label="Prioridad de resultados">
-        <button type="button" class="is-active" data-priority="distance">Más cercanas</button>
+        <button type="button" data-priority="distance">Más cercanas</button>
         <button type="button" data-priority="payment">Facilidad de pago</button>
         <button type="button" data-priority="nature">Más naturales</button>
         <button type="button" data-priority="services">Servicios cerca</button>
-        <button type="button" data-priority="economic">Más económicas</button>
+        <button type="button" class="is-active" data-priority="economic">Más económicas</button>
         <button type="button" data-priority="large">1 hectárea o más</button>
       </div>
 
@@ -188,6 +212,17 @@
     </section>
   </main>
 
+
+  <section class="tpl-campo-story" aria-labelledby="tpl-campo-story-title">
+    <div class="tpl-campo-story__inner">
+      <span class="tpl-campo-story__eyebrow">REVISTA TPL · HISTORIA &amp; VIDA RURAL</span>
+      <h2 id="tpl-campo-story-title">El campo que nos hizo.</h2>
+      <p>Dos siglos de cambios, trabajo, territorio y nuevas formas de habitar Chile. Una historia que llega hasta quienes hoy vuelven a imaginar una vida con más espacio, naturaleza y raíces.</p>
+      <a class="tpl-campo-story__action" href="./campo-chileno.html">Leer El Campo Chileno <span aria-hidden="true">→</span></a>
+      <small class="tpl-campo-story__note">Una historia editorial de Tu Parcela Lista.</small>
+    </div>
+  </section>
+
   <footer class="tpl-footer">
     <img src="./assets/logo-tu-parcela-lista.png" width="130" height="56" alt="Tu Parcela Lista">
     <p>Encuentra tu parcela. Después construimos contigo el proyecto completo.</p>
@@ -200,7 +235,7 @@
 
   <script src="../parcelas.js" defer></script>
   <script src="../casas.js" defer></script>
-  <script src="./js/index.js?v=20260728-2" defer></script>
+  <script src="./js/index.js?v=20260730-3" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Tu Parcela Lista | Ecosistema para tu proyecto de vida rural",description:"Encuentra parcelas y campos, compara alternativas y da forma a tu proyecto de vida rural con acompa\u00f1amiento, casas y servicios en un solo ecosistema."}));</script>
 </body>
 </html>
