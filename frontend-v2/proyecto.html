@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tu Proyecto TPL | Tu Parcela Lista</title>
+  <meta name="description" content="Explora tu proyecto rural completo: parcela, vivienda, inversión, cercanías, mejoras y próximos pasos.">
+  <link rel="icon" href="./assets/logo-tu-parcela-lista.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/proyecto.css?v=20260731-project1">
+</head>
+<body>
+<header class="project-topbar">
+  <a class="project-brand" href="./index.html"><img src="./assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"></a>
+  <nav><a href="#vision">Tu proyecto</a><a href="#ubicacion">Ubicación</a><a href="#inversion">Inversión</a><a href="#avanzar">Avanzar</a></nav>
+</header>
+<main id="project-page" hidden>
+  <section class="project-hero" id="vision">
+    <div class="project-hero-media"><img id="hero-parcel-image" alt="Parcela del proyecto"><div class="project-hero-shade"></div></div>
+    <div class="project-hero-content">
+      <span class="project-kicker">TU PROYECTO TPL</span>
+      <h1 id="project-title">Tu proyecto empieza aquí.</h1>
+      <p id="project-manifesto">Una parcela, una vivienda y un plan claro para convertir una idea en una nueva etapa.</p>
+      <div class="project-hero-facts" id="hero-facts"></div>
+      <div class="project-hero-actions"><a class="btn btn-primary" href="#avanzar">Quiero avanzar</a><a class="btn btn-glass" id="view-parcel-detail" href="#">Ver parcela en detalle</a></div>
+    </div>
+  </section>
+
+  <section class="project-ribbon"><div><span>PROYECTO COMPLETO ESTIMADO</span><strong id="project-total">$0</strong></div><p id="project-ribbon-copy">Parcela + vivienda seleccionada. Valores referenciales sujetos a validación técnica.</p></section>
+
+  <section class="section wrap" id="virtudes">
+    <header class="section-head"><span>POR QUÉ DESTACA</span><h2>Lo mejor de este proyecto, de un vistazo.</h2><p>No mostramos frases genéricas: destacamos lo que realmente sabemos de esta parcela, su vivienda y su ubicación.</p></header>
+    <div class="virtue-grid" id="virtue-grid"></div>
+  </section>
+
+  <section class="section section-dark" id="sueno">
+    <div class="wrap dream-layout"><div><span class="section-kicker-light">IMAGINA TU NUEVA ETAPA</span><h2 id="dream-title">Más espacio para vivir como quieres.</h2><p id="dream-copy"></p><blockquote id="project-phrase"></blockquote></div><div class="dream-cards" id="dream-cards"></div></div>
+  </section>
+
+  <section class="section wrap" id="vivienda">
+    <header class="section-head"><span>LA VIVIENDA QUE ELEGISTE</span><h2>Tu casa, dentro del proyecto.</h2></header>
+    <div class="house-showcase"><div class="house-gallery" id="house-gallery"></div><div class="house-copy"><span class="project-kicker">VIVIENDA</span><h3 id="house-name">Vivienda por definir</h3><p id="house-description"></p><div class="house-specs" id="house-specs"></div><div class="house-price"><small>Valor vivienda estimado</small><strong id="house-price">$0</strong></div></div></div>
+  </section>
+
+  <section class="section location-section" id="ubicacion">
+    <div class="wrap"><header class="section-head"><span>UBICACIÓN Y CONECTIVIDAD</span><h2>No es solo dónde está. Es todo lo que conecta.</h2></header><div class="location-grid"><div class="project-map" id="project-map"><div class="map-placeholder"><span class="map-mark"></span><strong>Mapa del proyecto</strong><small>Cargando ubicación…</small></div></div><div class="nearby-panel"><h3>Cercanías que importan</h3><div id="nearby-list" class="nearby-list"></div><p id="location-reading" class="location-reading"></p></div></div></div>
+  </section>
+
+  <section class="section wrap" id="inversion">
+    <header class="section-head"><span>LECTURA DE INVERSIÓN</span><h2>Entiende dónde estás poniendo tu dinero.</h2><p>Una lectura orientativa basada en precio, superficie, atributos informados y contexto del proyecto. No constituye promesa de rentabilidad.</p></header>
+    <div class="investment-layout"><div class="investment-score"><span>NIVEL TPL</span><strong id="investment-level">En análisis</strong><p id="investment-reading"></p></div><div class="budget-breakdown"><article><span>Parcela</span><strong id="budget-parcel">$0</strong></article><article><span>Vivienda</span><strong id="budget-house">$0</strong></article><article class="total"><span>Proyecto estimado</span><strong id="budget-total">$0</strong></article></div></div>
+  </section>
+
+  <section class="section improvements-section" id="mejoras">
+    <div class="wrap"><header class="section-head"><span>LO QUE PODRÍA HACERLO AÚN MEJOR</span><h2>Convierte pendientes en oportunidades.</h2><p>TPL identifica mejoras posibles a partir de los antecedentes disponibles. Puedes preguntar por una de ellas antes de avanzar.</p></header><div class="improvement-grid" id="improvement-grid"></div></div>
+  </section>
+
+  <section class="section wrap compact-section">
+    <div class="project-snapshot"><div><span>PARCELA</span><h3 id="snapshot-parcel"></h3><p id="snapshot-parcel-meta"></p></div><a id="snapshot-parcel-link" class="text-link" href="#">Ver ficha completa <span aria-hidden="true">→</span></a></div>
+  </section>
+
+  <section class="conversion" id="avanzar">
+    <div class="wrap conversion-inner"><div class="conversion-copy"><span>EL SIGUIENTE PASO ES TUYO</span><h2>¿Te imaginas este proyecto siendo tuyo?</h2><p>Ya tienes parcela, vivienda y una primera lectura del proyecto. Elige cómo quieres avanzar y TPL conserva el contexto para que no tengas que empezar de cero.</p></div><div class="conversion-actions">
+      <button class="conversion-card" type="button" data-action="call"><span class="line-icon" data-icon="phone"></span><div><strong>Quiero que me llamen</strong><small>Solicita una llamada de asesoría sobre este proyecto.</small></div></button>
+      <button class="conversion-card" type="button" data-action="question"><span class="line-icon" data-icon="message"></span><div><strong>Tengo una pregunta</strong><small>Consulta algo específico sobre parcela, vivienda o presupuesto.</small></div></button>
+      <button class="conversion-card" type="button" data-action="visit"><span class="line-icon" data-icon="calendar"></span><div><strong>Quiero visitar la parcela</strong><small>Registra tu fecha preferida y TPL coordina la solicitud.</small></div></button>
+      <button class="conversion-card reserve-card" type="button" data-action="reserve"><span class="line-icon" data-icon="lock"></span><div><strong id="reserve-label">Reservar esta parcela</strong><small id="reserve-copy">La reserva corresponde al 1% del valor de la parcela.</small></div></button>
+    </div></div>
+  </section>
+
+  <dialog id="project-action-dialog" class="action-dialog"><form method="dialog" id="project-action-form"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button><span class="project-kicker" id="action-kicker">TU PROYECTO</span><h3 id="action-title">Avanzar</h3><p id="action-description"></p><div id="action-fields" class="action-fields"></div><label class="consent-line"><input id="action-consent" type="checkbox" required><span>Autorizo a TPL a contactarme por este proyecto.</span></label><button class="btn btn-primary" id="action-submit" type="submit" value="default">Enviar solicitud</button><p id="action-status" class="action-status"></p></form></dialog>
+</main>
+<section id="project-not-found" class="not-found" hidden><img src="./assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><h1>No encontramos este proyecto</h1><p>Vuelve al cotizador para crear o recuperar tu proyecto.</p><a class="btn btn-primary" href="./index.html">Volver a parcelas</a></section>
+<script src="./parcelas.js"></script>
+<script src="./casas.js"></script>
+<script src="./js/core/tpl-data-service.js"></script>
+<script defer src="./js/proyecto.js?v=20260731-project1"></script>
+</body></html>

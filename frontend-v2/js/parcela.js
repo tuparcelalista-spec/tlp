@@ -151,7 +151,15 @@
     $("gallery-count").textContent=images.length?`${imageIndex+1} / ${images.length}`:"";
     $("gallery-prev").hidden=images.length<2; $("gallery-next").hidden=images.length<2;
   }
+  function persistParcelForProject(){
+    try{
+      localStorage.setItem("selectedParcelaId",String(parcel.id||""));
+      localStorage.setItem("selectedParcelaData",JSON.stringify(parcel));
+      localStorage.setItem("tpl_project_origin","parcela.html");
+    }catch(error){console.warn("TPL: no fue posible guardar respaldo local de la parcela.",error)}
+  }
   function cotizadorUrl(kind){
+    persistParcelForProject();
     const q=new URLSearchParams({parcela:String(parcel.id||""),tipo:kind,origen:context.method||"ficha"});
     if(context.priority)q.set("prioridad",context.priority);
     if(context.distance)q.set("distancia",context.distance);
@@ -176,6 +184,8 @@
     $("aside-meta").textContent=`${parcel.comuna||"Comuna por confirmar"} · ${size?size.toLocaleString("es-CL")+" m²":"Superficie por confirmar"}`;
     $("prefab-link").href=cotizadorUrl("prefabricada");
     $("custom-link").href=cotizadorUrl("diseno-propio");
+    $("prefab-link").addEventListener("click",persistParcelForProject,{once:false});
+    $("custom-link").addEventListener("click",persistParcelForProject,{once:false});
     valuation(); renderInvestment(); setImage(); $("parcel-page").hidden=false;
   }
   function loadLeaflet(){

@@ -1024,3 +1024,6 @@ const parcelas = [
 },
 
 ];
+
+// Catálogo canónico disponible para todos los módulos TPL V2.
+if (typeof window !== "undefined") window.parcelas = parcelas;

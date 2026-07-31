@@ -12,7 +12,7 @@
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
-<script defer src="tasador-publico.js?v=20260731-tpl-v2"></script>
+<script defer src="tasador-publico.js?v=20260731-fix2"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
@@ -31,8 +31,7 @@
 <label><span>Región</span><select id="region" required><option value="">Cargando regiones…</option></select></label>
 <label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona región</option></select></label>
 <label><span>Superficie terreno (m²)</span><input id="superficie" type="number" min="100" step="100" value="5000" required></label>
-<label><span>Distancia a ciudad grande relevante (km)</span><input id="distanceKm" type="number" min="0" step=".5" placeholder="Ej. 28"><small>Pesa 70% en el factor territorial. Con coordenadas se calcula automáticamente.</small></label>
-<label><span>Distancia al centro comunal (km)</span><input id="communeDistanceKm" type="number" min="0" step=".5" placeholder="Ej. 8"><small>Pesa 30% en el factor territorial.</small></label>
+<label><span>Distancia al centro de la comuna (km)</span><input id="communeDistanceKm" type="number" min="0" step=".5" placeholder="Ej. 8"><small>Indica la distancia aproximada a la comuna seleccionada. TPL calcula internamente la relación con la ciudad principal.</small></label>
 <label><span>Rol / situación legal</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
 <label><span>Electricidad</span><select id="electricity"><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
 <label id="electricityPoleWrap" hidden><span>Distancia al poste / red eléctrica</span><div class="suffix"><input id="electricityPoleDistanceM" type="number" min="0" step="50" placeholder="Ej. 500"><b>m</b></div><small>Factibilidad: +10% en 0 m y baja 1 punto por cada 100 m hasta 0% a 1 km.</small></label>

@@ -58,7 +58,8 @@ function populateCommunes(regionName,selected=''){
  if(selected&&communes.includes(selected))comuna.value=selected;
 }
 function toggleHouseFields(){
- const isHouse=radioValue('tipo')==='casa';
+ const selectedType=radioValue('tipo');
+ const isHouse=selectedType==='parcela_casa'||selectedType==='casa';
  const box=$('#houseFields');if(box)box.hidden=!isHouse;
 }
 function syncQuickServices(){
@@ -104,24 +105,30 @@ function data(){
   region:valueOf('#region'),comuna:valueOf('#comuna'),localidad:valueOf('#localidad'),
   ubicacionTexto:valueOf('#ubicacionTexto'),googleMapsLink:valueOf('#googleMapsLink'),publicApproximate:checked('#publicApproximate'),coords,
   superficie:numberOf('#superficie'),suelo:valueOf('#suelo'),
-  distanciaCiudad:valueOf('#distanciaCiudad')===''?null:numberOf('#distanciaCiudad'),distanciaComuna:valueOf('#distanciaComuna')===''?null:numberOf('#distanciaComuna'),acceso:valueOf('#acceso'),
+  distanciaComuna:valueOf('#distanciaComuna')===''?null:numberOf('#distanciaComuna'),
   terreno:{
-   tipoTerreno:valueOf('#tipoTerreno'),rol:valueOf('#rolDetalle'),condominio:valueOf('#condominio'),subdivision:valueOf('#subdivision'),
-   usoSuelo:valueOf('#usoSuelo'),construccion:valueOf('#construccion'),topografia:valueOf('#topografia'),
-   condicionSuelo:valueOf('#condicionSuelo'),vegetacion:valueOf('#vegetacion'),vistaPrincipal:valueOf('#vistaPrincipal'),
-   orientacion:valueOf('#orientacion'),privacidad:valueOf('#privacidad'),agua:valueOf('#aguaDetalle'),
+   rol:valueOf('#rolDetalle'),condominio:valueOf('#condominio'),subdivision:valueOf('#subdivision'),
+   usoSuelo:valueOf('#usoSuelo'),topografia:valueOf('#topografia'),
+   vegetacion:valueOf('#vegetacion'),vistaPrincipal:valueOf('#vistaPrincipal'),agua:valueOf('#aguaDetalle'),
    luz:valueOf('#luzDetalle'),distanciaPosteM:valueOf('#distanciaPosteM')===''?null:numberOf('#distanciaPosteM'),turismo:valueOf('#turismoDetalle'),acceso:valueOf('#accesoDetalle'),distanciaRutaPrincipalKm:numberOf('#distanciaRutaPrincipalKm'),
    cierre:valueOf('#cierreDetalle'),porton:valueOf('#portonDetalle'),rioDirecto:checked('#rioDirecto'),vertienteNatural:checked('#vertienteNatural'),orillaLago:checked('#orillaLago'),termasNaturales:checked('#termasNaturales')
   },
-  casa:radioValue('tipo')==='casa'?{
-   tipoCasa:valueOf('#tipoCasa'),superficie:numberOf('#casaSuperficie'),habitaciones:valueOf('#habitaciones'),banos:valueOf('#banos'),
+  casa:['parcela_casa','casa'].includes(radioValue('tipo'))?{
+   superficie:numberOf('#casaSuperficie'),habitaciones:valueOf('#habitaciones'),banos:valueOf('#banos'),
    pisos:valueOf('#pisos'),material:valueOf('#material'),estado:valueOf('#estadoCasa'),regularizacion:valueOf('#regularizacion'),
    anio:valueOf('#anioCasa'),calidad:valueOf('#calidadCasa'),remodelacion:valueOf('#remodelacionCasa'),
-   anioRemodelacion:valueOf('#anioRemodelacionCasa'),centroUrbano:valueOf('#centroUrbanoCasa'),minutosCentro:numberOf('#minutosCentroCasa'),
-   camino:valueOf('#caminoCasa'),aislacion:valueOf('#aislacionCasa'),ventanas:valueOf('#ventanasCasa'),agua:valueOf('#aguaCasa'),
+   anioRemodelacion:valueOf('#anioRemodelacionCasa'),
+   aislacion:valueOf('#aislacionCasa'),ventanas:valueOf('#ventanasCasa'),
    sanitario:valueOf('#sanitarioCasa'),calefaccion:valueOf('#calefaccion'),estacionamientos:valueOf('#estacionamientos')
   }:null,
-  servicios:{agua:checked('#agua'),luz:checked('#luz'),rol:checked('#rol'),cerco:checked('#cerco'),porton:checked('#porton'),naturaleza:checked('#naturaleza')},
+  servicios:{
+   agua:Boolean(valueOf('#aguaDetalle'))&&!/sin factibilidad|sin agua|no lo sé/i.test(valueOf('#aguaDetalle')),
+   luz:Boolean(valueOf('#luzDetalle'))&&!/sin electricidad|no lo sé/i.test(valueOf('#luzDetalle')),
+   rol:/rol propio/i.test(valueOf('#rolDetalle')),
+   cerco:Boolean(valueOf('#cierreDetalle'))&&!/sin cierre/i.test(valueOf('#cierreDetalle')),
+   porton:Boolean(valueOf('#portonDetalle'))&&!/sin portón/i.test(valueOf('#portonDetalle')),
+   naturaleza:/bosque nativo|bosque mixto|pradera|frutales/i.test(valueOf('#vegetacion'))||checked('#rioDirecto')||checked('#vertienteNatural')||checked('#orillaLago')||checked('#termasNaturales')
+  },
   precio:parseMoney($('#precio')?.value),
   estrategia:{urgencia:radioValue('urgencia'),plazoVenta:valueOf('#plazoVenta'),tiempoEnVenta:valueOf('#tiempoEnVenta'),negociacionPrecio:valueOf('#negociacionPrecio'),disponibilidadVisitas:valueOf('#disponibilidadVisitas')},
   videoUrl:valueOf('#videoUrl'),
@@ -139,13 +146,13 @@ function fill(d){
  radio('tipo',d.tipo);
  set('#region',d.region);populateCommunes(d.region,d.comuna);set('#comuna',d.comuna);set('#localidad',d.localidad);set('#ubicacionTexto',d.ubicacionTexto);
  set('#googleMapsLink',d.googleMapsLink);check('#publicApproximate',d.publicApproximate!==false);
- set('#superficie',d.superficie);set('#suelo',d.suelo);set('#distanciaCiudad',d.distanciaCiudad);set('#distanciaComuna',d.distanciaComuna);set('#acceso',d.acceso);
+ set('#superficie',d.superficie);set('#suelo',d.suelo);set('#distanciaComuna',d.distanciaComuna);
  Object.entries(d.servicios||{}).forEach(([k,v])=>check('#'+k,v));
  const t=d.terreno||{};
- [['#tipoTerreno',t.tipoTerreno],['#rolDetalle',t.rol],['#condominio',t.condominio],['#subdivision',t.subdivision],['#usoSuelo',t.usoSuelo],['#construccion',t.construccion],['#topografia',t.topografia],['#condicionSuelo',t.condicionSuelo],['#vegetacion',t.vegetacion],['#vistaPrincipal',t.vistaPrincipal],['#orientacion',t.orientacion],['#privacidad',t.privacidad],['#aguaDetalle',t.agua],['#luzDetalle',t.luz],['#distanciaPosteM',t.distanciaPosteM],['#turismoDetalle',t.turismo],['#accesoDetalle',t.acceso],['#distanciaRutaPrincipalKm',t.distanciaRutaPrincipalKm],['#cierreDetalle',t.cierre],['#portonDetalle',t.porton]].forEach(([s,v])=>set(s,v));
+ [['#rolDetalle',t.rol],['#condominio',t.condominio],['#subdivision',t.subdivision],['#usoSuelo',t.usoSuelo],['#topografia',t.topografia],['#vegetacion',t.vegetacion],['#vistaPrincipal',t.vistaPrincipal],['#aguaDetalle',t.agua],['#luzDetalle',t.luz],['#distanciaPosteM',t.distanciaPosteM],['#turismoDetalle',t.turismo],['#accesoDetalle',t.acceso],['#distanciaRutaPrincipalKm',t.distanciaRutaPrincipalKm],['#cierreDetalle',t.cierre],['#portonDetalle',t.porton]].forEach(([s,v])=>set(s,v));
  check('#rioDirecto',t.rioDirecto);check('#vertienteNatural',t.vertienteNatural);check('#orillaLago',t.orillaLago);check('#termasNaturales',t.termasNaturales);
  const c=d.casa||{};
- [['#tipoCasa',c.tipoCasa],['#casaSuperficie',c.superficie],['#habitaciones',c.habitaciones],['#banos',c.banos],['#pisos',c.pisos],['#material',c.material],['#estadoCasa',c.estado],['#regularizacion',c.regularizacion],['#anioCasa',c.anio],['#calidadCasa',c.calidad],['#remodelacionCasa',c.remodelacion],['#anioRemodelacionCasa',c.anioRemodelacion],['#centroUrbanoCasa',c.centroUrbano],['#minutosCentroCasa',c.minutosCentro],['#caminoCasa',c.camino],['#aislacionCasa',c.aislacion],['#ventanasCasa',c.ventanas],['#aguaCasa',c.agua],['#sanitarioCasa',c.sanitario],['#calefaccion',c.calefaccion],['#estacionamientos',c.estacionamientos]].forEach(([s,v])=>set(s,v));
+ [['#casaSuperficie',c.superficie],['#habitaciones',c.habitaciones],['#banos',c.banos],['#pisos',c.pisos],['#material',c.material],['#estadoCasa',c.estado],['#regularizacion',c.regularizacion],['#anioCasa',c.anio],['#calidadCasa',c.calidad],['#remodelacionCasa',c.remodelacion],['#anioRemodelacionCasa',c.anioRemodelacion],['#aislacionCasa',c.aislacion],['#ventanasCasa',c.ventanas],['#sanitarioCasa',c.sanitario],['#calefaccion',c.calefaccion],['#estacionamientos',c.estacionamientos]].forEach(([s,v])=>set(s,v));
  set('#precio',d.precio?String(d.precio).replace(/\B(?=(\d{3})+(?!\d))/g,'.'):'');
  const e=d.estrategia||{};radio('urgencia',e.urgencia);set('#plazoVenta',e.plazoVenta);set('#tiempoEnVenta',e.tiempoEnVenta);set('#negociacionPrecio',e.negociacionPrecio);set('#disponibilidadVisitas',e.disponibilidadVisitas);
  set('#videoUrl',d.videoUrl);set('#titulo',d.titulo);set('#descripcion',d.descripcion);radio('responsable',d.contacto?.responsable);
@@ -190,9 +197,9 @@ function setMapMarker(c,center=true,{progressive=false}={}){
  else parcelMarker.setLatLng([c.lat,c.lng]);
  if(center){
   if(progressive){
-   mapClickCount=Math.min(mapClickCount+1,4);
-   const zoomSteps=[8,11,15,16];
-   parcelMap.flyTo([c.lat,c.lng],zoomSteps[mapClickCount-1],{animate:true,duration:.65});
+   mapClickCount=Math.min(mapClickCount+1,6);
+   const zoomSteps=[6,8,10,12,14,16];
+   parcelMap.flyTo([c.lat,c.lng],zoomSteps[mapClickCount-1],{animate:true,duration:.85});
   }else{
    parcelMap.setView([c.lat,c.lng],Math.max(parcelMap.getZoom(),15));
   }
@@ -288,11 +295,16 @@ function territorialContext(property){
   city=cat?.getMajorCityForCommune?.(property.comuna,property.region)||cat?.getCityForCommune?.(property.comuna,property.region)||null;
   if(selectedCoords&&cat?.resolveTerritorialCascade) cascade=cat.resolveTerritorialCascade(property.comuna,property.region,selectedCoords.lat,selectedCoords.lng,0);
  }catch(error){console.warn('No fue posible resolver contexto territorial.',error)}
- let majorCityDistanceKm=property.distanciaCiudad===null||property.distanciaCiudad===undefined?null:Number(property.distanciaCiudad);
+ let majorCityDistanceKm=null;
  let communeDistanceKm=property.distanciaComuna===null||property.distanciaComuna===undefined?null:Number(property.distanciaComuna);
+ const communeCenter=(Number.isFinite(Number(commune?.lat))&&Number.isFinite(Number(commune?.lng)))?{lat:Number(commune.lat),lng:Number(commune.lng)}:(commune?.centroid||null);
  if(selectedCoords){
   if(city?.centroid) majorCityDistanceKm=haversineKm(selectedCoords,city.centroid);
-  if(Number.isFinite(Number(commune?.lat))&&Number.isFinite(Number(commune?.lng))) communeDistanceKm=haversineKm(selectedCoords,{lat:Number(commune.lat),lng:Number(commune.lng)});
+  if(communeCenter) communeDistanceKm=haversineKm(selectedCoords,communeCenter);
+ }else if(communeCenter&&city?.centroid){
+  // Fallback no bloqueante: distancia estructural entre el centro comunal y la ciudad principal.
+  // Cuando el usuario marca coordenadas, se reemplaza por la distancia real de la propiedad.
+  majorCityDistanceKm=haversineKm(communeCenter,city.centroid);
  }
  const cityCategory=String(city?.category||'').toLowerCase();
  const autoTourism=commune?.tour ? (/destino tur[ií]stico|internacional|lacustre|tur/i.test(cityCategory)?'nacional':'local') : '';
@@ -328,8 +340,7 @@ function prevalidateValuation(){
  if(!property.region)missing.push({message:'Selecciona la región de la propiedad.',el:$('#region')});
  if(!property.comuna)missing.push({message:'Selecciona la comuna de la propiedad.',el:$('#comuna')});
  const hasCoords=property.coords&&Number.isFinite(Number(property.coords.lat))&&Number.isFinite(Number(property.coords.lng));
- if(!hasCoords&&property.distanciaCiudad===null)missing.push({message:'Ingresa la distancia a la ciudad grande o marca la ubicación en el mapa.',el:$('#distanciaCiudad')});
- if(!hasCoords&&property.distanciaComuna===null)missing.push({message:'Ingresa la distancia al centro comunal o marca la ubicación en el mapa.',el:$('#distanciaComuna')});
+ if(!hasCoords&&property.distanciaComuna===null)missing.push({message:'Ingresa la distancia al centro de la comuna o marca la ubicación en el mapa.',el:$('#distanciaComuna')});
  const urgency=property.estrategia?.urgencia||radioValue('urgencia');
  if(!urgency)missing.push({message:'Selecciona tu nivel de apuro antes de calcular.',el:document.querySelector('input[name="urgencia"]')});
  return missing;
@@ -459,7 +470,7 @@ async function performCalculate(){
   const property=data();
   const area=Number(property.superficie||0);
   const territory=territorialContext(property);
-  const distance=Number(territory.distanceKm||property.distanciaCiudad||0);
+  const distance=Number(territory.majorCityDistanceKm||territory.distanceKm||0);
   const missing=[];
   if(!area)missing.push({message:'Ingresa la superficie del terreno.',el:$('#superficie')});
   if(!property.region)missing.push({message:'Selecciona la región de la propiedad.',el:$('#region')});
@@ -483,7 +494,7 @@ async function performCalculate(){
    water:property.terreno?.agua||(features.water?'Agua disponible':'Por confirmar'),
    access:property.terreno?.acceso||property.acceso,
    topography:property.terreno?.topografia||property.suelo||'Por confirmar',
-   soil:property.terreno?.condicionSuelo||property.suelo||'',
+   soil:property.suelo||'',
    exposure:property.terreno?.orientacion||'',
    view:property.terreno?.vistaPrincipal||'',
    vegetation:property.terreno?.vegetacion||'',
@@ -493,7 +504,7 @@ async function performCalculate(){
    nature:[features.nature?'Bosque nativo':'',property.terreno?.vegetacion||'',property.terreno?.vistaPrincipal||'',property.terreno?.rioDirecto?'Río dentro o acceso directo':'',property.terreno?.vertienteNatural?'Vertiente':'',property.terreno?.orillaLago?'Orilla lago':'',property.terreno?.termasNaturales?'Termas':''].filter(Boolean),
    routeDistanceKm:Number(property.terreno?.distanciaRutaPrincipalKm||0),
    asking:property.precio,
-   tipo:property.tipo==='casa'?'casa':'parcela',lat:Number(property.coords?.lat)||null,lng:Number(property.coords?.lng)||null,
+   tipo:['parcela_casa','casa'].includes(property.tipo)?'casa':'parcela',lat:Number(property.coords?.lat)||null,lng:Number(property.coords?.lng)||null,
    comuna:property.comuna,region:property.region,sector:property.localidad,
    tourism:territory.tourism,
    nearestCity:territory.city?{name:territory.city.name,category:territory.city.category,weight:Number(territory.city.weight||1)}:null,
@@ -509,7 +520,7 @@ async function performCalculate(){
   )||null;
   landInput.propertyIndex=window.TPLLandEngine?.calculatePropertyIndex?.(landInput)||null;
   let result;
-  if(property.tipo==='casa' && window.TPLHouseEngine?.calculate){
+  if(['parcela_casa','casa'].includes(property.tipo) && window.TPLHouseEngine?.calculate){
    const c=property.casa||{};
    const currentYear=new Date().getFullYear();
    const houseYear=Number(c.anio||0);
@@ -567,11 +578,32 @@ async function performCalculate(){
   if(button)button.disabled=false;
  }
 }
+function buildValuationVirtues(property){
+ const out=[];
+ const t=property?.terreno||{};
+ const sv=property?.servicios||{};
+ const push=(text)=>{if(text&&!out.includes(text))out.push(text)};
+ if(/rol propio/i.test(String(t.rol||''))||sv.rol)push('Rol propio informado');
+ if(/conectada|empalme/i.test(String(t.luz||''))||sv.luz)push(/empalme/i.test(String(t.luz||''))?'Empalme eléctrico':'Electricidad disponible');
+ else if(/factibilidad|postaci[oó]n|cercana/i.test(String(t.luz||'')))push('Factibilidad eléctrica');
+ if(/puntera|pozo|apr|disponible|conectada/i.test(String(t.agua||''))||sv.agua)push('Solución de agua informada');
+ else if(/factibilidad/i.test(String(t.agua||'')))push('Factibilidad de agua');
+ if(/completamente cercada/i.test(String(t.cierre||''))||sv.cerco)push('Cierre perimetral');
+ if(/port[oó]n instalado/i.test(String(t.porton||''))||sv.porton)push('Portón de acceso');
+ if(/s[ií]/i.test(String(t.condominio||'')))push('Condominio o loteo organizado');
+ if(t.rioDirecto)push('Acceso directo a río');
+ if(t.vertienteNatural)push('Vertiente natural');
+ if(t.orillaLago)push('Orilla de lago');
+ if(t.termasNaturales)push('Aguas termales');
+ if(/bosque nativo/i.test(String(t.vegetacion||''))||sv.naturaleza)push('Entorno natural destacado');
+ if(/panor[aá]mica/i.test(String(t.vistaPrincipal||'')))push('Vista panorámica');
+ return out.slice(0,6);
+}
 function renderValuation(){
  $('#valuationMain').textContent=`Valor TPL Recomendado: ${money(valuation.market)}`;if(valuation.recommendedUf&&valuation.ufClpUsed)$('#valuationMain').title=`${Number(valuation.recommendedUf).toLocaleString('es-CL',{maximumFractionDigits:1})} UF · UF usada ${money(valuation.ufClpUsed)}`;
  $('#quickValue').textContent=money(valuation.quick);$('#marketValue').textContent=money(valuation.market);$('#patientValue').textContent=money(valuation.patient);
  const immediateBtn=$('#immediateSaleBtn');if(immediateBtn){immediateBtn.hidden=!Number(valuation.immediateReference);}
- const virtues=valuationVirtues(data()),box=$('#valuationVirtues'),list=$('#valuationVirtuesList');
+ const virtues=buildValuationVirtues(data()),box=$('#valuationVirtues'),list=$('#valuationVirtuesList');
  if(box&&list){list.innerHTML=virtues.map(x=>`<li>${x}</li>`).join('');box.hidden=!virtues.length}
  const offer=$('#professionalReportOffer');if(offer)offer.hidden=false;
  const ask=valuation.asking||parseMoney($('#precio').value);
@@ -669,7 +701,7 @@ function renderPhotos(){
 }
 function suggestDescription({silent=false}={}){
  const d=data(),t=d.terreno||{},c=d.casa||null;
- const typeLabel=d.tipo==='campo'?'Campo':d.tipo==='casa'?'Casa con terreno':'Parcela';
+ const typeLabel=d.tipo==='parcela_casa'?'Parcela con casa':d.tipo==='casa'?'Casa':'Parcela';
  const place=d.localidad||d.comuna||'sector por confirmar';
  const titleBits=[typeLabel];
  if(d.superficie)titleBits.push(`de ${Number(d.superficie).toLocaleString('es-CL')} m²`);
@@ -699,7 +731,7 @@ function suggestDescription({silent=false}={}){
  if(t.acceso||d.acceso)services.push(`acceso ${String(t.acceso||d.acceso).toLowerCase()}`);
  if(services.length)sentences.push(`En servicios y documentación declara ${services.join(', ')}.`);
  const location=[];
- if(d.distanciaCiudad)location.push(`${d.distanciaCiudad} km de la ciudad principal`);
+ if(d.distanciaComuna)location.push(`${d.distanciaComuna} km del centro de ${d.comuna||'la comuna'}`);
  if(t.distanciaRutaPrincipalKm)location.push(`${t.distanciaRutaPrincipalKm} km de la ruta principal`);
  if(location.length)sentences.push(`Ubicación referencial: ${location.join(' y ')}.`);
  if(t.vegetacion)sentences.push(`Vegetación predominante: ${t.vegetacion.toLowerCase()}.`);
@@ -732,6 +764,17 @@ function renderReview(){
  <section class="review-section"><h3>Tasación y medios</h3><div class="review-row"><span>Valor recomendado</span><strong>${valuation?money(valuation.market):'No calculada'}</strong></div><div class="review-row"><span>Fotografías</span><strong>${photos.length}</strong></div><div class="review-row"><span>Video</span><strong>${d.videoUrl?'Sí':'No'}</strong></div></section>
  <section class="review-section"><h3>Responsable</h3><div class="review-row"><span>Nombre</span><strong>${d.contacto.nombre||'—'}</strong></div><div class="review-row"><span>Correo</span><strong>${d.contacto.email||'—'}</strong></div></section>`;
 }
+function showPublishSuccess(result,d){
+ const dialog=$('#publishSuccessDialog');
+ if(!dialog)return;
+ const code=$('#publishSuccessCode'),email=$('#publishSuccessEmail'),needs=$('#publishSuccessNeeds');
+ if(code)code.textContent=result?.codigo||'Publicación recibida';
+ if(email)email.textContent=d?.contacto?.email||'tu correo registrado';
+ const count=Number(result?.necesidades_detectadas||0);
+ if(needs)needs.textContent=count?`TPL detectó ${count} mejora${count===1?'':'s'} o necesidad${count===1?'':'es'} que podremos considerar para potenciar la propiedad.`:'Tu publicación quedó preparada para revisión comercial y validación de antecedentes.';
+ if(!dialog.open)dialog.showModal();
+}
+
 async function submit(e){
  e.preventDefault();
  if(!validateStep(5))return showStep(5);
@@ -769,6 +812,7 @@ async function submit(e){
    status.textContent=`Publicación ${result.codigo} recibida correctamente y enviada a revisión TPL${needs?` · ${needs} necesidad${needs===1?'':'es'} detectada${needs===1?'':'s'}`:''}.`;
   }
   if(btn)btn.textContent='Enviada correctamente ✓';
+  showPublishSuccess(result,d);
  }catch(error){
   console.error('Publicador TPL:',error);
   if(status){
@@ -791,6 +835,7 @@ document.querySelectorAll('[data-valuation-choice]').forEach(btn=>btn.onclick=()
 
 const immediateSaleBtn=$('#immediateSaleBtn');if(immediateSaleBtn)immediateSaleBtn.onclick=()=>{if(!Number(valuation?.immediateReference))return;const val=$('#immediateSaleValue');if(val)val.textContent=money(valuation.immediateReference);$('#immediateSaleDialog')?.showModal();};
 const closeImmediateSale=$('#closeImmediateSale');if(closeImmediateSale)closeImmediateSale.onclick=()=>$('#immediateSaleDialog')?.close();
+const closePublishSuccess=$('#closePublishSuccess');if(closePublishSuccess)closePublishSuccess.onclick=()=>$('#publishSuccessDialog')?.close();
 const closeValuationResult=$('#closeValuationResult');if(closeValuationResult)closeValuationResult.onclick=()=>$('#valuationResultDialog')?.close();
 const valuationErrorClose=$('#valuationErrorClose');if(valuationErrorClose)valuationErrorClose.onclick=()=>$('#valuationResultDialog')?.close();
 const closeValuationResultBottom=$('#closeValuationResultBottom');if(closeValuationResultBottom)closeValuationResultBottom.onclick=()=>$('#valuationResultDialog')?.close();
@@ -808,7 +853,6 @@ initMapPicker();
 const buyReportBtn=$('#buyProfessionalReportBtn');if(buyReportBtn)buyReportBtn.onclick=()=>{const d=data();const intent={createdAt:new Date().toISOString(),property:d,valuation,amount:1990,status:'intencion_compra'};try{localStorage.setItem('tpl_report_purchase_intent_v1',JSON.stringify(intent))}catch{};if(window.TPLDataService?.trackEvent)window.TPLDataService.trackEvent('informe_tasacion_solicitado',intent).catch?.(()=>{});alert('Tu solicitud de informe quedó registrada. El pago de $1.990 se habilitará en el siguiente paso de integración de pagos.');};
 const form=$('#publisherForm');if(form){form.addEventListener('input',()=>{clearTimeout(window.__tplDraftTimer);window.__tplDraftTimer=setTimeout(saveDraft,450)});form.onsubmit=submit;}
 $$('input[name="tipo"]').forEach(el=>el.addEventListener('change',toggleHouseFields));
-['#aguaDetalle','#luzDetalle','#rolDetalle','#cierreDetalle','#portonDetalle'].forEach(sel=>on(sel,'change',syncQuickServices));
 const luzDetalle=$('#luzDetalle'),distanciaPosteWrap=$('#distanciaPosteWrap');const syncPoleDistance=()=>{if(distanciaPosteWrap)distanciaPosteWrap.hidden=!/factibilidad|postación|postacion/i.test(luzDetalle?.value||'')};on('#luzDetalle','change',syncPoleDistance);syncPoleDistance();
 (async()=>{await initTerritory();fill(readJSON(KEY,null));toggleHouseFields();showStep(0)})();
 })();

@@ -7,7 +7,7 @@
 <meta name="robots" content="index,follow">
 <meta name="description" content="Publica tu parcela, campo o casa con terreno en Tu Parcela Lista y obtén una tasación gratuita. Descubre cuánto vale tu propiedad, su valor recomendado TPL y una estrategia de venta según tu nivel de urgencia.">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="publicar.css?v=20260731-fix1">
+<link rel="stylesheet" href="publicar.css?v=20260731-fix3">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cómo saber cuánto vale mi parcela?","acceptedAnswer":{"@type":"Answer","text":"El Tasador TPL analiza superficie, ubicación, conectividad, servicios, documentación y características de la propiedad para entregar una referencia comercial."}},{"@type":"Question","name":"¿La tasación de parcelas es gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. Tu Parcela Lista permite obtener una referencia de tasación gratuita al completar los antecedentes necesarios de la propiedad."}},{"@type":"Question","name":"¿Qué factores influyen en el valor de un terreno?","acceptedAnswer":{"@type":"Answer","text":"Entre otros factores influyen la superficie, ubicación, distancia a centros urbanos y rutas, acceso, agua, electricidad, documentación y topografía."}}]}</script>
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 </head>
@@ -38,10 +38,10 @@
     <form id="publisherForm" novalidate>
       <section class="wizard-step is-active" data-step="0">
         <div class="step-head"><span class="eyebrow">Comencemos</span><h1>¿Qué propiedad quieres publicar?</h1><p>Solo pediremos la información necesaria. Podrás volver y editar cualquier paso.</p></div>
-        <div class="choice-grid">
-          <label class="choice-card"><input type="radio" name="tipo" value="parcela" checked><span class="tpl-icon tpl-icon-leaf" aria-hidden="true"></span><strong>Parcela</strong><small>Desde 5.000 m²</small></label>
-          <label class="choice-card"><input type="radio" name="tipo" value="campo"><span class="tpl-icon tpl-icon-area" aria-hidden="true"></span><strong>Campo</strong><small>1 hectárea o más</small></label>
-          <label class="choice-card"><input type="radio" name="tipo" value="casa"><span class="tpl-icon tpl-icon-home" aria-hidden="true"></span><strong>Casa con terreno</strong><small>Vivienda existente</small></label>
+        <div class="choice-grid property-type-grid">
+          <label class="choice-card"><input type="radio" name="tipo" value="parcela" checked><span class="choice-line-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 24c6-10 13-15 22-16-1 9-6 16-15 19-3 1-5 0-7-3Z"/><path d="M7 27c4-6 9-10 16-14"/></svg></span><strong>Parcela</strong><small>Terreno sin vivienda</small></label>
+          <label class="choice-card"><input type="radio" name="tipo" value="parcela_casa"><span class="choice-line-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 16 13 7l10 9"/><path d="M6 14v12h14V14M11 26v-7h5v7"/><path d="M22 10h6M25 7v6"/></svg></span><strong>Parcela con casa</strong><small>Terreno con vivienda existente</small></label>
+          <label class="choice-card"><input type="radio" name="tipo" value="casa"><span class="choice-line-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 15 16 5l12 10"/><path d="M7 13v14h18V13M13 27v-8h6v8"/></svg></span><strong>Casa</strong><small>Vivienda para publicar</small></label>
         </div>
         <div class="form-grid">
           <label><span>Región</span><select id="region" required><option value="">Selecciona una región</option></select></label>
@@ -67,39 +67,23 @@
         <div class="form-grid">
           <label><span>Superficie del terreno</span><div class="suffix"><input id="superficie" type="number" min="1" required><b>m²</b></div></label>
           <label><span>Tipo de suelo</span><select id="suelo"><option value="">Selecciona</option><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
-          <label><span>Distancia a ciudad grande relevante</span><div class="suffix"><input id="distanciaCiudad" type="number" min="0" step="0.1"><b>km</b></div><small>Pesa 70% en la ubicación territorial. Con coordenadas TPL la calcula automáticamente.</small></label>
-<label><span>Distancia al centro comunal</span><div class="suffix"><input id="distanciaComuna" type="number" min="0" step="0.1"><b>km</b></div><small>Pesa 30% en la ubicación territorial.</small></label>
-          <label><span>Acceso</span><select id="acceso"><option>Camino público</option><option>Camino interior</option><option>Servidumbre</option><option>Por confirmar</option></select></label>
+          <label><span>Distancia al centro de la comuna</span><div class="suffix"><input id="distanciaComuna" type="number" min="0" step="0.1"><b>km</b></div><small>Indica la distancia aproximada desde la propiedad al centro de la comuna seleccionada. La distancia a la ciudad principal la calcula TPL automáticamente con la ubicación.</small></label>
         </div>
         <section class="detail-panel">
-          <div class="detail-panel-head"><strong>Antecedentes de la propiedad</strong><small>Mientras más precisas sean las respuestas, mejor será la ficha y la tasación.</small></div>
+          <div class="detail-panel-head"><strong>Antecedentes de la propiedad</strong><small>Solo pedimos antecedentes que aportan a la tasación, la publicación o la negociación.</small></div>
           <div class="form-grid">
-            <label><span>Clasificación del terreno</span><select id="tipoTerreno"><option value="">Automático según superficie</option><option>Parcela</option><option>Campo</option><option>Fundo</option><option>Sitio rural</option><option>Predio agrícola</option></select></label>
             <label><span>Rol de la propiedad</span><select id="rolDetalle"><option value="">Selecciona</option><option>Rol propio</option><option>Rol compartido</option><option>En trámite</option><option>No lo sé</option></select></label>
             <label><span>¿Está en condominio o loteo?</span><select id="condominio"><option value="">Selecciona</option><option>Sí</option><option>No</option><option>No lo sé</option></select></label>
 <label><span>Clasificación turística</span><select id="turismoDetalle"><option value="auto">Automático según territorio</option><option value="">No turística</option><option value="local">Turística local / regional</option><option value="nacional">Turística nacional</option></select></label>
             <label><span>Situación de subdivisión</span><select id="subdivision"><option value="">Selecciona</option><option>Subdivisión aprobada</option><option>Predio original</option><option>En proceso de subdivisión</option><option>No aplica</option><option>No lo sé</option></select></label>
             <label><span>Uso de suelo principal</span><select id="usoSuelo"><option value="">Selecciona</option><option>Habitacional</option><option>Agrícola</option><option>Ganadero</option><option>Forestal</option><option>Turístico</option><option>Mixto</option><option>No lo sé</option></select></label>
-            <label><span>Factibilidad para construir</span><select id="construccion"><option value="">Selecciona</option><option>Apta para construir</option><option>Con factibilidad informada</option><option>Requiere evaluación</option><option>No lo sé</option></select></label>
             <label><span>Topografía</span><select id="topografia"><option value="">Selecciona</option><option>Completamente plana</option><option>Mayormente plana</option><option>Mixta</option><option>Lomaje suave</option><option>Con pendiente</option><option>Escarpada</option></select></label>
-            <label><span>Condición del suelo</span><select id="condicionSuelo"><option value="">Selecciona</option><option>Seco y firme</option><option>Pradera</option><option>Suelo agrícola</option><option>Húmedo</option><option>Pedregoso</option><option>Arenoso</option><option>No evaluado</option></select></label>
             <label><span>Vegetación predominante</span><select id="vegetacion"><option value="">Selecciona</option><option>Pradera despejada</option><option>Bosque nativo</option><option>Bosque mixto</option><option>Plantación forestal</option><option>Pinos o eucaliptus</option><option>Árboles frutales</option><option>Matorral</option><option>Sin vegetación relevante</option></select></label>
             <label><span>Vista principal</span><select id="vistaPrincipal"><option value="">Selecciona</option><option>Panorámica desde arriba</option><option>Panorámica desde abajo</option><option>Poca visibilidad</option><option>Distante</option></select></label>
-            <label><span>Orientación / exposición</span><select id="orientacion"><option value="">Selecciona</option><option>Muy soleado</option><option>Soleado medio</option><option>Poco soleado</option></select></label>
-            <label><span>Privacidad</span><select id="privacidad"><option value="">Selecciona</option><option>Alta privacidad</option><option>Vecinos distantes</option><option>Sector consolidado</option><option>Condominio o loteo</option><option>Zona aislada</option></select></label>
           </div>
         </section>
-
-        <div class="service-grid">
-          <label><input type="checkbox" id="agua"><span class="tpl-icon tpl-icon-water" aria-hidden="true"></span><strong>Agua disponible</strong></label>
-          <label><input type="checkbox" id="luz"><span class="tpl-icon tpl-icon-bolt" aria-hidden="true"></span><strong>Electricidad</strong></label>
-          <label><input type="checkbox" id="rol"><span class="tpl-icon tpl-icon-doc" aria-hidden="true"></span><strong>Rol propio</strong></label>
-          <label><input type="checkbox" id="cerco"><span class="tpl-icon tpl-icon-area" aria-hidden="true"></span><strong>Cerco</strong></label>
-          <label><input type="checkbox" id="porton"><span class="tpl-icon tpl-icon-project" aria-hidden="true"></span><strong>Portón</strong></label>
-          <label><input type="checkbox" id="naturaleza"><span class="tpl-icon tpl-icon-leaf" aria-hidden="true"></span><strong>Bosque o entorno natural</strong></label>
-        </div>
         <section class="detail-panel soft">
-          <div class="detail-panel-head"><strong>Servicios, acceso y deslindes</strong><small>Indica la situación real, aunque sea “No lo sé”.</small></div>
+          <div class="detail-panel-head"><strong>Servicios y condiciones que sí influyen</strong><small>Estos datos influyen directamente en el valor o en la decisión del comprador.</small></div>
           <div class="form-grid">
             <label><span>Agua</span><select id="aguaDetalle"><option value="">Selecciona</option><option>Factibilidad</option><option>Sin factibilidad</option><option>Puntera</option><option>Pozo</option><option>APR</option></select></label>
             <label><span>Electricidad</span><select id="luzDetalle"><option value="">Selecciona</option><option>Conectada</option><option>Empalme instalado</option><option>Postación en el frente</option><option>Postación cercana</option><option>Factibilidad</option><option>Sistema solar</option><option>Sin electricidad</option><option>No lo sé</option></select></label>
@@ -118,9 +102,8 @@
         </section>
 
         <section class="detail-panel house-only" id="houseFields" hidden>
-          <div class="detail-panel-head"><strong>Características de la casa</strong><small>Estos campos aparecen porque seleccionaste “Casa con terreno”.</small></div>
+          <div class="detail-panel-head"><strong>Características de la casa</strong><small>Estos campos aparecen porque seleccionaste una propiedad con vivienda.</small></div>
           <div class="form-grid">
-            <label><span>Tipo de casa</span><select id="tipoCasa"><option value="">Selecciona</option><option>Casa urbana</option><option>Casa rural</option><option>Casa con parcela</option><option>Casa en condominio</option><option>Casa prefabricada instalada</option><option>Parcela con casa</option></select></label>
             <label><span>Superficie construida</span><div class="suffix"><input id="casaSuperficie" type="number" min="1"><b>m²</b></div></label>
             <label><span>Dormitorios</span><select id="habitaciones"><option value="">Selecciona</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="6">6 o más</option></select></label>
             <label><span>Baños</span><select id="banos"><option value="">Selecciona</option><option>1</option><option>2</option><option>3</option><option value="4">4 o más</option></select></label>
@@ -132,12 +115,8 @@
             <label><span>Calidad general</span><select id="calidadCasa"><option value="">Selecciona</option><option>Económica</option><option>Estándar</option><option>Buena</option><option>Premium</option></select></label>
             <label><span>Remodelación</span><select id="remodelacionCasa"><option value="">Sin remodelación informada</option><option>Parcial</option><option>Importante</option><option>Integral</option></select></label>
             <label><span>Año de remodelación</span><input id="anioRemodelacionCasa" inputmode="numeric" placeholder="Ej. 2023"></label>
-            <label><span>Centro urbano de referencia</span><input id="centroUrbanoCasa" placeholder="Ej. Plaza de Armas de Yumbel"></label>
-            <label><span>Minutos al centro</span><input id="minutosCentroCasa" type="number" min="0" placeholder="Ej. 18"></label>
-            <label><span>Camino de acceso</span><select id="caminoCasa"><option value="">Selecciona</option><option>Pavimentado</option><option>Ripio en buen estado</option><option>Ripio transitable</option><option>Tierra en buen estado</option><option>Acceso difícil</option></select></label>
             <label><span>Aislación</span><select id="aislacionCasa"><option value="">No informado</option><option>Buena</option><option>Estándar</option><option>Deficiente</option></select></label>
             <label><span>Ventanas</span><select id="ventanasCasa"><option value="">No informado</option><option>Termopanel</option><option>Vidrio simple en buen estado</option><option>Vidrio simple antiguo</option></select></label>
-            <label><span>Agua de la vivienda</span><select id="aguaCasa"><option value="">Selecciona</option><option>Red pública</option><option>APR</option><option>Pozo</option><option>Vertiente</option><option>Mixta</option></select></label>
             <label><span>Sistema sanitario</span><select id="sanitarioCasa"><option value="">Selecciona</option><option>Alcantarillado</option><option>Fosa séptica</option><option>Planta de tratamiento</option><option>Pozo negro</option><option>No lo sé</option></select></label>
             <label><span>Calefacción</span><select id="calefaccion"><option value="">Selecciona</option><option>Estufa a leña</option><option>Combustión lenta</option><option>Pellet</option><option>Gas</option><option>Eléctrica</option><option>Calefacción central</option><option>Sin calefacción fija</option></select></label>
             <label><span>Estacionamientos</span><select id="estacionamientos"><option value="">Selecciona</option><option>1</option><option>2</option><option>3</option><option value="4">4 o más</option><option>Sin estacionamiento</option></select></label>
@@ -302,6 +281,24 @@
   <div class="valuation-result-body"><p>Basado en antecedentes de cierres rurales anteriores y ajustado con la tasación actual. Prioriza fuertemente la velocidad de venta.</p><div class="selected-valuation-summary immediate-sale-summary"><span>Valor referencial</span><strong id="immediateSaleValue">—</strong><p>Este valor no es un mínimo garantizado ni significa que debas vender a ese precio.</p></div></div>
 </dialog>
 
+
+<dialog id="publishSuccessDialog" class="publish-success-dialog">
+  <div class="publish-success-card">
+    <div class="publish-success-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/><path d="m15 24 6 6 13-14"/></svg></div>
+    <span class="eyebrow">Publicación recibida</span>
+    <h2>Tu propiedad ya está en manos de TPL</h2>
+    <p>Gracias por confiar en Tu Parcela Lista. Revisaremos la información, fotografías, tasación y antecedentes comerciales antes de dejarla preparada para su publicación.</p>
+    <div class="publish-success-code"><span>Código de seguimiento</span><strong id="publishSuccessCode">—</strong></div>
+    <div class="publish-success-next">
+      <div><strong>Recibirás un correo</strong><span>Enviaremos la confirmación y los próximos pasos a <b id="publishSuccessEmail">tu correo registrado</b>.</span></div>
+      <div><strong>Revisión TPL</strong><span id="publishSuccessNeeds">Validaremos la información y oportunidades de mejora de tu propiedad.</span></div>
+      <div><strong>Seguimiento</strong><span>La publicación quedará vinculada al CRM para acompañar consultas, interesados, tasación y avances comerciales.</span></div>
+    </div>
+    <p class="publish-success-note">Si necesitamos confirmar algún antecedente, el equipo TPL podrá contactarte antes de activar la publicación.</p>
+    <button id="closePublishSuccess" class="primary" type="button">Entendido</button>
+  </div>
+</dialog>
+
 <dialog id="reportDialog">
   <div class="dialog-head"><strong>Informe de tasación TPL</strong><button id="closeReport" type="button">×</button></div>
   <div id="reportContent"></div>
@@ -309,11 +306,11 @@
 </dialog>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>
-<script src="tpl-land-engine.js?v=20260731-fix1"></script>
-<script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
+<script src="tpl-land-engine.js?v=20260731-fix3"></script>
+<script src="tpl-tasador-supabase.js?v=20260731-fix3"></script>
 <script src="tpl-house-engine.js"></script>
 <script src="tpl-market-observed.js"></script>
 <script src="tpl-report-generator.js"></script>
-<script src="publicar.js?v=20260731-fix1"></script>
+<script src="publicar.js?v=20260731-fix3"></script>
 </body>
 </html>

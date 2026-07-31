@@ -33,20 +33,23 @@ function parseMoney(v){return Number(String(v||'').replace(/[^0-9]/g,''))||0}
 function inputs(){
  const obras={};document.querySelectorAll('[data-work]').forEach(el=>{const n=Number(el.value||0);if(n>0)obras[el.dataset.work]=n});
  const withHouse=$('#incluyeVivienda').checked;const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
- const base={area:Number($('#superficie').value||0),distanceKm:$('#distanceKm').value===''?null:Number($('#distanceKm').value),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
+ const base={area:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
  if(mode==='precisa')Object.assign(base,{access:$('#access').value,routeDistanceKm:Number($('#routeDistanceKm').value||0),soil:$('#soil').value,exposure:$('#exposure').value,view:$('#view').value,vegetation:$('#vegetation').value,fencing:$('#fencing').value,gate:$('#gate').value,condominium:$('#condominium').value,asking:parseMoney($('#asking').value),nature,lat:Number($('#lat').value),lng:Number($('#lng').value)});
  return {...base,incluyeVivienda:withHouse,areaCasa:withHouse?Number($('#areaCasa').value||0):0,materialCasa:$('#materialCasa').value,anioConstruccion:Number($('#anioConstruccion').value||0),estadoCasa:$('#estadoCasa').value,tipoFundacion:'sin_fundacion',anioRemodelacion:Number($('#anioRemodelacion').value||0),remodelacionIntegral:Number($('#anioRemodelacion').value||0)>0,dormitorios:Number($('#dormitorios').value||0),banos:Number($('#banos').value||0),pisos:Number($('#pisos').value||1),obrasAdicionales:obras,caracteristicaDiferenciadora:$('#caracteristicaDiferenciadora').value};
 }
 function territorialContextFor(x){
- let city=null,cascade=null,commune=null,majorCityDistanceKm=Number(x.distanceKm),communeDistanceKm=Number(x.communeDistanceKm);
+ let city=null,cascade=null,commune=null,majorCityDistanceKm=null,communeDistanceKm=Number(x.communeDistanceKm);
  try{
   city=catalog?.getMajorCityForCommune?.(x.comuna,x.region)||catalog?.getCityForCommune?.(x.comuna,x.region)||null;
   commune=catalog?.getCommune?.(x.comuna)||null;
+  const communeCenter=(Number.isFinite(Number(commune?.lat))&&Number.isFinite(Number(commune?.lng)))?{lat:Number(commune.lat),lng:Number(commune.lng)}:(commune?.centroid||null);
   if(Number.isFinite(x.lat)&&Number.isFinite(x.lng)&&x.lat&&x.lng){
    if(catalog?.resolveTerritorialCascade) cascade=catalog.resolveTerritorialCascade(x.comuna,x.region,x.lat,x.lng,0);
    const point={lat:Number(x.lat),lng:Number(x.lng)};
    if(city?.centroid&&window.TPLLandEngine?.haversineKm) majorCityDistanceKm=window.TPLLandEngine.haversineKm(point,city.centroid);
-   if(Number.isFinite(Number(commune?.lat))&&Number.isFinite(Number(commune?.lng))&&window.TPLLandEngine?.haversineKm) communeDistanceKm=window.TPLLandEngine.haversineKm(point,{lat:Number(commune.lat),lng:Number(commune.lng)});
+   if(communeCenter&&window.TPLLandEngine?.haversineKm) communeDistanceKm=window.TPLLandEngine.haversineKm(point,communeCenter);
+  }else if(communeCenter&&city?.centroid&&window.TPLLandEngine?.haversineKm){
+   majorCityDistanceKm=window.TPLLandEngine.haversineKm(communeCenter,city.centroid);
   }
  }catch(error){console.warn('Contexto territorial no disponible.',error)}
  const category=String(city?.category||'').toLowerCase();
@@ -59,8 +62,7 @@ function validate(x,territory){
  if(!x.comuna)return 'Selecciona una comuna.';
  if(!x.area)return 'Ingresa la superficie del terreno.';
  if(mode==='precisa'&&(!Number.isFinite(x.lat)||!Number.isFinite(x.lng)||!x.lat||!x.lng))return 'Para la tasación precisa ingresa coordenadas o usa tu ubicación.';
- if(!Number.isFinite(territory.distanceKm)||territory.distanceKm<0)return 'Ingresa la distancia a la ciudad grande o usa coordenadas en Tasación precisa.';
- if(mode!=='precisa'&&(!Number.isFinite(territory.communeDistanceKm)||territory.communeDistanceKm<0))return 'Ingresa también la distancia al centro comunal.';
+ if(mode!=='precisa'&&(!Number.isFinite(territory.communeDistanceKm)||territory.communeDistanceKm<0))return 'Ingresa la distancia al centro de la comuna.';
  if(x.incluyeVivienda&&!x.areaCasa)return 'Si incluye vivienda, indica sus m² construidos.';
  return '';
 }
