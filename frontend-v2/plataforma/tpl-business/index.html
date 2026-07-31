@@ -1,38 +1,32 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<meta content="#073a5a" name="theme-color"/>
-<meta content="noindex,nofollow,noarchive" name="robots"/>
-<title>Mi Proyecto | Tu Parcela Lista</title>
-<meta content="Tu espacio exclusivo para ver cómo avanza tu proyecto y qué hacer para vender mejor." name="description"/>
-<link href="../../assets/logo-tu-parcela-lista.png" rel="icon" type="image/png"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="./tpl-business.css?v=20260724-4" rel="stylesheet"/>
-<script defer="" src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script defer="" src="./tpl-business-config.js?v=20260724-4"></script>
-<script defer="" src="./tpl-business-auth.js?v=20260724-4"></script>
-<script defer="" src="./tpl-business-service.js?v=20260724-4"></script>
-<script defer="" src="./tpl-business.js?v=20260724-4"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TPL Studio Mark II | TPL Business</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="studio.css">
 </head>
 <body>
-<a class="skip-link" href="#contenido">Saltar al contenido</a>
-<div id="tpl-business-app">
-<main aria-live="polite" class="tpl-entry-state">
-<div aria-hidden="true" class="tpl-entry-spinner"></div>
-<h1>Preparando Mi Proyecto</h1>
-<p>Estamos validando tu acceso seguro.</p>
-</main>
-</div>
-<noscript>
-<main class="tpl-noscript">
-<h1>Mi Proyecto</h1>
-<p>Activa JavaScript para acceder a tu espacio exclusivo.</p>
-</main>
-</noscript>
+  <header class="topbar">
+    <a class="brand" href="../index.html"><span>TPL</span><strong>Studio Mark II<small>Asesor de imagen, comunicación y crecimiento</small></strong></a>
+    <nav><a href="../index.html">TPL Business</a><a href="../../crm-v2/index.html">CRM</a></nav>
+  </header>
+  <main>
+    <section class="hero">
+      <div><span class="eyebrow">TPL STUDIO MARK II</span><h1>Tu director de crecimiento digital.</h1><p>Studio utiliza la información existente del CRM para preparar tu marca, Landing, contenido, campañas y recomendaciones. Nada se publica sin tu aprobación.</p></div>
+      <div class="profile-select"><label>Vista de actor<select id="actorSelect"></select></label><span id="roleBadge"></span></div>
+    </section>
+
+    <section class="summary" id="summary"></section>
+
+    <div class="layout">
+      <aside id="studioNav"></aside>
+      <section id="studioContent" class="workspace"></section>
+    </div>
+  </main>
+  <dialog id="approvalDialog"><form method="dialog"><header><h2>Vista previa para aprobación</h2><button value="cancel">×</button></header><pre id="approvalPreview"></pre><footer><button value="cancel" class="secondary">Volver</button><button value="default" id="approveAction">Aprobar borrador</button></footer></form></dialog>
+  <script src="../../../js/core/tpl-brain.js"></script>
+  <script src="studio.js"></script>
 </body>
 </html>

@@ -48,6 +48,8 @@
   const hasNature = (p) => positive(p.naturaleza) || /bosque|nativo|araucaria|naturaleza|rio|río|estero|laguna|lago|campo/i.test(textOf(p));
   const hasServices = (p) => positive(p.servicios_cerca) || positive(p.cercania_servicios) || /colegio|hospital|supermercado|comercio|centro|servicios|ruta|pueblo|minutos/i.test(textOf(p));
   const soilOf = (p) => p.tipoSuelo || p.tipo_suelo || p.suelo || p.topografia || p.terreno || "Información por confirmar";
+  const marketAnalysis = (p) => window.TPLMarketIntelligence?.analyze?.(p) || null;
+  const isOpportunity = (p) => Boolean(marketAnalysis(p)?.opportunity);
 
   function distanceKm(lat1, lon1, lat2, lon2) {
     const toRad = (n) => n * Math.PI / 180;
@@ -93,6 +95,7 @@
       else if (state.priority === "nature") list.sort((a, b) => Number(hasNature(b)) - Number(hasNature(a)) || money(a.precio) - money(b.precio));
       else if (state.priority === "services") list.sort((a, b) => Number(hasServices(b)) - Number(hasServices(a)) || money(a.precio) - money(b.precio));
       else if (state.priority === "large") list.sort((a, b) => Number(sizeOf(b) >= 10000) - Number(sizeOf(a) >= 10000) || sizeOf(b) - sizeOf(a));
+      else if (state.priority === "opportunity") list = list.filter(isOpportunity).sort((a,b) => (marketAnalysis(a)?.diffTpl ?? 0) - (marketAnalysis(b)?.diffTpl ?? 0));
       else list.sort((a, b) => money(a.precio) - money(b.precio));
       return list;
     }
@@ -107,6 +110,7 @@
     else if (state.priority === "services") list.sort((a, b) => Number(hasServices(b)) - Number(hasServices(a)) || fallbackOrder(a, b));
     else if (state.priority === "economic") list.sort((a, b) => money(a.precio) - money(b.precio));
     else if (state.priority === "large") list.sort((a, b) => Number(sizeOf(b) >= 10000) - Number(sizeOf(a) >= 10000) || sizeOf(b) - sizeOf(a));
+    else if (state.priority === "opportunity") list = list.filter(isOpportunity).sort((a,b) => (marketAnalysis(a)?.diffTpl ?? 0) - (marketAnalysis(b)?.diffTpl ?? 0));
     else list.sort((a, b) => distanceOf(a) - distanceOf(b));
 
     return list;
@@ -157,12 +161,16 @@
     const size = sizeOf(p);
     const type = size >= 10000 ? "Campo" : "Parcela";
     const tags = tagsOf(p);
+    const analysis = marketAnalysis(p);
     const distanceBadge = Number.isFinite(distance) ? `<span class="parcel-distance">A ${Math.round(distance)} km de ti</span>` : "";
+    const opportunityBadge = analysis?.opportunity ? `<span class="parcel-opportunity">Oportunidad TPL</span>` : "";
+    const valueNote = analysis?.opportunity && analysis?.diffTpl != null ? `<small class="parcel-value-note">${Math.abs(Math.round(analysis.diffTpl))}% bajo estimación TPL</small>` : "";
     const fetch = index === 0 ? 'fetchpriority="high"' : 'loading="lazy" fetchpriority="low"';
-    return `<article class="parcel-card">
+    return `<article class="parcel-card${analysis?.opportunity ? ' is-opportunity' : ''}">
       <div class="parcel-image">
         <img src="${escapeHtml(absoluteAsset(imageOf(p)))}" alt="${escapeHtml(p.nombre || `${type} en ${p.comuna || "Chile"}`)}" width="640" height="480" decoding="async" ${fetch}>
         ${distanceBadge}
+        ${opportunityBadge}
         <span class="parcel-price">${escapeHtml(p.precio || "Consultar precio")}</span>
       </div>
       <div class="parcel-body">
@@ -174,6 +182,7 @@
           <span>${escapeHtml(soilOf(p))}</span>
         </div>
         <div class="parcel-tags">${tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+        ${valueNote}
         <a class="parcel-link" data-open-parcel="${escapeHtml(p.id || "")}" href="${escapeHtml(parcelUrl(p))}">Ver esta parcela</a>
       </div>
     </article>`;
@@ -183,7 +192,7 @@
     const list = getResults();
     const visible = list.slice(0, state.visible);
     $("parcel-grid").innerHTML = visible.length ? visible.map(parcelCard).join("") : `<div class="empty-state">${state.active ? "No encontramos parcelas para esta búsqueda." : "Elige Cercanas a mí o selecciona una comuna para comenzar."}</div>`;
-    $("results-count").textContent = state.active ? `${list.length} ${list.length === 1 ? "parcela encontrada" : "parcelas encontradas"}` : `${list.length} parcelas disponibles · mostrando las más económicas primero`;
+    $("results-count").textContent = state.priority === "opportunity" ? `${list.length} ${list.length === 1 ? "oportunidad TPL" : "oportunidades TPL"} según precio y atributos` : (state.active ? `${list.length} ${list.length === 1 ? "parcela encontrada" : "parcelas encontradas"}` : `${list.length} parcelas disponibles · mostrando las más económicas primero`);
     $("load-more").hidden = visible.length >= list.length;
     $("map-button").disabled = !list.some((p) => latOf(p) && lngOf(p));
     if (state.method === "nearby" && state.active) $("search-context").textContent = "Ordenadas desde tu ubicación actual";
@@ -299,41 +308,88 @@
     return copy;
   }
 
-  function comboCandidates(budget) {
-    const parcelsAvailable = catalog().filter((parcel) => money(parcel.precio) > 0);
-    const housesAvailable = houseCatalog().filter((house) => housePrice(house) > 0);
-    const combinations = [];
+function comboCandidates(budget) {
+  const MAX_DIFFERENCE = 5000000;
+  const MAX_RESULTS = 6;
 
-    parcelsAvailable.forEach((parcel) => {
-      housesAvailable.forEach((house) => {
-        const parcelValue = money(parcel.precio);
-        const houseValue = housePrice(house);
-        const total = parcelValue + houseValue;
-        const difference = total - budget;
-        const ratio = budget ? total / budget : 0;
-        combinations.push({ parcel, house, parcelValue, houseValue, total, difference, ratio, score: Math.abs(difference) });
+  const parcelsAvailable = catalog()
+    .filter((parcel) => money(parcel.precio) > 0);
+
+  const housesAvailable = houseCatalog()
+    .filter((house) => housePrice(house) > 0);
+
+  const combinations = [];
+
+  parcelsAvailable.forEach((parcel) => {
+    housesAvailable.forEach((house) => {
+      const parcelValue = money(parcel.precio);
+      const houseValue = housePrice(house);
+      const total = parcelValue + houseValue;
+      const difference = total - budget;
+      const absoluteDifference = Math.abs(difference);
+
+      // Solo acepta proyectos dentro de ± $5.000.000.
+      if (absoluteDifference > MAX_DIFFERENCE) return;
+
+      combinations.push({
+        parcel,
+        house,
+        parcelValue,
+        houseValue,
+        total,
+        difference,
+        score: absoluteDifference
       });
     });
+  });
 
-    const compatible = combinations
-      .filter((item) => item.ratio >= .72 && item.ratio <= 1.08)
-      .sort((a, b) => a.score - b.score);
-    const source = compatible.length >= 6 ? compatible : combinations.sort((a, b) => a.score - b.score);
-    const pool = source.slice(0, Math.min(36, source.length));
-    const randomized = shuffle(pool);
-    const selected = [];
-    const used = new Set();
+  // Primero siempre las combinaciones más cercanas al presupuesto.
+  combinations.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score;
 
-    randomized.forEach((item) => {
-      if (selected.length >= 6) return;
-      const key = `${item.parcel.id || item.parcel.nombre}-${item.house.id || item.house.nombre}`;
-      if (used.has(key)) return;
-      used.add(key);
-      selected.push(item);
-    });
+    // Si dos combinaciones están igual de cerca,
+    // prioriza la que no excede el presupuesto.
+    const aOver = a.total > budget ? 1 : 0;
+    const bOver = b.total > budget ? 1 : 0;
 
-    return selected.sort((a, b) => a.score - b.score);
+    return aOver - bOver;
+  });
+
+  const selected = [];
+  const usedParcels = new Set();
+  const usedHouses = new Set();
+
+  for (const item of combinations) {
+    if (selected.length >= MAX_RESULTS) break;
+
+    const parcelKey = String(
+      item.parcel.id ||
+      item.parcel.codigo ||
+      item.parcel.nombre ||
+      ""
+    );
+
+    const houseKey = String(
+      item.house.id ||
+      item.house.codigo ||
+      item.house.nombre ||
+      ""
+    );
+
+    // Una parcela no puede repetirse.
+    if (usedParcels.has(parcelKey)) continue;
+
+    // Una casa tampoco puede repetirse.
+    if (usedHouses.has(houseKey)) continue;
+
+    usedParcels.add(parcelKey);
+    usedHouses.add(houseKey);
+
+    selected.push(item);
   }
+
+  return selected;
+}
 
   function comboCard(item, index, budget) {
     const parcel = item.parcel;

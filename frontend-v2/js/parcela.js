@@ -38,7 +38,7 @@
   let imageIndex=0;
   const size=sizeOf(parcel), price=priceNumber(parcel.precio), type=size>=10000?"Campo":"Parcela";
   function contextLabel(){
-    const labels={distance:"más cercanas",payment:"facilidad de pago",nature:"entorno natural",services:"servicios cercanos",economic:"precio más económico",large:"1 hectárea o más"};
+    const labels={distance:"más cercanas",payment:"facilidad de pago",nature:"entorno natural",services:"servicios cercanos",economic:"precio más económico",large:"1 hectárea o más",opportunity:"Oportunidad TPL"};
     if(context.method==="nearby") return `Encontrada entre las ${labels[context.priority]||"parcelas cercanas"}${context.distance?` · A ${context.distance} km de tu ubicación`:""}`;
     if(context.method==="commune") return `Encontrada en ${context.commune||parcel.comuna}${context.priority?` · Priorizando ${labels[context.priority]||context.priority}`:""}`;
     return "Parcela seleccionada en Tu Parcela Lista";
@@ -68,55 +68,54 @@
     if(/acceso|camino/.test(text)) included.push("Acceso o camino mencionado"); else pending.push("Confirmar estado del acceso");
     return {included,pending};
   }
+  function marketAnalysis(){
+    return window.TPLMarketIntelligence?.analyze?.(parcel) || null;
+  }
   function valuation(){
-    const m2=size&&price?Math.round(price/size):0;
-    let position="Sin referencia suficiente";
-    let explanation="El valor debe compararse con propiedades equivalentes de la misma comuna y con sus servicios reales.";
-    if(m2){
-      if(m2<1800){position="Precio por m² bajo";explanation="El precio por metro cuadrado publicado es bajo para una parcela rural; conviene revisar ubicación, acceso y servicios antes de concluir que es una oportunidad."}
-      else if(m2<=4000){position="Rango intermedio";explanation="El precio por metro cuadrado está en un rango intermedio. Los servicios, acceso, agua, electricidad y documentación determinarán su conveniencia real."}
-      else {position="Precio por m² alto";explanation="El precio por metro cuadrado es alto y debería estar respaldado por ubicación, servicios, atributos naturales o condiciones comerciales superiores."}
-    }
-    $("valuation-price").textContent=parcel.precio||formatMoney(price);
-    $("valuation-m2").textContent=m2?`${formatMoney(m2)} / m²`:"No calculable";
-    $("valuation-position").textContent=position;
-    $("valuation-explanation").textContent=explanation;
-  }
-  function quantile(values,q){
-    if(!values.length)return 0;
-    const sorted=[...values].sort((a,b)=>a-b),pos=(sorted.length-1)*q,base=Math.floor(pos),rest=pos-base;
-    return Math.round(sorted[base]+((sorted[base+1]-sorted[base])*rest||0));
-  }
-  function tasadorReference(){
-    const direct=Number(parcel.valorTasacionM2||parcel.valor_tasacion_m2||parcel.valorComunalM2||parcel.valor_comunal_m2||parcel.tasacion_m2||0);
-    const commune=normalize(parcel.comuna);
-    const comparables=catalog().filter(p=>normalize(p.comuna)===commune&&String(p.id)!==String(parcel.id)).map(p=>{const s=sizeOf(p),pr=priceNumber(p.precio);return s&&pr?Math.round(pr/s):0}).filter(Boolean);
-    const own=size&&price?Math.round(price/size):0;
-    const reference=direct||quantile(comparables,.5)||own;
-    const low=Number(parcel.valorTasacionMinM2||parcel.valor_tasacion_min_m2||0)||quantile(comparables,.25)||Math.round(reference*.82);
-    const high=Number(parcel.valorTasacionMaxM2||parcel.valor_tasacion_max_m2||0)||quantile(comparables,.75)||Math.round(reference*1.18);
-    return {own,reference,low:Math.min(low,reference),high:Math.max(high,reference),count:comparables.length,direct:Boolean(direct)};
+    const a=marketAnalysis();
+    const published=a?.publishedM2||0, tplM2=a?.tplM2||0, marketM2=a?.marketM2||0;
+    $('valuation-published-m2').textContent=published?`${formatMoney(published)} / m²`:'No calculable';
+    $('valuation-tpl-m2').textContent=tplM2?`${formatMoney(tplM2)} / m²`:'Antecedentes insuficientes';
+    $('valuation-market-m2').textContent=marketM2?`${formatMoney(marketM2)} / m²`:'En construcción';
+    $('valuation-market-note').textContent=a?.market?`${a.market.sampleSize} comparables · confianza ${String(a.market.confidence||'referencial').replace('-',' ')}`:'Aún no hay referencia comunal validada';
+    $('valuation-position').textContent=a?.label||'Sin lectura suficiente';
+    $('valuation-reading').className=`valuation-reading is-${a?.tone||'neutral'}`;
+    $('valuation-explanation').textContent=a?.summary||'Aún faltan antecedentes suficientes para comparar el precio.';
   }
   function renderInvestment(){
-    const v=tasadorReference();
-    const max=Math.max(v.high,v.own,1),ratio=Math.max(0,Math.min(100,(v.own/max)*100));
-    const refRatio=Math.max(8,Math.min(100,(v.reference/max)*100));
-    const ownRatio=Math.max(8,Math.min(100,(v.own/max)*100));
-    let badge='En rango',cls='is-mid',reading='Precio cercano a la referencia comunal',explanation='El precio publicado se encuentra cerca del valor por metro cuadrado usado como referencia para parcelas comparables de la comuna.';
-    const delta=v.reference?((v.own-v.reference)/v.reference)*100:0;
-    if(delta<=-8){badge='Bajo referencia';cls='is-good';reading='Precio publicado bajo la referencia';explanation=`El valor por m² está aproximadamente ${Math.abs(Math.round(delta))}% bajo la referencia. Puede ser una oportunidad, pero conviene confirmar acceso, servicios, documentación y ubicación exacta.`}
-    else if(delta>=8){badge='Sobre referencia';cls='is-high';reading='Precio publicado sobre la referencia';explanation=`El valor por m² está aproximadamente ${Math.abs(Math.round(delta))}% sobre la referencia. El diferencial debería justificarse por ubicación, servicios, atributos naturales o condiciones comerciales.`}
-    $('investment-reading').textContent=reading;
-    $('investment-source').textContent=v.direct?'Dato principal: tasador TPL':v.count?`Comparación con ${v.count} publicación${v.count===1?'':'es'} de ${parcel.comuna||'la comuna'}`:'Referencia preliminar calculada con esta publicación';
-    $('investment-badge').textContent=badge;$('investment-badge').className=`investment-badge ${cls}`;
-    $('investment-marker').style.left=`${ratio}%`;
-    $('investment-low').textContent=`Bajo ${formatMoney(v.low)} / m²`;
-    $('investment-reference').textContent=`Referencia ${formatMoney(v.reference)} / m²`;
-    $('investment-high').textContent=`Alto ${formatMoney(v.high)} / m²`;
-    $('bar-reference').style.width=`${refRatio}%`;$('bar-published').style.width=`${ownRatio}%`;
-    $('bar-reference-value').textContent=`${formatMoney(v.reference)} / m²`;$('bar-published-value').textContent=v.own?`${formatMoney(v.own)} / m²`:'No calculable';
-    $('investment-explanation').textContent=explanation;
-    $('owner-action-advice').textContent=delta>=8?'Como el valor está sobre la referencia, puedes presentar una oferta o pedir mejoras que compensen la diferencia antes de reservar.':'Puedes proteger tu decisión solicitando una condición comercial o una mejora concreta antes de reservar.';
+    const a=marketAnalysis();
+    if(!a){
+      $('investment-reading').textContent='Antecedentes insuficientes';
+      $('investment-source').textContent='No fue posible ejecutar el motor TPL';
+      $('investment-explanation').textContent='La publicación necesita más información estructurada para generar una comparación responsable.';
+      return;
+    }
+    const values=[a.publishedM2,a.tplM2,a.marketM2].filter(Boolean),max=Math.max(...values,1);
+    const width=v=>v?`${Math.max(8,Math.min(100,(v/max)*100))}%`:'0%';
+    $('bar-published').style.width=width(a.publishedM2);
+    $('bar-tpl').style.width=width(a.tplM2);
+    $('bar-reference').style.width=width(a.marketM2);
+    $('bar-published-value').textContent=a.publishedM2?`${formatMoney(a.publishedM2)} / m²`:'No calculable';
+    $('bar-tpl-value').textContent=a.tplM2?`${formatMoney(a.tplM2)} / m²`:'Sin cálculo';
+    $('bar-reference-value').textContent=a.marketM2?`${formatMoney(a.marketM2)} / m²`:'En construcción';
+    $('investment-reading').textContent=a.label;
+    $('investment-badge').textContent=a.label;
+    $('investment-badge').className=`investment-badge is-${a.tone}`;
+    $('investment-source').textContent=a.market?`Modelo TPL + referencia validada de ${parcel.comuna}`:'Modelo TPL · referencia comunal aún no validada';
+    $('investment-explanation').textContent=a.summary;
+    const marketNote=$('market-comparison-note');
+    if(a.market && a.diffMarket!=null){
+      const direction=a.diffMarket<=0?'bajo':'sobre';
+      marketNote.textContent=`Frente a la referencia comunal validada, esta parcela está ${Math.abs(Math.round(a.diffMarket))}% ${direction}.`;
+    } else {
+      marketNote.textContent='No mostramos un promedio comunal hasta contar con una muestra validada para esta comuna.';
+    }
+    $('investment-signals').innerHTML=(a.signals||[]).slice(0,6).map(x=>`<span>${x}</span>`).join('');
+    $('owner-action-advice').textContent=a.opportunity
+      ?'El precio aparece bajo nuestra estimación. Si te interesa, puedes intentar mantener esta condición o solicitar una mejora concreta antes de reservar.'
+      :a.diffTpl!=null&&a.diffTpl>=10
+        ?'El precio está sobre nuestra estimación TPL. Puedes presentar una oferta o pedir una mejora que compense la diferencia antes de reservar.'
+        :'Puedes presentar una oferta o pedir una mejora concreta antes de solicitar la reserva.';
   }
   function formatInputMoney(input){
     const n=priceNumber(input.value); input.value=n?n.toLocaleString('es-CL'):'';

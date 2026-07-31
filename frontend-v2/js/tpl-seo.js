@@ -111,34 +111,13 @@
     if (old) old.remove();
 
     const chips = [];
-    if (truthy(p.facilidad)) chips.push("💰 Facilidad de pago");
-    if (truthy(p.agua)) chips.push("💧 Agua / río / cuerpo de agua");
-    if (truthy(p.luz)) chips.push("⚡ Electricidad / factibilidad");
-    if (truthy(p.naturaleza)) chips.push("🌿 Naturaleza / nativas");
-    if (truthy(p.rol)) chips.push("📄 Rol informado");
-    if (truthy(p.servicios)) chips.push("📍 Servicios cercanos");
+    if (truthy(p.facilidad)) chips.push("Facilidad de pago");
+    if (truthy(p.agua)) chips.push("Agua / río / cuerpo de agua");
+    if (truthy(p.luz)) chips.push("Electricidad / factibilidad");
+    if (truthy(p.naturaleza)) chips.push("Naturaleza / nativas");
+    if (truthy(p.rol)) chips.push("Rol informado");
+    if (truthy(p.servicios)) chips.push("Servicios cercanos");
 
-    const hero = document.createElement("section");
-    hero.id = "tpl-parcel-interest";
-    hero.className = "tpl-parcel-interest";
-    const img = parcelImage(p);
-    if (img) hero.style.setProperty("--tpl-selected-parcel-image", `url(${JSON.stringify(img)})`);
-    hero.innerHTML = `
-      <div class="tpl-parcel-interest__veil"></div>
-      <div class="tpl-parcel-interest__inner">
-        <div class="tpl-parcel-interest__copy">
-          <span class="tpl-parcel-interest__eyebrow">LA PARCELA QUE TE INTERESÓ</span>
-          <h1>${p.nombre || "Parcela seleccionada"}</h1>
-          <p class="tpl-parcel-interest__meta"><strong>${p.precio || "Consultar"}</strong> · ${Number(p.tamano || 0).toLocaleString("es-CL")} m² · ${p.comuna || p.localidad || "Chile"}</p>
-          <p class="tpl-parcel-interest__description">${p.descripcion || "Revisa sus principales atributos antes de continuar con tu proyecto."}</p>
-          <div class="tpl-parcel-interest__chips">${chips.map(c => `<span>${c}</span>`).join("")}</div>
-          <div class="tpl-parcel-interest__actions">
-            <button type="button" data-tpl-scroll-detail>Ver toda la información</button>
-            <button type="button" data-tpl-prefab>Sumar casa prefabricada</button>
-            <button type="button" data-tpl-own-house>Ya tengo casa / diseño propio</button>
-          </div>
-        </div>
-      </div>`;
 
     const header = document.querySelector("header");
     if (header?.parentNode) header.insertAdjacentElement("afterend", hero);

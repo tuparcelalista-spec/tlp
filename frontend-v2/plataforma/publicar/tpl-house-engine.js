@@ -62,8 +62,8 @@
     }),
     differentiatingBonusPct: 0.10,
     minWorkFloorRatio: 0.25, // Protección piso mínimo 25% en obras adicionales
-    quickFactor: 0.90,
-    patientFactor: 1.10
+    quickFactor: 0.93,
+    patientFactor: 1.00
   });
 
   /**
@@ -236,7 +236,8 @@
     // Redondeo de estrategia comercial a 10.000
     const ideal = Math.round(valorComercialTotal / 10000) * 10000;
     const quick = Math.round((ideal * RULES.quickFactor) / 10000) * 10000;
-    const patient = Math.round((ideal * RULES.patientFactor) / 10000) * 10000;
+    const landPotentialDelta = Math.max(0, num(landResult.patient || landResult.technicalPotential || landResult.ideal) - num(landResult.ideal));
+    const patient = Math.round((ideal + landPotentialDelta) / 10000) * 10000;
 
     // 6. Atributos informativos que no alteran valor
     const informativos = {
@@ -263,6 +264,7 @@
       reference: ideal,
       low: quick,
       high: patient,
+      immediateReference: landResult.immediateReference ? Math.round((Number(landResult.immediateReference) + valorCasa + valorFundacion + sumaObrasAdicionales) / 10000) * 10000 : null,
       valorComercialTotal: ideal,
       subtotalPropiedad,
       desglose: {
@@ -304,7 +306,7 @@
       metadata: {
         module: RULES.module,
         version: RULES.version,
-        territorialEngineVersion: landResult && landResult.method ? landResult.method : 'tpl-land-engine-v1',
+        territorialEngineVersion: landResult && landResult.method ? landResult.method : 'tpl-land-engine-v2',
         calculatedAt: new Date().toISOString()
       },
       method: RULES.module

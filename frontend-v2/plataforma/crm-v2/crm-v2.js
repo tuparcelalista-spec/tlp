@@ -1,47 +1,650 @@
-const STORAGE='tpl_crm_v2_records';
-const groups=[
- ['Inicio',[['inicio','Inicio'],['analisis-global','Análisis Global']]],
- ['Personas',[['clientes','Clientes'],['propietarios','Propietarios'],['corredores','Corredores'],['partners','Partners']]],
- ['Operación',[['parcelas','Parcelas'],['proyectos','Proyectos'],['negociaciones','Negociaciones'],['visitas','Visitas y reservas'],['agenda','Agenda']]],
- ['Servicios',[['business','TPL Business'],['studio','TPL Studio Mark II'],['oficina','Oficina TPL']]],
- ['Control',[['tasaciones','Tasaciones'],['reportes','Reportes'],['administracion','Administración']]]
-];
-const demo={
- propietarios:[{id:'p1',nombre:'María González',correo:'maria@example.cl',telefono:'+56 9 5555 1111',comuna:'Quillón',onboarding:'Correo de acceso enviado',business:'No ha ingresado',proxima:'Enviar correo 2',parcelas:2},{id:'p2',nombre:'Carlos Fuentes',correo:'carlos@example.cl',telefono:'+56 9 5555 2222',comuna:'Florida',onboarding:'Perfil completo',business:'Activo',proxima:'Revisar precio',parcelas:1}],
- clientes:[{id:'c1',nombre:'Ana Muñoz',comuna:'Concepción',interes:'Parcela + casa',proyecto:'Fase 2/7',proxima:'Visita viernes'}],
- corredores:[{id:'r1',nombre:'Patricia Soto',comuna:'Biobío',propietarios:8,parcelas:14,proyectos:5}],
- partners:[{id:'pa1',nombre:'Construcciones del Sur',servicio:'Casas y radieres',estado:'Activo',proyectos:'2 activos'}],
- parcelas:[{id:'l1',nombre:'Los Aromos',comuna:'Florida',propietario:'Carlos Fuentes',estado:'Publicada',proyecto:'Fase 2/7',visitas:4},{id:'l2',nombre:'Santa Ana',comuna:'Quillón',propietario:'María González',estado:'En revisión',proyecto:'Sin proyecto',visitas:0},{id:'l3',nombre:'El Roble',comuna:'Quillón',propietario:'María González',estado:'Publicada',proyecto:'Fase 5/7',visitas:7}],
- proyectos:[
-  {id:'TPL-0148',nombre:'Proyecto Los Aromos',cliente:'Ana Muñoz',parcela:'Los Aromos',fase:2,estado:'Activo',proxima:'Confirmar visita',avance:34,riesgo:'Medio',bloqueo:'Confirmación del propietario',actores:[{rol:'Compradora',nombre:'Ana Muñoz',estado:'al_dia',proxima:'Confirmar horario de visita',icono:'👤'},{rol:'Propietario',nombre:'Carlos Fuentes',estado:'bloquea',proxima:'Responder disponibilidad',icono:'🏡'},{rol:'Corredora',nombre:'Patricia Soto',estado:'esperando',proxima:'Coordinar a ambas partes',icono:'👩‍💼'},{rol:'Partner',nombre:'Construcciones del Sur',estado:'pendiente',proxima:'Preparar estimación de radier',icono:'🤝'}],eventos:[{fecha:'15 jul · 09:10',titulo:'Propiedad publicada',actor:'Carlos Fuentes',tipo:'propiedad.publicada'},{fecha:'18 jul · 12:30',titulo:'Compradora interesada',actor:'Ana Muñoz',tipo:'interes.registrado'},{fecha:'20 jul · 16:00',titulo:'Visita solicitada',actor:'Ana Muñoz',tipo:'visita.solicitada'},{fecha:'Hoy · 09:00',titulo:'Confirmación pendiente',actor:'Carlos Fuentes',tipo:'alerta.generada'}]},
-  {id:'TPL-0132',nombre:'Proyecto El Roble',cliente:'Diego Reyes',parcela:'El Roble',fase:5,estado:'Activo',proxima:'Aprobar cotización',avance:71,riesgo:'Bajo',bloqueo:'Sin bloqueo crítico',actores:[{rol:'Comprador',nombre:'Diego Reyes',estado:'al_dia',proxima:'Aprobar cotización',icono:'👤'},{rol:'Propietaria',nombre:'María González',estado:'al_dia',proxima:'Esperar documentación',icono:'🏡'},{rol:'Constructora',nombre:'Casas del Biobío',estado:'esperando',proxima:'Esperar aprobación',icono:'🏗️'},{rol:'Partner de riego',nombre:'Riego Sur',estado:'pendiente',proxima:'Cotizar instalación',icono:'💧'}],eventos:[{fecha:'2 jul · 10:00',titulo:'Proyecto creado',actor:'Sistema TPL',tipo:'proyecto.creado'},{fecha:'8 jul · 15:20',titulo:'Oferta aceptada',actor:'María González',tipo:'oferta.aceptada'},{fecha:'14 jul · 11:45',titulo:'Diseño de casa elegido',actor:'Diego Reyes',tipo:'casa.seleccionada'},{fecha:'Hoy · 08:40',titulo:'Cotización lista para aprobar',actor:'Casas del Biobío',tipo:'cotizacion.lista'}]}
- ],
- negociaciones:[{id:'N-22',parcela:'Los Aromos',cliente:'Ana Muñoz',solicitud:'Portón incluido',estado:'Pendiente propietario',fecha:'Hoy'}],
- visitas:[{id:'V-8',parcela:'Los Aromos',cliente:'Ana Muñoz',fecha:'31 jul · 11:00',estado:'Confirmar'}],
- studio:[{cliente:'Construcciones del Sur',plan:'Servicio activo',estado:'Edición',avance:65,proyecto:'Video presentación'}],
- business:[{cliente:'María González',modalidad:'Sin definir',estado:'No ha ingresado',servicios:'Publicación'},{cliente:'Carlos Fuentes',modalidad:'Autogestión',estado:'Activo',servicios:'Estadísticas, visitas'}]
-};
-let custom=JSON.parse(localStorage.getItem(STORAGE)||'[]');
-let current='inicio';
-const nav=document.querySelector('#nav'),content=document.querySelector('#content'),title=document.querySelector('#viewTitle');
-nav.innerHTML=groups.map(([g,items])=>`<div class="nav-group"><div class="nav-label">${g}</div>${items.map(([id,l])=>`<button class="nav-btn" data-view="${id}">${l}</button>`).join('')}</div>`).join('');
-document.querySelector('#today').textContent=new Intl.DateTimeFormat('es-CL',{dateStyle:'medium'}).format(new Date());
-function all(type){return [...(demo[type]||[]),...custom.filter(x=>x.tipo===type.slice(0,-1)||x.tipo===type)]}
-function esc(v){return String(v??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-function pill(s){let c=/activo|completo|publicada|acept|bajo|al día/i.test(s)?'ok':/bloque|alto|venc/i.test(s)?'danger':/pendiente|no ha|revisión|confirmar|medio|esperando/i.test(s)?'warn':'';return `<span class="pill ${c}">${esc(s||'Sin definir')}</span>`}
-function dashboard(){return `<div class="hero"><div><h2>Buenos días</h2><p>Estas son las acciones que requieren atención hoy.</p></div><div class="score"><span><b>${all('propietarios').length}</b>Propietarios</span><span><b>${all('parcelas').length}</b>Parcelas</span><span><b>${all('proyectos').length}</b>Proyectos</span></div></div><div class="grid"><article class="card span4"><h3>Próximas acciones</h3><div class="list">${all('propietarios').map(x=>`<div class="item"><div class="item-main"><strong>${esc(x.nombre)}</strong><small class="muted">${esc(x.proxima||'Revisar ficha')}</small></div>${pill(x.business)}</div>`).join('')}</div></article><article class="card span4"><h3>Visitas y reservas</h3><div class="list">${all('visitas').map(x=>`<div class="item"><div class="item-main"><strong>${esc(x.parcela)}</strong><small>${esc(x.cliente)} · ${esc(x.fecha)}</small></div>${pill(x.estado)}</div>`).join('')}</div></article><article class="card span4"><h3>Negociaciones</h3><div class="list">${all('negociaciones').map(x=>`<div class="item"><div class="item-main"><strong>${esc(x.parcela)}</strong><small>${esc(x.solicitud)}</small></div>${pill(x.estado)}</div>`).join('')}</div></article><article class="card span8"><h3>Proyectos vivos</h3><div class="list">${all('proyectos').map(x=>`<button class="project-list-item" data-project="${esc(x.id)}"><div class="item-main"><strong>${esc(x.id)} · ${esc(x.nombre)}</strong><small>${esc(x.cliente)} · ${esc(x.parcela)}</small><div class="progress"><i style="width:${x.avance||Math.round((x.fase||0)/7*100)}%"></i></div></div>${pill(`Fase ${x.fase}/7`)}</button>`).join('')}</div></article><article class="card span4"><h3>Análisis Global</h3><div class="analysis-mini"><strong>1 bloqueo crítico</strong><small>El proyecto Los Aromos espera confirmación del propietario.</small><button class="primary" data-view="analisis-global">Abrir análisis</button></div></article></div>`}
-function globalAnalysis(){const projects=all('proyectos');const atRisk=projects.filter(p=>/alto|medio/i.test(p.riesgo||'')).length;const blockers=projects.filter(p=>p.bloqueo&&!/sin bloqueo/i.test(p.bloqueo)).length;return `<div class="global-head"><div><small>Centro de inteligencia operativo</small><h2>ANÁLISIS GLOBAL</h2><p>Observa proyectos, actores, eventos, riesgos y próximas acciones desde una sola vista.</p></div><button class="primary" data-view="proyectos">Ver proyectos</button></div><div class="metric-grid"><article class="metric"><span>Proyectos activos</span><strong>${projects.length}</strong><small>${projects.filter(p=>p.estado==='Activo').length} en ejecución</small></article><article class="metric"><span>Actores conectados</span><strong>${projects.reduce((n,p)=>n+(p.actores?.length||0),0)}</strong><small>En proyectos vigentes</small></article><article class="metric"><span>Bloqueos</span><strong>${blockers}</strong><small>Requieren seguimiento</small></article><article class="metric"><span>Riesgo medio/alto</span><strong>${atRisk}</strong><small>Prioridad operativa</small></article></div><div class="grid"><article class="card span8"><div class="section-title"><div><h3>Radar de proyectos</h3><p class="muted">Ordenado por necesidad de intervención.</p></div></div><div class="project-radar">${projects.map(p=>`<button class="radar-row" data-project="${esc(p.id)}"><div><strong>${esc(p.nombre)}</strong><small>${esc(p.id)} · ${esc(p.cliente)} · ${esc(p.parcela)}</small></div><div class="radar-progress"><span style="width:${p.avance||0}%"></span></div><b>${p.avance||0}%</b>${pill(p.riesgo||'Sin evaluar')}</button>`).join('')}</div></article><article class="card span4"><h3>Alertas inteligentes</h3><div class="alert-stack"><article class="alert alert-critical"><strong>Proyecto bloqueado</strong><small>Los Aromos espera respuesta del propietario.</small></article><article class="alert"><strong>Oportunidad comercial</strong><small>Dos compradores buscan parcelas con agua en Florida.</small></article><article class="alert"><strong>Partner disponible</strong><small>Construcciones del Sur tiene capacidad esta semana.</small></article></div></article><article class="card span6"><h3>Actividad reciente</h3><div class="timeline compact">${projects.flatMap(p=>(p.eventos||[]).slice(-2).map(e=>({...e,project:p.id}))).slice(0,6).map(e=>`<article><strong>${esc(e.titulo)}</strong><small>${esc(e.actor)} · ${esc(e.project)} · ${esc(e.fecha)}</small></article>`).join('')}</div></article><article class="card span6"><h3>Recomendación de Análisis Global</h3><div class="recommendation"><span>🧠</span><div><strong>Priorizar confirmación de visita</strong><p>Contactar hoy a Carlos Fuentes. Su respuesta desbloquea la visita de Ana Muñoz y evita que el proyecto pierda ritmo.</p><button class="primary" data-project="TPL-0148">Abrir proyecto</button></div></div></article></div>`}
-function project360(p){if(!p)return `<div class="empty">Proyecto no encontrado.</div>`;return `<div class="project-head"><button class="back-link" data-view="proyectos">← Volver a proyectos</button><div class="project-title-row"><div><small>${esc(p.id)}</small><h2>${esc(p.nombre)}</h2><p>${esc(p.parcela)} · Cliente: ${esc(p.cliente)}</p></div><div class="project-health"><b>${p.avance||0}%</b><span>Avance general</span>${pill(`Riesgo ${p.riesgo||'sin evaluar'}`)}</div></div></div><div class="project-summary"><article><span>Fase actual</span><strong>${p.fase}/7</strong></article><article><span>Próxima acción</span><strong>${esc(p.proxima)}</strong></article><article><span>Bloqueo</span><strong>${esc(p.bloqueo)}</strong></article><article><span>Estado</span>${pill(p.estado)}</article></div><div class="card project-network-card"><div class="section-title"><div><h3>Actores del proyecto</h3><p class="muted">Cada actor muestra su estado y siguiente responsabilidad.</p></div></div><div class="actor-network"><div class="project-core"><span>📁</span><strong>${esc(p.id)}</strong><small>Proyecto central</small></div><div class="actor-grid">${(p.actores||[]).map((a,i)=>`<button class="actor-node state-${esc(a.estado)}" data-actor="${i}"><span class="actor-icon">${a.icono||'👤'}</span><strong>${esc(a.nombre)}</strong><small>${esc(a.rol)}</small><em>${actorStateLabel(a.estado)}</em><span>${esc(a.proxima)}</span></button>`).join('')}</div></div></div><div class="grid"><article class="card span7"><h3>Línea de tiempo del proyecto</h3><div class="project-timeline">${(p.eventos||[]).map(e=>`<article><time>${esc(e.fecha)}</time><div><strong>${esc(e.titulo)}</strong><small>${esc(e.actor)} · ${esc(e.tipo)}</small></div></article>`).join('')}</div></article><article class="card span5"><h3>Lectura inteligente</h3><div class="recommendation vertical"><span>🧠</span><div><strong>${/sin bloqueo/i.test(p.bloqueo)?'Proyecto saludable':'Intervención recomendada'}</strong><p>${/sin bloqueo/i.test(p.bloqueo)?'No existen bloqueos críticos. Mantener seguimiento de la próxima acción.':`Resolver “${esc(p.bloqueo)}” antes de avanzar a la siguiente fase.`}</p></div></div><h3 class="subheading">Responsables próximos</h3><div class="list">${(p.actores||[]).filter(a=>a.estado!=='al_dia').map(a=>`<div class="item"><div class="item-main"><strong>${esc(a.nombre)}</strong><small>${esc(a.proxima)}</small></div>${pill(actorStateLabel(a.estado))}</div>`).join('')||'<p class="muted">Todos los actores están al día.</p>'}</div></article></div>`}
-function actorStateLabel(s){return ({al_dia:'Al día',pendiente:'Pendiente',esperando:'Esperando respuesta',bloquea:'Bloquea proyecto'})[s]||s||'Sin estado'}
-function tableView(type,columns){const rows=all(type);return `<div class="toolbar"><input id="search" placeholder="Buscar..."><select id="filter"><option value="">Todos los estados</option><option>Activo</option><option>Pendiente</option><option>Sin proyecto</option></select></div><div class="table-wrap"><table><thead><tr>${columns.map(c=>`<th>${c[1]}</th>`).join('')}<th>Acción</th></tr></thead><tbody id="tbody">${rows.map(r=>row(r,columns,type)).join('')}</tbody></table></div>`}
-function row(r,columns,type){return `<tr>${columns.map(([k])=>`<td>${k==='estado'||k==='business'||k==='proyecto'?pill(r[k]):esc(r[k]??'—')}</td>`).join('')}<td>${type==='proyectos'?`<button class="primary small" data-project="${esc(r.id)}">Vista 360°</button>`:`<button class="nav-btn detail-btn" data-detail='${JSON.stringify(r).replaceAll("'","&#39;")}'>Ver ficha</button>`}</td></tr>`}
-function office(){return `<div class="grid"><article class="card span6"><h3>Campañas</h3><p class="muted">Selecciona una audiencia por tipo, comuna, estado o actividad.</p><div class="list"><div class="item"><div class="item-main"><strong>Propietarios de Quillón</strong><small>Ajuste de precios · 18 destinatarios</small></div>${pill('Borrador')}</div><div class="item"><div class="item-main"><strong>Sin ingreso a TPL Business</strong><small>Correo 2 · 6 destinatarios</small></div>${pill('Preparar')}</div></div><button class="primary">Crear campaña</button></article><article class="card span6"><h3>Automatizaciones</h3><div class="timeline"><article><strong>Día 0 · Bienvenida</strong><small>Correo + acceso a TPL Business</small></article><article><strong>Día 3 · Sin ingreso</strong><small>Recordatorio 1</small></article><article><strong>Día 7 · Sin ingreso</strong><small>Recordatorio 2</small></article><article><strong>Día 10 · Sin ingreso</strong><small>Crear tarea de llamada</small></article></div></article><article class="card span12"><h3>Conexión con Análisis Global</h3><div class="item"><div class="item-main"><strong>Los eventos activarán flujos y alertas</strong><small>La siguiente etapa conectará plantillas, esperas, condiciones y ejecuciones reales.</small></div><button class="primary" data-view="analisis-global">Abrir Análisis Global</button></div></article></div>`}
-const cols={clientes:[['nombre','Cliente'],['comuna','Comuna'],['interes','Interés'],['proyecto','Proyecto'],['proxima','Próxima acción']],propietarios:[['nombre','Propietario'],['comuna','Comuna'],['onboarding','Incorporación'],['business','TPL Business'],['parcelas','Parcelas'],['proxima','Próxima acción']],corredores:[['nombre','Corredor'],['comuna','Zona'],['propietarios','Propietarios'],['parcelas','Parcelas'],['proyectos','Proyectos']],partners:[['nombre','Partner'],['servicio','Servicio'],['estado','Estado'],['proyectos','Proyectos']],parcelas:[['nombre','Parcela'],['comuna','Comuna'],['propietario','Propietario'],['estado','Estado'],['proyecto','Proyecto'],['visitas','Visitas']],proyectos:[['id','ID'],['nombre','Proyecto'],['cliente','Cliente'],['parcela','Parcela'],['fase','Fase'],['estado','Estado'],['proxima','Próxima acción']],negociaciones:[['id','ID'],['parcela','Parcela'],['cliente','Cliente'],['solicitud','Solicitud'],['estado','Estado'],['fecha','Fecha']],visitas:[['id','ID'],['parcela','Parcela'],['cliente','Cliente'],['fecha','Fecha'],['estado','Estado']],business:[['cliente','Cliente'],['modalidad','Modalidad'],['estado','Estado'],['servicios','Servicios']],studio:[['cliente','Cliente'],['plan','Servicio'],['estado','Estado'],['avance','Avance %'],['proyecto','Producción']]};
-function render(view){current=view;document.querySelectorAll('.nav-btn[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));let label=[...groups.flatMap(g=>g[1])].find(x=>x[0]===view)?.[1]||view;title.textContent=label;if(view==='inicio')content.innerHTML=dashboard();else if(view==='analisis-global')content.innerHTML=globalAnalysis();else if(view==='oficina')content.innerHTML=office();else if(view==='studio')content.innerHTML=`<div class="grid"><article class="card span8"><h3>TPL Studio Mark II</h3><p class="muted">Asesor transversal de imagen, comunicación, Landing, contenido y campañas. Consume la ficha maestra del CRM y devuelve borradores y aprobaciones.</p><a class="primary" href="../tpl-business/studio-mark-ii/index.html">Abrir Studio Mark II</a></article><article class="card span4"><h3>Regla de seguridad</h3><p class="muted">Nada se publica ni gasta presupuesto sin aprobación explícita.</p></article></div>`;else if(view.startsWith('proyecto:')){const id=view.split(':').slice(1).join(':');title.textContent='Vista 360° del Proyecto';content.innerHTML=project360(all('proyectos').find(p=>p.id===id));}else if(cols[view])content.innerHTML=tableView(view,cols[view]);else content.innerHTML=`<div class="card"><h3>${esc(label)}</h3><p class="muted">Módulo preparado para conectarse con Supabase. Mantendrá una única fuente de datos y bitácora.</p></div>`;window.scrollTo({top:0,behavior:'smooth'});}
-nav.addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b){render(b.dataset.view);document.querySelector('.sidebar').classList.remove('open')}});
-document.querySelector('#menuBtn').onclick=()=>document.querySelector('.sidebar').classList.toggle('open');
-document.querySelector('#quickAdd').onclick=()=>document.querySelector('#recordDialog').showModal();
-document.querySelector('#saveRecord').onclick=e=>{e.preventDefault();const x={id:crypto.randomUUID(),tipo:recordType.value,nombre:recordName.value,correo:recordEmail.value,telefono:recordPhone.value,comuna:recordCommune.value,notas:recordNotes.value,creado:new Date().toISOString()};custom.push(x);localStorage.setItem(STORAGE,JSON.stringify(custom));recordForm.reset();recordDialog.close();render(current)};
-content.addEventListener('click',e=>{const project=e.target.closest('[data-project]');if(project){render(`proyecto:${project.dataset.project}`);return}const go=e.target.closest('[data-view]');if(go){render(go.dataset.view);return}const detail=e.target.closest('[data-detail]');if(detail){const r=JSON.parse(detail.dataset.detail);alert(Object.entries(r).map(([k,v])=>`${k}: ${v}`).join('\n'))}});
-render('inicio');
-window.addEventListener('DOMContentLoaded',async()=>{if(!window.TPLDataService)return;try{const properties=await window.TPLDataService.listPublishedProperties();const events=await window.TPLDataService.listEvents();window.TPLCRMCanonical={properties,events,source:window.TPLDataService.hasBackend()?'supabase':'local'};const badge=document.createElement('div');badge.className='canonical-status';badge.textContent=`Núcleo canónico: ${properties.length} propiedades · ${events.length} eventos · ${window.TPLCRMCanonical.source}`;document.querySelector('.topbar')?.appendChild(badge)}catch(error){console.warn('CRM V2: no fue posible sincronizar núcleo canónico',error)}});
+(() => {
+  'use strict';
+
+  const state = {
+    snapshot: null,
+    current: 'inicio',
+    loading: false,
+    uf: null
+  };
+
+  const groups = [
+    ['Inicio', [
+      ['inicio', 'Inicio'],
+      ['revision', 'Revisión']
+    ]],
+    ['Personas', [
+      ['compradores', 'Compradores'],
+      ['duenos', 'Dueños'],
+      ['partners', 'Partners']
+    ]],
+    ['Catálogo', [
+      ['parcelas', 'Parcelas'],
+      ['parcelas-casas', 'Parcelas + casas'],
+      ['casas', 'Casas']
+    ]],
+    ['Operación', [
+      ['operaciones', 'Operaciones'],
+      ['tareas', 'Tareas']
+    ]],
+    ['Inteligencia', [
+      ['tasaciones', 'Tasaciones'],
+      ['analytics', 'Analytics'],
+      ['eventos', 'Actividad']
+    ]],
+    ['Comunicación', [
+      ['mensajes', 'Mensajes / Automatizaciones']
+    ]]
+  ];
+
+  const nav = document.querySelector('#nav');
+  const content = document.querySelector('#content');
+  const title = document.querySelector('#viewTitle');
+  const topbar = document.querySelector('.topbar');
+
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+
+  const fmtMoney = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n
+      ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(n)
+      : '—';
+  };
+
+  const fmtDate = (value) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    return Number.isNaN(d.getTime())
+      ? esc(value)
+      : new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(d);
+  };
+
+  const arr = (key) => Array.isArray(state.snapshot?.[key]) ? state.snapshot[key] : [];
+
+  function pill(value) {
+    const text = String(value || 'Sin definir');
+    const cls =
+      /publicada|activo|confirmado|complet|acept|bajo|oportun/i.test(text) ? 'ok' :
+      /error|rechaz|urgente|venc|bloque|crit/i.test(text) ? 'danger' :
+      /pendiente|revision|revisión|esperando|medio|cotizando|buscando/i.test(text) ? 'warn' : '';
+    return `<span class="pill ${cls}">${esc(text)}</span>`;
+  }
+
+  function setNav() {
+    if (!nav) return;
+    nav.innerHTML = groups.map(([group, items]) => `
+      <div class="nav-group">
+        <div class="nav-label">${esc(group)}</div>
+        ${items.map(([id, label]) =>
+          `<button class="nav-btn" data-view="${esc(id)}">${esc(label)}</button>`
+        ).join('')}
+      </div>
+    `).join('');
+  }
+
+  function statusBadge(text, kind = '') {
+    let badge = document.querySelector('#tplCanonicalStatus');
+    if (!badge && topbar) {
+      badge = document.createElement('div');
+      badge.id = 'tplCanonicalStatus';
+      badge.className = 'canonical-status';
+      topbar.appendChild(badge);
+    }
+    if (badge) {
+      badge.className = `canonical-status ${kind}`.trim();
+      badge.textContent = text;
+    }
+  }
+
+  function renderLogin(message = '') {
+    if (title) title.textContent = 'Acceso CRM';
+    if (nav) nav.innerHTML = '';
+    if (!content) return;
+
+    content.innerHTML = `
+      <div class="card" style="max-width:520px;margin:48px auto">
+        <small>ACCESO INTERNO TPL</small>
+        <h2>CRM Tu Parcela Lista</h2>
+        <p class="muted">Ingresa con una cuenta autorizada en el nuevo Supabase.</p>
+        ${message ? `<p class="pill danger" style="display:block;margin:12px 0">${esc(message)}</p>` : ''}
+        <form id="crmLoginForm" class="list" autocomplete="on">
+          <label>Correo<input id="crmLoginEmail" type="email" autocomplete="username" required></label>
+          <label>Contraseña<input id="crmLoginPassword" type="password" autocomplete="current-password" required></label>
+          <button class="primary" type="submit">Ingresar al CRM</button>
+        </form>
+      </div>
+    `;
+
+    document.querySelector('#crmLoginForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.querySelector('#crmLoginEmail')?.value || '';
+      const password = document.querySelector('#crmLoginPassword')?.value || '';
+      const button = event.currentTarget.querySelector('button');
+      button.disabled = true;
+      button.textContent = 'Ingresando…';
+
+      try {
+        await window.TPLDataService.signIn(email, password);
+        await loadSnapshot();
+      } catch (error) {
+        console.error('CRM login:', error);
+        renderLogin(error?.message || 'No se pudo iniciar sesión.');
+      }
+    });
+  }
+
+  function renderLoading() {
+    if (title) title.textContent = 'Cargando CRM';
+    if (content) content.innerHTML = `
+      <div class="card">
+        <h3>Sincronizando cerebro TPL…</h3>
+        <p class="muted">Leyendo operaciones, propiedades, tareas y alertas desde Supabase.</p>
+      </div>`;
+  }
+
+  function renderError(error) {
+    const msg = error?.message || 'No fue posible cargar el CRM.';
+    if (/JWT|session|not authorized|no autorizado|42501|permission|Acceso CRM/i.test(msg)) {
+      renderLogin('La cuenta inició sesión, pero todavía no está autorizada como personal TPL.');
+      return;
+    }
+    if (content) content.innerHTML = `
+      <div class="card">
+        <h3>No pudimos sincronizar el CRM</h3>
+        <p class="muted">${esc(msg)}</p>
+        <button class="primary" data-action="refresh">Reintentar</button>
+      </div>`;
+  }
+
+  function metric(label, value, note = '') {
+    return `<article class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></article>`;
+  }
+
+  function dashboard() {
+    const parcels = arr('parcelas');
+    const operations = arr('operaciones');
+    const tasks = arr('tareas');
+    const alerts = arr('alertas');
+    const review = arr('publicaciones_revision');
+    const buyers = arr('compradores');
+
+    const urgentTasks = tasks.filter((t) => /urgente|alta/i.test(t.prioridad || '')).length;
+    const opportunities = parcels.filter((p) => p.es_oportunidad).length;
+
+    return `
+      <div class="hero">
+        <div>
+          <h2>Cerebro TPL</h2>
+          <p>Acciones y señales reales que requieren atención.</p>
+        </div>
+        <button class="primary" data-action="refresh">Actualizar</button>
+      </div>
+
+      <div class="metric-grid">
+        ${metric('En revisión', review.length, 'publicaciones nuevas')}
+        ${metric('Operaciones activas', operations.length, 'proyectos en movimiento')}
+        ${metric('Tareas pendientes', tasks.length, `${urgentTasks} de prioridad alta/urgente`)}
+        ${metric('Oportunidades TPL', opportunities, 'según tasación')}
+        ${metric('Compradores', buyers.length, 'intereses registrados')}
+      </div>
+      <section class="card uf-admin-card">
+        <div class="section-title"><div><small>PARÁMETRO ECONÓMICO</small><h3>UF usada por TPL</h3></div><span class="pill ${state.uf?.stale ? 'warn' : 'ok'}">${state.uf?.stale ? 'Revisar actualización' : 'Vigente'}</span></div>
+        <div class="uf-admin-grid">
+          <div><span>Valor actual</span><strong>${state.uf?.valor_clp ? fmtMoney(state.uf.valor_clp) : '—'}</strong></div>
+          <div><span>Última actualización</span><strong>${state.uf?.fecha_valor || '—'}</strong></div>
+          <div><span>Fuente</span><strong>${esc(state.uf?.fuente || '—')}</strong></div>
+          <form id="ufUpdateForm"><input id="ufValueInput" type="number" min="1" step="0.01" placeholder="Nuevo valor UF" required><button class="primary" type="submit">Actualizar UF</button></form>
+        </div>
+        <p class="muted">El tasador conserva la UF exacta utilizada en cada cálculo; actualizar este valor no modifica tasaciones históricas.</p>
+      </section>
+
+      <div class="grid">
+        <article class="card span4">
+          <h3>Qué hacer ahora</h3>
+          <div class="list">
+            ${tasks.slice(0, 8).map((t) => `
+              <div class="item">
+                <div class="item-main">
+                  <strong>${esc(t.titulo)}</strong>
+                  <small>${esc(t.detalle || 'Sin detalle')} · ${fmtDate(t.vence_at)}</small>
+                </div>
+                ${pill(t.prioridad)}
+              </div>`).join('') || '<p class="muted">No hay tareas pendientes.</p>'}
+          </div>
+        </article>
+
+        <article class="card span4">
+          <h3>Alertas del cerebro</h3>
+          <div class="list">
+            ${alerts.slice(0, 8).map((a) => `
+              <div class="item">
+                <div class="item-main">
+                  <strong>${esc(a.mensaje)}</strong>
+                  <small>${esc(a.tipo)} · ${fmtDate(a.fecha_relevante)}</small>
+                </div>
+                ${pill(a.prioridad)}
+              </div>`).join('') || '<p class="muted">Sin alertas activas.</p>'}
+          </div>
+        </article>
+
+        <article class="card span4">
+          <h3>Publicaciones por revisar</h3>
+          <div class="list">
+            ${review.slice(0, 8).map((p) => `
+              <div class="item">
+                <div class="item-main">
+                  <strong>${esc(p.codigo || p.id)}</strong>
+                  <small>${esc(p.tipo)} · ${fmtDate(p.created_at)}</small>
+                </div>
+                ${pill(p.estado)}
+              </div>`).join('') || '<p class="muted">No hay publicaciones esperando revisión.</p>'}
+          </div>
+          ${review.length ? '<button class="primary" data-view="revision">Abrir revisión</button>' : ''}
+        </article>
+
+        <article class="card span8">
+          <h3>Operaciones vivas</h3>
+          <div class="list">
+            ${operations.slice(0, 10).map((p) => `
+              <div class="item">
+                <div class="item-main">
+                  <strong>${esc(p.codigo || p.nombre || 'Proyecto')}</strong>
+                  <small>${esc(p.propiedad_titulo || 'Sin propiedad')} · ${esc(p.comuna || '')}</small>
+                </div>
+                ${pill(p.estado_operativo || p.estado)}
+              </div>`).join('') || '<p class="muted">Todavía no hay operaciones activas.</p>'}
+          </div>
+        </article>
+
+        <article class="card span4">
+          <h3>Última actividad</h3>
+          <div class="timeline compact">
+            ${arr('eventos').slice(0, 8).map((e) => `
+              <article>
+                <strong>${esc(e.descripcion || e.evento)}</strong>
+                <small>${esc(e.evento)} · ${fmtDate(e.created_at)}</small>
+              </article>`).join('') || '<p class="muted">Sin eventos todavía.</p>'}
+          </div>
+        </article>
+      </div>`;
+  }
+
+  function reviewView() {
+    const rows = arr('publicaciones_revision');
+    return `
+      <div class="toolbar">
+        <div>
+          <h2>Publicaciones por revisar</h2>
+          <p class="muted">Nada llega al catálogo público hasta que TPL lo aprueba.</p>
+        </div>
+        <button class="primary" data-action="refresh">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Código</th><th>Tipo</th><th>Estado</th><th>Recibida</th><th>Acción</th></tr></thead>
+          <tbody>
+            ${rows.map((r) => `
+              <tr>
+                <td>${esc(r.codigo || r.id)}</td>
+                <td>${esc(r.tipo)}</td>
+                <td>${pill(r.estado)}</td>
+                <td>${fmtDate(r.created_at)}</td>
+                <td>
+                  <button class="primary small" data-approve="${esc(r.id)}">Aprobar y publicar</button>
+                  <button class="nav-btn detail-btn" data-detail-key="publicaciones_revision" data-detail-id="${esc(r.id)}">Ver</button>
+                </td>
+              </tr>`).join('') || '<tr><td colspan="5">No hay publicaciones pendientes.</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  const viewDefs = {
+    compradores: {
+      source: 'compradores',
+      columns: [
+        ['nombre', 'Comprador'],
+        ['tipo_interes', 'Interés'],
+        ['comuna', 'Comuna'],
+        ['presupuesto_max', 'Presupuesto', fmtMoney],
+        ['estado', 'Estado', pill],
+        ['proxima_accion', 'Próxima acción']
+      ]
+    },
+    duenos: {
+      source: 'duenos',
+      columns: [
+        ['nombre', 'Dueño / corredor'],
+        ['comuna', 'Comuna'],
+        ['parcelas', 'Parcelas'],
+        ['casas', 'Casas'],
+        ['ultima_actualizacion', 'Actualización', fmtDate]
+      ]
+    },
+    partners: {
+      source: 'partners',
+      columns: [
+        ['nombre', 'Partner'],
+        ['comuna', 'Base'],
+        ['telefono', 'Teléfono'],
+        ['servicios', 'Servicios', (v) => Array.isArray(v) ? v.map((s) => s.servicio).filter(Boolean).join(', ') || '—' : '—']
+      ]
+    },
+    parcelas: {
+      source: 'parcelas',
+      columns: [
+        ['titulo', 'Parcela'],
+        ['comuna', 'Comuna'],
+        ['superficie_m2', 'm²', (v) => Number(v || 0).toLocaleString('es-CL')],
+        ['precio_publicado', 'Precio', fmtMoney],
+        ['valor_tpl_m2', 'TPL / m²', fmtMoney],
+        ['referencia_comunal_m2', 'Comunal / m²', fmtMoney],
+        ['es_oportunidad', 'Lectura', (v) => v ? pill('Oportunidad TPL') : pill('Normal')]
+      ]
+    },
+    'parcelas-casas': {
+      source: 'parcelas_casas',
+      columns: [
+        ['propiedad', 'Parcela'],
+        ['casa', 'Casa'],
+        ['comuna', 'Comuna'],
+        ['casa_m2', 'Casa m²'],
+        ['dormitorios', 'Dorm.'],
+        ['precio_total', 'Total', fmtMoney],
+        ['estado', 'Estado', pill]
+      ]
+    },
+    casas: {
+      source: 'casas',
+      columns: [
+        ['nombre', 'Casa'],
+        ['material', 'Material'],
+        ['superficie_m2', 'm²'],
+        ['dormitorios', 'Dorm.'],
+        ['banos', 'Baños'],
+        ['precio_base', 'Precio base', fmtMoney],
+        ['estado', 'Estado', pill]
+      ]
+    },
+    operaciones: {
+      source: 'operaciones',
+      columns: [
+        ['codigo', 'Proyecto'],
+        ['propiedad_titulo', 'Propiedad'],
+        ['comuna', 'Comuna'],
+        ['estado_operativo', 'Estado', pill],
+        ['requiere_revision', 'Revisión', (v) => v ? pill('Requiere revisión') : pill('Al día')],
+        ['proxima_accion_at', 'Próxima acción', fmtDate]
+      ]
+    },
+    tareas: {
+      source: 'tareas',
+      columns: [
+        ['titulo', 'Tarea'],
+        ['tipo', 'Tipo'],
+        ['prioridad', 'Prioridad', pill],
+        ['estado', 'Estado', pill],
+        ['vence_at', 'Vence', fmtDate]
+      ]
+    },
+    tasaciones: {
+      source: 'tasaciones',
+      columns: [
+        ['propiedad_id', 'Propiedad ID'],
+        ['precio_publicado_m2', 'Publicado / m²', fmtMoney],
+        ['valor_tpl_m2', 'TPL / m²', fmtMoney],
+        ['referencia_comunal_m2', 'Comunal / m²', fmtMoney],
+        ['clasificacion', 'Clasificación', pill],
+        ['version_motor', 'Motor'],
+        ['created_at', 'Fecha', fmtDate]
+      ]
+    },
+    analytics: {
+      source: 'analytics_diario',
+      columns: [
+        ['dia', 'Día', fmtDate],
+        ['evento', 'Evento'],
+        ['pagina', 'Página'],
+        ['total', 'Eventos'],
+        ['sesiones', 'Sesiones']
+      ]
+    },
+    eventos: {
+      source: 'eventos',
+      columns: [
+        ['evento', 'Evento'],
+        ['categoria', 'Categoría'],
+        ['descripcion', 'Descripción'],
+        ['origen', 'Origen'],
+        ['created_at', 'Fecha', fmtDate]
+      ]
+    },
+    mensajes: {
+      source: 'mensajes_pendientes',
+      columns: [
+        ['canal', 'Canal'],
+        ['destinatario', 'Destinatario'],
+        ['asunto', 'Asunto'],
+        ['estado', 'Estado', pill],
+        ['programado_at', 'Programado', fmtDate],
+        ['created_at', 'Creado', fmtDate]
+      ]
+    }
+  };
+
+  function genericView(id) {
+    const def = viewDefs[id];
+    const rows = arr(def.source);
+    return `
+      <div class="toolbar">
+        <input id="search" placeholder="Buscar en ${esc(groups.flatMap((g) => g[1]).find((x) => x[0] === id)?.[1] || id)}…">
+        <button class="primary" data-action="refresh">Actualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>${def.columns.map(([, label]) => `<th>${esc(label)}</th>`).join('')}<th>Acción</th></tr>
+          </thead>
+          <tbody id="tbody">
+            ${rows.map((row) => tableRow(row, def.columns, def.source)).join('') ||
+              `<tr><td colspan="${def.columns.length + 1}">Sin registros todavía.</td></tr>`}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function tableRow(row, columns, source) {
+    const id = row.id || row.proyecto_id || row.propiedad_id || row.comprador_id || row.dueno_id || '';
+    return `<tr data-search-row="${esc(JSON.stringify(row).toLowerCase())}">
+      ${columns.map(([key, , formatter]) => {
+        const value = row[key];
+        return `<td>${formatter ? formatter(value, row) : esc(value ?? '—')}</td>`;
+      }).join('')}
+      <td><button class="nav-btn detail-btn" data-detail-key="${esc(source)}" data-detail-id="${esc(id)}">Ver ficha</button></td>
+    </tr>`;
+  }
+
+  function detailFor(source, id) {
+    const rows = arr(source);
+    return rows.find((row) => String(
+      row.id || row.proyecto_id || row.propiedad_id || row.comprador_id || row.dueno_id || ''
+    ) === String(id));
+  }
+
+  function showDetail(record) {
+    if (!record) return;
+    const text = Object.entries(record)
+      .filter(([, value]) => value !== null && value !== undefined && value !== '')
+      .map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`)
+      .join('\n\n');
+    alert(text);
+  }
+
+  function render(view) {
+    state.current = view;
+    document.querySelectorAll('.nav-btn[data-view]').forEach((button) => {
+      button.classList.toggle('active', button.dataset.view === view);
+    });
+
+    const label = groups.flatMap((g) => g[1]).find((x) => x[0] === view)?.[1] || view;
+    if (title) title.textContent = label;
+
+    if (!content) return;
+
+    if (view === 'inicio') content.innerHTML = dashboard();
+    else if (view === 'revision') content.innerHTML = reviewView();
+    else if (viewDefs[view]) content.innerHTML = genericView(view);
+    else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
+
+    document.querySelector('#ufUpdateForm')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const input = document.querySelector('#ufValueInput');
+      try {
+        await window.TPLDataService.updateUfConfig(input?.value, 'CRM TPL');
+        state.uf = await window.TPLDataService.getUfConfig();
+        render('inicio');
+        statusBadge('UF actualizada correctamente', 'ok');
+      } catch (error) {
+        console.error('CRM TPL UF:', error);
+        alert(error?.message || 'No fue posible actualizar la UF.');
+      }
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function loadSnapshot() {
+    if (state.loading) return;
+    state.loading = true;
+    renderLoading();
+    statusBadge('Conectando al Supabase nuevo…');
+
+    try {
+      const session = await window.TPLDataService.getSession();
+      if (!session) {
+        statusBadge('Sesión requerida', 'warn');
+        renderLogin();
+        return;
+      }
+
+      const snapshot = await window.TPLDataService.getCrmSnapshot();
+      state.snapshot = snapshot;
+      try { state.uf = await window.TPLDataService.getUfConfig(); } catch (error) { console.warn('CRM TPL: UF no disponible.', error); state.uf = null; }
+      setNav();
+
+      statusBadge(
+        `Supabase conectado · ${arr('parcelas').length} propiedades · ${arr('eventos').length} eventos`,
+        'ok'
+      );
+
+      render(state.current === 'inicio' ? 'inicio' : state.current);
+      ensureSignOutButton();
+    } catch (error) {
+      console.error('CRM TPL:', error);
+      statusBadge('Error de sincronización', 'danger');
+      renderError(error);
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function ensureSignOutButton() {
+    if (!topbar || document.querySelector('#tplCrmSignOut')) return;
+    const button = document.createElement('button');
+    button.id = 'tplCrmSignOut';
+    button.className = 'nav-btn';
+    button.type = 'button';
+    button.textContent = 'Salir';
+    button.addEventListener('click', async () => {
+      await window.TPLDataService.signOut();
+      state.snapshot = null;
+      renderLogin();
+      statusBadge('Sesión cerrada');
+    });
+    topbar.appendChild(button);
+  }
+
+  nav?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-view]');
+    if (!button) return;
+    render(button.dataset.view);
+    document.querySelector('.sidebar')?.classList.remove('open');
+  });
+
+  document.querySelector('#menuBtn')?.addEventListener('click', () => {
+    document.querySelector('.sidebar')?.classList.toggle('open');
+  });
+
+  const quickAdd = document.querySelector('#quickAdd');
+  if (quickAdd) {
+    quickAdd.disabled = true;
+    quickAdd.title = 'El alta manual se habilitará mediante una RPC segura; no se guardarán registros falsos en localStorage.';
+  }
+
+  content?.addEventListener('click', async (event) => {
+    const refresh = event.target.closest('[data-action="refresh"]');
+    if (refresh) {
+      await loadSnapshot();
+      return;
+    }
+
+    const approve = event.target.closest('[data-approve]');
+    if (approve) {
+      if (!confirm('¿Aprobar esta publicación y habilitarla para el catálogo público?')) return;
+      approve.disabled = true;
+      approve.textContent = 'Aprobando…';
+      try {
+        await window.TPLDataService.approvePublication(approve.dataset.approve, true);
+        await loadSnapshot();
+      } catch (error) {
+        console.error(error);
+        alert(error?.message || 'No fue posible aprobar la publicación.');
+        approve.disabled = false;
+        approve.textContent = 'Aprobar y publicar';
+      }
+      return;
+    }
+
+    const detail = event.target.closest('[data-detail-key]');
+    if (detail) {
+      showDetail(detailFor(detail.dataset.detailKey, detail.dataset.detailId));
+      return;
+    }
+
+    const go = event.target.closest('[data-view]');
+    if (go) render(go.dataset.view);
+  });
+
+  content?.addEventListener('input', (event) => {
+    if (event.target.id !== 'search') return;
+    const q = event.target.value.toLowerCase().trim();
+    content.querySelectorAll('[data-search-row]').forEach((row) => {
+      row.hidden = q && !row.dataset.searchRow.includes(q);
+    });
+  });
+
+  async function bootstrap() {
+    const today = document.querySelector('#today');
+    if (today) today.textContent = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(new Date());
+
+    if (!window.TPLDataService) {
+      if (content) content.innerHTML = `
+        <div class="card">
+          <h3>Falta tpl-data-service.js</h3>
+          <p class="muted">Carga el servicio de datos antes de crm-v2.js.</p>
+        </div>`;
+      statusBadge('Servicio de datos no cargado', 'danger');
+      return;
+    }
+
+    await loadSnapshot();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap, { once: true });
+  } else {
+    bootstrap();
+  }
+})();

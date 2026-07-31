@@ -1,0 +1,44 @@
+IMPLEMENTACIÓN TASADOR TPL V2 — 2026-07-31
+
+Motor unificado aplicado en frontend-v2.
+
+Reglas principales implementadas:
+- Superficie acumulativa: hasta 7.000 m² a $2.000/m²; 7.000–10.000 excedente a $1.500/m²; 10.000–20.000 excedente a $1.000/m²; sobre 20.000 excedente a $500/m².
+- Ubicación territorial: 70% ciudad grande relevante + 30% centro comunal.
+- Resolución automática de ciudad grande por provincia/región para Biobío, Ñuble, Araucanía, Los Ríos y Los Lagos.
+- Distancia a ruta principal: -1% por km, con protección técnica máxima.
+- Rol propio +15%; sin rol propio/rol compartido -15%.
+- Empalme eléctrico +20%.
+- Factibilidad eléctrica: +10% a 0 m, baja 1 punto por cada 100 m, 0% desde 1 km. Si la distancia no se informa se usa +5% referencial.
+- Agua disponible +10%; factibilidad de agua +5%.
+- Cerco completo +15%; sin cierre -15%.
+- Condominio/loteo organizado +10%.
+- Turismo local/regional +20%; turismo nacional +300%.
+- Río directo +30%; vertiente +20%; orilla/acceso a lago +50%; termas +30%.
+- Ajustes porcentuales compuestos secuencialmente.
+- Referencias comunales cargadas: Quillón, Florida, Nacimiento, Yumbel, Negrete, Ránquil/Ñipas y Pucón/Caburgua.
+- Para campos >=10.000 m² no se fuerza una referencia comunal de parcela estándar sin muestra del mismo rango.
+- Sectores aislados (>20 km de ruta): ponderación 70% motor / 30% referencia comunal.
+- Turismo nacional: 90% motor / 10% referencia comunal para evitar que un promedio comunal diluya atributos excepcionales.
+
+Salidas:
+- Venta Ágil: 93% del Valor TPL Recomendado.
+- Valor TPL Recomendado: salida principal.
+- Valor de Mercado Potencial: resultado técnico del motor.
+- Venta Inmediata Referencial: popup independiente basado en referencia histórica rural de $1.650/m² combinada con el valor TPL. No se muestra para turismo nacional.
+
+Integración UI:
+- Tasador público actualizado.
+- Publicador actualizado con distancia comunal, distancia al poste, turismo y atributos naturales.
+- Informes y panel de tasaciones renombrados con la nueva terminología.
+- Inteligencia de mercado del index/parcela actualizada para usar 70/30.
+- Banner sutil en index: “¿Quieres conocer un valor recomendado para tu propiedad?” con enlace al Tasador TPL.
+
+Pruebas de regresión manual del motor (aproximadas, según datos ingresados):
+- Ñipas: TPL recomendado ~ $25,2 M.
+- Florida D2: TPL recomendado ~ $25,9 M.
+- Caburgua premium con río/termas/condominio/empalme: TPL recomendado ~ $126,5 M.
+- Negrete: TPL recomendado ~ $29,0 M.
+- Los Robles/Nacimiento aislado: TPL recomendado ~ $12,1 M.
+
+Todos los JavaScript modificados pasaron node --check.

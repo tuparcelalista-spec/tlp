@@ -7,10 +7,11 @@
 <meta name="robots" content="index,follow">
 <meta name="description" content="Publica tu parcela, campo o casa con terreno en Tu Parcela Lista y obtén una tasación gratuita. Descubre cuánto vale tu propiedad, su valor recomendado TPL y una estrategia de venta según tu nivel de urgencia.">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="publicar.css?v=20260729-3">
+<link rel="stylesheet" href="publicar.css?v=20260731-fix1">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cómo saber cuánto vale mi parcela?","acceptedAnswer":{"@type":"Answer","text":"El Tasador TPL analiza superficie, ubicación, conectividad, servicios, documentación y características de la propiedad para entregar una referencia comercial."}},{"@type":"Question","name":"¿La tasación de parcelas es gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. Tu Parcela Lista permite obtener una referencia de tasación gratuita al completar los antecedentes necesarios de la propiedad."}},{"@type":"Question","name":"¿Qué factores influyen en el valor de un terreno?","acceptedAnswer":{"@type":"Answer","text":"Entre otros factores influyen la superficie, ubicación, distancia a centros urbanos y rutas, acceso, agua, electricidad, documentación y topografía."}}]}</script>
+<link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 </head>
-<body>
+<body class="tpl-premium-ui">
 <header class="topbar">
   <a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Publicador TPL</span></a>
   <div class="top-actions"><a href="../tasador/index.html">Mis tasaciones</a><button id="saveDraftTop" type="button">Guardar</button></div>
@@ -38,9 +39,9 @@
       <section class="wizard-step is-active" data-step="0">
         <div class="step-head"><span class="eyebrow">Comencemos</span><h1>¿Qué propiedad quieres publicar?</h1><p>Solo pediremos la información necesaria. Podrás volver y editar cualquier paso.</p></div>
         <div class="choice-grid">
-          <label class="choice-card"><input type="radio" name="tipo" value="parcela" checked><span>🌿</span><strong>Parcela</strong><small>Desde 5.000 m²</small></label>
-          <label class="choice-card"><input type="radio" name="tipo" value="campo"><span>🌄</span><strong>Campo</strong><small>1 hectárea o más</small></label>
-          <label class="choice-card"><input type="radio" name="tipo" value="casa"><span>🏡</span><strong>Casa con terreno</strong><small>Vivienda existente</small></label>
+          <label class="choice-card"><input type="radio" name="tipo" value="parcela" checked><span class="tpl-icon tpl-icon-leaf" aria-hidden="true"></span><strong>Parcela</strong><small>Desde 5.000 m²</small></label>
+          <label class="choice-card"><input type="radio" name="tipo" value="campo"><span class="tpl-icon tpl-icon-area" aria-hidden="true"></span><strong>Campo</strong><small>1 hectárea o más</small></label>
+          <label class="choice-card"><input type="radio" name="tipo" value="casa"><span class="tpl-icon tpl-icon-home" aria-hidden="true"></span><strong>Casa con terreno</strong><small>Vivienda existente</small></label>
         </div>
         <div class="form-grid">
           <label><span>Región</span><select id="region" required><option value="">Selecciona una región</option></select></label>
@@ -66,7 +67,8 @@
         <div class="form-grid">
           <label><span>Superficie del terreno</span><div class="suffix"><input id="superficie" type="number" min="1" required><b>m²</b></div></label>
           <label><span>Tipo de suelo</span><select id="suelo"><option value="">Selecciona</option><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
-          <label><span>Distancia a ciudad principal</span><div class="suffix"><input id="distanciaCiudad" type="number" min="0" step="0.1"><b>km</b></div></label>
+          <label><span>Distancia a ciudad grande relevante</span><div class="suffix"><input id="distanciaCiudad" type="number" min="0" step="0.1"><b>km</b></div><small>Pesa 70% en la ubicación territorial. Con coordenadas TPL la calcula automáticamente.</small></label>
+<label><span>Distancia al centro comunal</span><div class="suffix"><input id="distanciaComuna" type="number" min="0" step="0.1"><b>km</b></div><small>Pesa 30% en la ubicación territorial.</small></label>
           <label><span>Acceso</span><select id="acceso"><option>Camino público</option><option>Camino interior</option><option>Servidumbre</option><option>Por confirmar</option></select></label>
         </div>
         <section class="detail-panel">
@@ -75,6 +77,7 @@
             <label><span>Clasificación del terreno</span><select id="tipoTerreno"><option value="">Automático según superficie</option><option>Parcela</option><option>Campo</option><option>Fundo</option><option>Sitio rural</option><option>Predio agrícola</option></select></label>
             <label><span>Rol de la propiedad</span><select id="rolDetalle"><option value="">Selecciona</option><option>Rol propio</option><option>Rol compartido</option><option>En trámite</option><option>No lo sé</option></select></label>
             <label><span>¿Está en condominio o loteo?</span><select id="condominio"><option value="">Selecciona</option><option>Sí</option><option>No</option><option>No lo sé</option></select></label>
+<label><span>Clasificación turística</span><select id="turismoDetalle"><option value="auto">Automático según territorio</option><option value="">No turística</option><option value="local">Turística local / regional</option><option value="nacional">Turística nacional</option></select></label>
             <label><span>Situación de subdivisión</span><select id="subdivision"><option value="">Selecciona</option><option>Subdivisión aprobada</option><option>Predio original</option><option>En proceso de subdivisión</option><option>No aplica</option><option>No lo sé</option></select></label>
             <label><span>Uso de suelo principal</span><select id="usoSuelo"><option value="">Selecciona</option><option>Habitacional</option><option>Agrícola</option><option>Ganadero</option><option>Forestal</option><option>Turístico</option><option>Mixto</option><option>No lo sé</option></select></label>
             <label><span>Factibilidad para construir</span><select id="construccion"><option value="">Selecciona</option><option>Apta para construir</option><option>Con factibilidad informada</option><option>Requiere evaluación</option><option>No lo sé</option></select></label>
@@ -88,23 +91,30 @@
         </section>
 
         <div class="service-grid">
-          <label><input type="checkbox" id="agua"><span>💧</span><strong>Agua disponible</strong></label>
-          <label><input type="checkbox" id="luz"><span>⚡</span><strong>Electricidad</strong></label>
-          <label><input type="checkbox" id="rol"><span>📄</span><strong>Rol propio</strong></label>
-          <label><input type="checkbox" id="cerco"><span>🪵</span><strong>Cerco</strong></label>
-          <label><input type="checkbox" id="porton"><span>🚪</span><strong>Portón</strong></label>
-          <label><input type="checkbox" id="naturaleza"><span>🌲</span><strong>Bosque o entorno natural</strong></label>
+          <label><input type="checkbox" id="agua"><span class="tpl-icon tpl-icon-water" aria-hidden="true"></span><strong>Agua disponible</strong></label>
+          <label><input type="checkbox" id="luz"><span class="tpl-icon tpl-icon-bolt" aria-hidden="true"></span><strong>Electricidad</strong></label>
+          <label><input type="checkbox" id="rol"><span class="tpl-icon tpl-icon-doc" aria-hidden="true"></span><strong>Rol propio</strong></label>
+          <label><input type="checkbox" id="cerco"><span class="tpl-icon tpl-icon-area" aria-hidden="true"></span><strong>Cerco</strong></label>
+          <label><input type="checkbox" id="porton"><span class="tpl-icon tpl-icon-project" aria-hidden="true"></span><strong>Portón</strong></label>
+          <label><input type="checkbox" id="naturaleza"><span class="tpl-icon tpl-icon-leaf" aria-hidden="true"></span><strong>Bosque o entorno natural</strong></label>
         </div>
         <section class="detail-panel soft">
           <div class="detail-panel-head"><strong>Servicios, acceso y deslindes</strong><small>Indica la situación real, aunque sea “No lo sé”.</small></div>
           <div class="form-grid">
             <label><span>Agua</span><select id="aguaDetalle"><option value="">Selecciona</option><option>Factibilidad</option><option>Sin factibilidad</option><option>Puntera</option><option>Pozo</option><option>APR</option></select></label>
             <label><span>Electricidad</span><select id="luzDetalle"><option value="">Selecciona</option><option>Conectada</option><option>Empalme instalado</option><option>Postación en el frente</option><option>Postación cercana</option><option>Factibilidad</option><option>Sistema solar</option><option>Sin electricidad</option><option>No lo sé</option></select></label>
+<label id="distanciaPosteWrap"><span>Distancia al poste / red eléctrica</span><div class="suffix"><input id="distanciaPosteM" type="number" min="0" step="50" placeholder="Ej. 500"><b>m</b></div><small>Si solo existe factibilidad: 0 m = +10%; cada 100 m baja 1 punto hasta 0% a 1 km.</small></label>
             <label><span>Acceso detallado</span><select id="accesoDetalle"><option value="">Selecciona</option><option>Camino pavimentado</option><option>Ripio en buen estado</option><option>Ripio transitable</option><option>Camino de tierra</option><option>Servidumbre inscrita</option><option>Acceso por mejorar</option></select></label>
             <label><span>Distancia a ruta principal</span><div class="suffix"><input id="distanciaRutaPrincipalKm" type="number" min="0" step="0.1" placeholder="Ej. 12"><b>km</b></div></label>
             <label><span>Cierre perimetral</span><select id="cierreDetalle"><option value="">Selecciona</option><option>Completamente cercada</option><option>Parcialmente cercada</option><option>Deslindes marcados</option><option>Sin cierre</option></select></label>
             <label><span>Portón / control de acceso</span><select id="portonDetalle"><option value="">Selecciona</option><option>Portón instalado</option><option>Portón automático</option><option>Acceso controlado</option><option>Sin portón</option></select></label>
           </div>
+          <fieldset class="needs-fieldset valuation-natural"><legend>Atributos naturales que influyen en la tasación</legend><div class="needs-grid">
+            <label><input type="checkbox" id="rioDirecto"> Río dentro o acceso directo</label>
+            <label><input type="checkbox" id="vertienteNatural"> Vertiente natural</label>
+            <label><input type="checkbox" id="orillaLago"> Orilla o acceso directo a lago</label>
+            <label><input type="checkbox" id="termasNaturales"> Aguas termales / termas</label>
+          </div></fieldset>
         </section>
 
         <section class="detail-panel house-only" id="houseFields" hidden>
@@ -146,13 +156,15 @@
           </fieldset>
           <div class="agreement-box">
             <h3>Facilidades para llegar a un acuerdo</h3>
-            <p>Estas respuestas no son un compromiso. Ayudan a TPL a mediar de forma justa y amigable.</p>
-            <label class="full"><span>Si un comprador paga el precio acordado, ¿estaría dispuesto a realizar alguna mejora? ¿Cuál?</span><div class="needs-grid negotiable-needs">
-              <label><input type="checkbox" name="mejoraNegociable" value="cerco"> Cerco</label><label><input type="checkbox" name="mejoraNegociable" value="porton"> Portón</label>
-              <label><input type="checkbox" name="mejoraNegociable" value="puntera_agua"> Puntera o agua</label><label><input type="checkbox" name="mejoraNegociable" value="empalme_electrico"> Empalme eléctrico</label>
-              <label><input type="checkbox" name="mejoraNegociable" value="roce_limpieza"> Limpieza</label><label><input type="checkbox" name="mejoraNegociable" value="camino_acceso"> Mejorar acceso</label>
-              <label><input type="checkbox" name="mejoraNegociable" value="caso_a_caso"> Evaluar caso a caso</label><label><input type="checkbox" name="mejoraNegociable" value="ninguna"> Ninguna por ahora</label>
-            </div></label>
+            <p>Estas respuestas no son un compromiso. Ayudan a TPL a saber si puede conversar contigo una mejora concreta cuando exista un comprador realmente interesado.</p>
+            <fieldset class="agreement-choice">
+              <legend>Si un comprador paga el precio acordado, ¿estarías dispuesto a evaluar alguna mejora para facilitar el cierre?</legend>
+              <div class="agreement-options">
+                <label><input type="radio" name="aceptaEvaluarMejoras" value="si"><span><strong>Sí</strong><small>Puedo evaluar una solicitud concreta del comprador.</small></span></label>
+                <label><input type="radio" name="aceptaEvaluarMejoras" value="no"><span><strong>No por ahora</strong><small>Prefiero vender la propiedad en sus condiciones actuales.</small></span></label>
+              </div>
+              <small class="agreement-note">Más adelante, el comprador podrá solicitar una de las mejoras que realmente le falten a esta propiedad y tú podrás aceptar, proponer una alternativa o rechazarla.</small>
+            </fieldset>
           </div>
         </section>
       </section>
@@ -162,10 +174,10 @@
 <section class="detail-panel sales-strategy">
           <div class="detail-panel-head"><strong>Estrategia y urgencia de venta</strong><small>Cuéntanos tu plazo y nivel de urgencia antes de calcular. Esto nos ayuda a recomendar una estrategia de venta adecuada.</small></div>
           <div class="urgency-grid">
-            <label><input type="radio" name="urgencia" value="sin_apuro" required><span><strong>Sin apuro</strong><small>0% · Puedo esperar al comprador adecuado.</small></span></label>
-            <label><input type="radio" name="urgencia" value="algo_apuro" required><span><strong>Algo de apuro</strong><small>-5% · Quiero comenzar a moverla.</small></span></label>
-            <label><input type="radio" name="urgencia" value="apurado" required><span><strong>Apurado</strong><small>-10% · Necesito vender pronto.</small></span></label>
-            <label><input type="radio" name="urgencia" value="muy_apurado" required><span><strong>Muy apurado</strong><small>-15% · Necesito una venta más rápida.</small></span></label>
+            <label><input type="radio" name="urgencia" value="sin_apuro" required><span><strong>Sin apuro</strong><small>Puedo esperar al comprador adecuado.</small></span></label>
+            <label><input type="radio" name="urgencia" value="algo_apuro" required><span><strong>Algo de apuro</strong><small>Quiero comenzar a moverla.</small></span></label>
+            <label><input type="radio" name="urgencia" value="apurado" required><span><strong>Apurado</strong><small>Necesito vender pronto.</small></span></label>
+            <label><input type="radio" name="urgencia" value="muy_apurado" required><span><strong>Muy apurado</strong><small>Necesito priorizar una venta más rápida.</small></span></label>
           </div>
           <div class="form-grid">
             <label><span>¿En qué plazo esperas vender?</span><select id="plazoVenta"><option value="">Selecciona</option><option>No tengo plazo</option><option>Durante los próximos 6 meses</option><option>Durante los próximos 3 meses</option><option>Durante el próximo mes</option></select></label>
@@ -181,8 +193,8 @@
           </div>
           <article class="valuation-card" id="valuationCard">
             <span class="valuation-kicker">Resultado orientativo</span>
-            <h3 id="valuationMain">Completa los datos para calcular</h3>
-            <div class="valuation-range"><div><small>Venta rápida</small><strong id="quickValue">—</strong></div><div><small>Valor recomendado</small><strong id="marketValue">—</strong></div><div><small>Venta paciente</small><strong id="patientValue">—</strong></div></div>
+            <h3 id="valuationMain">Valor TPL Recomendado: $0</h3>
+            <div class="valuation-range"><div><small>Venta Ágil</small><strong id="quickValue">$0</strong></div><div><small>Valor TPL Recomendado</small><strong id="marketValue">$0</strong></div><div><small>Valor de Mercado Potencial</small><strong id="patientValue">$0</strong></div></div>
             <p id="valuationExplanation">Consideraremos superficie, ubicación, distancia y características declaradas.</p>
           <div id="valuationVirtues" class="valuation-virtues" hidden>
             <h3>Las mejores virtudes de tu propiedad</h3>
@@ -195,6 +207,7 @@
             <p class="report-business-note">Si activas TPL Business, el informe quedará guardado dentro de tu proyecto para descargarlo cuando quieras.</p>
             <button id="buyProfessionalReportBtn" type="button" class="secondary-action">Obtener informe por $1.990</button>
           </section>
+            <button id="immediateSaleBtn" type="button" class="immediate-sale-link" hidden>Ver escenario de Venta Inmediata Referencial</button>
             <button id="openReportBtn" type="button" disabled>Ver informe</button>
           </article>
         </div>
@@ -202,7 +215,7 @@
 
       <section class="wizard-step" data-step="3">
         <div class="step-head"><span class="eyebrow">Fotografías</span><h2>Muestra lo mejor de tu propiedad</h2><p>La primera fotografía será la portada. Recomendamos entre 6 y 15 imágenes.</p></div>
-        <label class="dropzone" for="photos"><input id="photos" type="file" accept="image/*" multiple hidden><span>📷</span><strong>Seleccionar fotografías</strong><small>JPG, PNG o WebP</small></label>
+        <label class="dropzone" for="photos"><input id="photos" type="file" accept="image/*" multiple hidden><span class="tpl-icon tpl-icon-camera" aria-hidden="true"></span><strong>Seleccionar fotografías</strong><small>JPG, PNG o WebP</small></label>
         <div class="photo-grid" id="photoGrid"></div>
         <div class="form-grid media-extra">
           <label class="full"><span>Video de YouTube o recorrido virtual (opcional)</span><input id="videoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..."></label>
@@ -253,7 +266,7 @@
   <h2 id="seoTasadorTitle">¿Cómo saber cuánto vale mi parcela?</h2>
   <p>El Tasador TPL utiliza la superficie, ubicación, comuna, distancia a centros urbanos y rutas, acceso, agua, electricidad, documentación, topografía y características de la propiedad para entregar una referencia comercial.</p>
   <h3>¿Qué valor recibiré?</h3>
-  <p>Verás el valor según tu nivel de apuro, el valor recomendado por Tu Parcela Lista y un valor ideal para una venta sin apuro.</p>
+  <p>Verás Venta Ágil, el Valor TPL Recomendado y el Valor de Mercado Potencial. Tu nivel de urgencia se guarda como antecedente comercial, pero no altera artificialmente la tasación.</p>
 </section>
 
 </main>
@@ -266,19 +279,27 @@
     <div class="thinking-progress"><span></span></div>
   </div>
   <div class="valuation-result-content" id="valuationResultContent" hidden>
+    <div id="valuationErrorPanel" class="valuation-error-panel" hidden role="alert"><span class="eyebrow">Tasador TPL</span><h2>No pudimos completar el análisis</h2><p id="valuationErrorText">Revisa los antecedentes e inténtalo nuevamente.</p><button id="valuationErrorClose" class="primary" type="button">Revisar datos</button></div>
+    <div id="valuationNormalContent">
     <div class="dialog-head"><div><span class="eyebrow">Resultado TPL</span><strong>Alternativas de valoración</strong></div><button id="closeValuationResult" type="button">×</button></div>
     <div class="valuation-result-body">
-      <p class="result-intro">Comparamos el análisis propio de TPL con la referencia general observada para la comuna. Tú decides qué lectura quieres usar.</p>
+      <p class="result-intro">El Motor TPL combina ubicación, atributos y referencia comunal para entregar una recomendación principal. También puedes revisar las señales que la componen.</p>
       <div class="valuation-option-grid">
-        <button class="valuation-option is-selected" type="button" data-valuation-choice="tpl"><small>Modelo TPL</small><strong id="popupTplValue">—</strong><span>Ubicación + distancia + atributos de la propiedad.</span></button>
+        <button class="valuation-option" type="button" data-valuation-choice="tpl"><small>Valor de Mercado Potencial</small><strong id="popupTplValue">—</strong><span>Resultado técnico según superficie, territorio y atributos.</span></button>
         <button class="valuation-option" type="button" data-valuation-choice="market"><small>Referencia comunal</small><strong id="popupMarketValue">—</strong><span id="popupMarketMeta">Mercado publicado comparable.</span></button>
-        <button class="valuation-option" type="button" data-valuation-choice="blend"><small>Promedio TPL + mercado</small><strong id="popupBlendValue">—</strong><span>Equilibra ambas referencias en partes iguales.</span></button>
+        <button class="valuation-option is-selected" type="button" data-valuation-choice="blend"><small>Valor TPL Recomendado</small><strong id="popupBlendValue">—</strong><span>Referencia principal TPL para un horizonte estimado de 3 a 6 meses.</span></button>
       </div>
       <div class="selected-valuation-summary"><span>Valor seleccionado</span><strong id="popupSelectedValue">—</strong><p id="popupSelectedExplanation">Puedes cambiar de alternativa antes de continuar.</p></div>
       <div class="premium-preview"><div><span class="eyebrow">Informe Premium TPL</span><h3>Una lectura completa de la propiedad</h3><p>Ordena los antecedentes declarados, valoración, cercanía a servicios, fortalezas, conectividad y contexto de mercado en un solo informe.</p></div><button id="popupPremiumBtn" type="button">Ver informe premium</button></div>
     </div>
     <div class="dialog-actions valuation-result-actions"><button id="useValuationBtn" type="button" class="primary">Usar este valor</button><button id="closeValuationResultBottom" type="button">Seguir editando</button></div>
+    </div>
   </div>
+</dialog>
+
+<dialog id="immediateSaleDialog" class="valuation-result-dialog immediate-sale-dialog">
+  <div class="dialog-head"><div><span class="eyebrow">Escenario especial</span><strong>Venta Inmediata Referencial</strong></div><button id="closeImmediateSale" type="button">×</button></div>
+  <div class="valuation-result-body"><p>Basado en antecedentes de cierres rurales anteriores y ajustado con la tasación actual. Prioriza fuertemente la velocidad de venta.</p><div class="selected-valuation-summary immediate-sale-summary"><span>Valor referencial</span><strong id="immediateSaleValue">—</strong><p>Este valor no es un mínimo garantizado ni significa que debas vender a ese precio.</p></div></div>
 </dialog>
 
 <dialog id="reportDialog">
@@ -288,10 +309,11 @@
 </dialog>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>
-<script src="tpl-land-engine.js?v=20260730-1"></script>
+<script src="tpl-land-engine.js?v=20260731-fix1"></script>
+<script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
 <script src="tpl-house-engine.js"></script>
 <script src="tpl-market-observed.js"></script>
 <script src="tpl-report-generator.js"></script>
-<script src="publicar.js?v=20260730-4"></script>
+<script src="publicar.js?v=20260731-fix1"></script>
 </body>
 </html>

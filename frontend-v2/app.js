@@ -334,10 +334,10 @@ document.addEventListener("DOMContentLoaded", () => {
         : "Comienza seleccionando una parcela.";
 
     return [
-      { icon: "🌿", kicker: "PARCELA ELEGIDA", title: parcelaName, text: parcelaMeta },
-      { icon: "🏡", kicker: "CASA DEL PROYECTO", title: casaName, text: casaMeta },
-      { icon: "✨", kicker: "INVERSIÓN ESTIMADA", title: total, text: "Tu proyecto se actualiza automáticamente." },
-      { icon: "🧭", kicker: "SIGUIENTE PASO", title: nextStep, text: "TPL te acompaña durante todo el proceso." }
+      { icon: `<span class="tpl-icon tpl-icon-leaf"></span>`, kicker: "PARCELA ELEGIDA", title: parcelaName, text: parcelaMeta },
+      { icon: `<span class="tpl-icon tpl-icon-home"></span>`, kicker: "CASA DEL PROYECTO", title: casaName, text: casaMeta },
+      { icon: `<span class="tpl-icon tpl-icon-value"></span>`, kicker: "INVERSIÓN ESTIMADA", title: total, text: "Tu proyecto se actualiza automáticamente." },
+      { icon: `<span class="tpl-icon tpl-icon-compass"></span>`, kicker: "SIGUIENTE PASO", title: nextStep, text: "TPL te acompaña durante todo el proceso." }
     ];
   }
 
@@ -384,11 +384,11 @@ document.addEventListener("DOMContentLoaded", () => {
       <div id="tpl-project-bar" class="tpl-project-bar" hidden aria-live="polite">
         <div class="tpl-project-bar-inner">
           <div class="tpl-project-bar-brand">
-            <span>🏡</span>
+            <span class="tpl-icon tpl-icon-home"></span>
             <strong>Tu proyecto</strong>
           </div>
           <div class="tpl-project-bar-stage">
-            <span class="tpl-project-bar-icon" id="tpl-bar-icon">🌿</span>
+            <span class="tpl-project-bar-icon" id="tpl-bar-icon"><span class="tpl-icon tpl-icon-leaf"></span></span>
             <div class="tpl-project-bar-message">
               <small id="tpl-bar-kicker">PARCELA ELEGIDA</small>
               <strong id="tpl-bar-title">Tu proyecto comienza aquí</strong>
@@ -619,14 +619,14 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="combo-proposal-body">
           <h4>${p.nombre || "Parcela"} + ${c.nombre || "Casa"}</h4>
-          <p class="combo-proposal-place">📍 ${p.comuna || "Chile"} · ${Number(p.tamano || p.superficie || 0).toLocaleString("es-CL")} m² terreno</p>
+          <p class="combo-proposal-place"><span class="tpl-icon tpl-icon-pin"></span> ${p.comuna || "Chile"} · ${Number(p.tamano || p.superficie || 0).toLocaleString("es-CL")} m² terreno</p>
           <div class="combo-proposal-specs">
-            <span>🏡 ${Number(c.metros || 0).toLocaleString("es-CL")} m² casa</span>
-            <span>🛏 ${c.habitaciones || "—"} hab.</span>
-            <span>🛠 Plan Base referencial</span>
+            <span><i class="tpl-icon tpl-icon-home"></i> ${Number(c.metros || 0).toLocaleString("es-CL")} m² casa</span>
+            <span><i class="tpl-icon tpl-icon-bed"></i> ${c.habitaciones || "—"} hab.</span>
+            <span><i class="tpl-icon tpl-icon-tools"></i> Plan Base referencial</span>
           </div>
           <button type="button" class="combo-location-link" data-combo-location="${p.id}">
-            📍 Ver ubicación de la parcela
+            <span class="tpl-icon tpl-icon-pin"></span> Ver ubicación de la parcela
           </button>
           <div class="combo-proposal-total">
             <small>Total estimado</small>
@@ -689,16 +689,16 @@ document.addEventListener("DOMContentLoaded", () => {
       chips.push('<span class="parcel-feature-chip parcel-feature-chip-featured">⭐ Destacada</span>');
     }
     if (yes(p.facilidad)) {
-      chips.push('<span class="parcel-feature-chip parcel-feature-chip-payment">💰 Facilidad de pago</span>');
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-payment"><i class="tpl-icon tpl-icon-value"></i> Facilidad de pago</span>');
     }
     if (yes(p.luz)) {
-      chips.push('<span class="parcel-feature-chip parcel-feature-chip-light">⚡ Factibilidad de luz</span>');
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-light"><i class="tpl-icon tpl-icon-bolt"></i> Factibilidad de luz</span>');
     }
     if (yes(p.servicios)) {
-      chips.push('<span class="parcel-feature-chip parcel-feature-chip-services">📍 Cercana a servicios</span>');
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-services"><i class="tpl-icon tpl-icon-pin"></i> Cercana a servicios</span>');
     }
     if (yes(p.naturaleza)) {
-      chips.push('<span class="parcel-feature-chip parcel-feature-chip-native">🌿 Nativas</span>');
+      chips.push('<span class="parcel-feature-chip parcel-feature-chip-native"><i class="tpl-icon tpl-icon-leaf"></i> Nativas</span>');
     }
 
     return chips.slice(0, 2);
@@ -728,7 +728,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderPromotionBadge(p) {
     if (p?.urgenteDestacado) return '<div class="tpl-promotion-badge tpl-promotion-badge-paid">⭐ Urgente destacado</div>';
-    if (p?.ventaUrgente) return '<div class="tpl-promotion-badge tpl-promotion-badge-free">🔥 Venta urgente</div>';
+    if (p?.ventaUrgente) return '<div class="tpl-promotion-badge tpl-promotion-badge-free">Venta urgente</div>';
     return '';
   }
 
@@ -736,7 +736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!state.activeFilters.gps || !state.userCoords || !p.lat || !p.lng) return "";
     const km = distanceKm(state.userCoords.lat, state.userCoords.lng, Number(p.lat), Number(p.lng));
     const mins = Math.max(1, Math.round((km / 55) * 60));
-    return `<div class="distance-badge">📍 ${km.toFixed(1)} km · ${mins} min aprox.</div>`;
+    return `<div class="distance-badge"><i class="tpl-icon tpl-icon-pin"></i> ${km.toFixed(1)} km · ${mins} min aprox.</div>`;
   }
 
 
@@ -753,7 +753,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const habitaciones = Number(p.habitaciones || p.datos_formulario?.habitaciones || 0);
       return `<article class="parcela-card parcela-con-casa-card">
         <a class="card-image card-image-link" href="${href}"><img src="${img}" alt="${p.nombre}" loading="lazy" decoding="async" width="800" height="600"><span class="tpl-land-house-badge">Parcela con casa</span></a>
-        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-meta">🌳 ${Number(p.tamano||0).toLocaleString('es-CL')} m² de terreno${construida?` · 🏠 ${construida.toLocaleString('es-CL')} m² construidos`:''}${habitaciones?` · ${habitaciones} dorm.`:''}</div><div class="card-price card-price-clean">${p.precio}</div><div class="card-actions"><a class="btn-card btn-details" href="${href}">Ver propiedad</a></div></div>
+        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-meta"><i class="tpl-icon tpl-icon-area"></i> ${Number(p.tamano||0).toLocaleString('es-CL')} m² de terreno${construida?` · <i class="tpl-icon tpl-icon-home"></i> ${construida.toLocaleString('es-CL')} m² construidos`:''}${habitaciones?` · ${habitaciones} dorm.`:''}</div><div class="card-price card-price-clean">${p.precio}</div><div class="card-actions"><a class="btn-card btn-details" href="${href}">Ver propiedad</a></div></div>
       </article>`;
     }).join('');
   }
@@ -809,7 +809,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="card-body">
           <h3 class="card-title">${p.nombre}</h3>
-          <div class="card-meta">🌳 ${Number(p.tamano || 0).toLocaleString("es-CL")} m²</div>
+          <div class="card-meta"><i class="tpl-icon tpl-icon-area"></i> ${Number(p.tamano || 0).toLocaleString("es-CL")} m²</div>
           <div class="card-price card-price-clean">${p.precio}</div>
           ${renderPromotionBadge(p)}
           ${renderTplBackedValueBadge(p, "card")}
@@ -1111,9 +1111,9 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="casa-price">${money(c.valorCasa || c.precio)}</div>
           </div>
           <p class="casa-desc">${c.descripcion_breve || "Casa prefabricada lista para cotizar."}</p>
-          <div class="casa-specs-strip"><span>🛏 ${c.habitaciones} hab</span><span>🚿 ${c.banos || 1} baño</span><span>📐 ${c.metros} m²</span></div>
+          <div class="casa-specs-strip"><span><i class="tpl-icon tpl-icon-bed"></i> ${c.habitaciones} hab</span><span><i class="tpl-icon tpl-icon-bath"></i> ${c.banos || 1} baño</span><span><i class="tpl-icon tpl-icon-area"></i> ${c.metros} m²</span></div>
           <button class="house-plan-button" type="button" data-plano="${plano}" data-title="${c.nombre}" title="Ver plano ampliado">
-            <span class="house-plan-icon">📐</span>
+            <span class="house-plan-icon tpl-icon tpl-icon-area"></span>
             <span>Plano</span>
           </button>
           <button class="btn-select-house" type="button">${getPendingProjectChange() === "casa" ? "Agregar esta casa" : "Seleccionar casa"}</button>
@@ -1186,7 +1186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (DOM.installationStatus) {
       DOM.installationStatus.classList.toggle("enabled", enabled);
       DOM.installationStatus.innerHTML = enabled
-        ? `✅ Servicio activado: <strong>${getInstallationPlanDisplayName()}</strong>`
+        ? `Servicio activado: <strong>${getInstallationPlanDisplayName()}</strong>`
         : "Servicio no incluido. Puedes continuar con tu propio equipo o activar un plan de instalación.";
     }
   }
@@ -1415,7 +1415,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const val = parseClp(state.selectedParcela.precio);
       total += val;
       rows.push([`${tipoTerreno}: ${state.selectedParcela.nombre} · ${parcelaM2.toLocaleString("es-CL")} m²
-        <button type="button" class="summary-location-link" data-summary-location="${state.selectedParcela.id}">📍 Ver ubicación</button>`, val]);
+        <button type="button" class="summary-location-link" data-summary-location="${state.selectedParcela.id}"><i class="tpl-icon tpl-icon-pin"></i> Ver ubicación</button>`, val]);
 
       if (DOM.previewParcelaImg) DOM.previewParcelaImg.src = (state.selectedParcela.imagenes && state.selectedParcela.imagenes[0]) || state.selectedParcela.imagen || "";
       if (DOM.previewLocation) DOM.previewLocation.textContent = state.selectedParcela.comuna || state.selectedParcela.nombre;

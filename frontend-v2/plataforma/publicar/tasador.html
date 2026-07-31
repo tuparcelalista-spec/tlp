@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tasador Integral TPL | Tu Parcela Lista</title>
 <meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
-<link rel="stylesheet" href="tasador-publico.css?v=20260730-2">
+<link rel="stylesheet" href="../../css/tpl-premium-ui.css">
+<link rel="stylesheet" href="tasador-publico.css?v=20260731-tpl-v2">
+<script src="../../js/core/tpl-data-service.js?v=20260731-tasador-db"></script>
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
-<script defer src="tasador-publico.js?v=20260730-2"></script>
+<script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
+<script defer src="tasador-publico.js?v=20260731-tpl-v2"></script>
 </head>
-<body>
+<body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
 <main class="shell">
 <section class="hero"><span class="eyebrow">Tasador Integral TPL</span><h1>Elige cuánto detalle quieres entregar</h1><p>La tasación rápida entrega una referencia en pocos pasos. La tasación precisa incorpora más antecedentes del terreno, ubicación y vivienda para mejorar el análisis y enriquecer el Informe Premium TPL.</p></section>
@@ -28,11 +31,14 @@
 <label><span>Región</span><select id="region" required><option value="">Cargando regiones…</option></select></label>
 <label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona región</option></select></label>
 <label><span>Superficie terreno (m²)</span><input id="superficie" type="number" min="100" step="100" value="5000" required></label>
-<label><span>Distancia a ciudad principal (km)</span><input id="distanceKm" type="number" min="0" step=".5" placeholder="Ej. 12" required></label>
+<label><span>Distancia a ciudad grande relevante (km)</span><input id="distanceKm" type="number" min="0" step=".5" placeholder="Ej. 28"><small>Pesa 70% en el factor territorial. Con coordenadas se calcula automáticamente.</small></label>
+<label><span>Distancia al centro comunal (km)</span><input id="communeDistanceKm" type="number" min="0" step=".5" placeholder="Ej. 8"><small>Pesa 30% en el factor territorial.</small></label>
 <label><span>Rol / situación legal</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
 <label><span>Electricidad</span><select id="electricity"><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
+<label id="electricityPoleWrap" hidden><span>Distancia al poste / red eléctrica</span><div class="suffix"><input id="electricityPoleDistanceM" type="number" min="0" step="50" placeholder="Ej. 500"><b>m</b></div><small>Factibilidad: +10% en 0 m y baja 1 punto por cada 100 m hasta 0% a 1 km.</small></label>
 <label><span>Topografía</span><select id="topography"><option>Completamente plana</option><option>Mayormente plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
 <label><span>Agua</span><select id="water"><option value="factibilidad">Factibilidad</option><option value="sin factibilidad">Sin factibilidad</option><option value="puntera">Puntera</option><option value="pozo">Pozo</option><option value="apr">APR</option></select></label>
+<label><span>Clasificación turística</span><select id="tourismLevel"><option value="auto">Automático según territorio</option><option value="">No turística</option><option value="local">Turística local / regional</option><option value="nacional">Turística nacional</option></select></label>
 </div>
 
 <section id="preciseFields" class="precise-fields" hidden>
@@ -54,10 +60,11 @@
 <label><input type="checkbox" value="rio dentro" data-nature><span>Río dentro o acceso directo</span></label>
 <label><input type="checkbox" value="vertiente" data-nature><span>Vertiente natural</span></label>
 <label><input type="checkbox" value="bosque nativo" data-nature><span>Bosque nativo</span></label>
-<label><input type="checkbox" value="lago cercano" data-nature><span>Lago o laguna cercana</span></label>
+<label><input type="checkbox" value="orilla lago" data-nature><span>Orilla o acceso directo a lago</span></label>
+<label><input type="checkbox" value="termas" data-nature><span>Aguas termales / termas</span></label>
 </div></fieldset>
 
-<div class="coordinates-card"><div><strong>Ubicación exacta para cercanías</strong><p>Las coordenadas permiten enriquecer el Informe Premium con salud, Carabineros, comercio, educación y otros puntos útiles.</p></div><div class="grid coordinates-grid"><label><span>Latitud</span><input id="lat" type="number" step="any" placeholder="-36.000000"></label><label><span>Longitud</span><input id="lng" type="number" step="any" placeholder="-72.000000"></label></div><button id="useMyLocation" type="button" class="ghost">Usar mi ubicación actual</button></div>
+<div class="coordinates-card"><div><strong>Ubicación exacta para cercanías</strong><p>Las coordenadas permiten calcular el Índice Territorial TPL con centro urbano, servicios de salud, comercio, seguridad, educación, servicios generales, gastronomía y atractivos.</p></div><div class="grid coordinates-grid"><label><span>Latitud</span><input id="lat" type="number" step="any" placeholder="-36.000000"></label><label><span>Longitud</span><input id="lng" type="number" step="any" placeholder="-72.000000"></label></div><button id="useMyLocation" type="button" class="ghost">Usar mi ubicación actual</button></div>
 </section>
 
 <div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa los antecedentes de casa y construcción.</small></label></div>
@@ -82,9 +89,15 @@
 <aside class="card result-card">
 <span class="eyebrow">Resultado orientativo</span><div id="status">Elige el tipo de tasación y completa los datos.</div>
 <div id="result" hidden>
-<div class="main-price"><small>Valor recomendado TPL</small><strong id="ideal">—</strong></div>
-<div class="strategies"><div><small>Venta rápida</small><b id="quick">—</b></div><div><small>Venta paciente</small><b id="patient">—</b></div></div>
+<div class="main-price"><small>Valor TPL Recomendado · horizonte estimado 3–6 meses</small><strong id="ideal">$0</strong><span id="idealUf" class="uf-equivalent">Equivalente UF disponible después de calcular</span></div>
+<div class="strategies"><div><small>Venta Ágil</small><b id="quick">$0</b></div><div><small>Valor de Mercado Potencial</small><b id="patient">$0</b></div></div>
+<button id="immediateValueBtn" class="immediate-value-btn" type="button" hidden>¿Quieres conocer un escenario de venta inmediata según cierres anteriores?</button>
 <div id="marketReference" class="market-reference" hidden></div>
+<div class="score-summary" aria-label="Índices TPL">
+  <article><span>Índice territorial</span><div id="territorialScore"><strong>—</strong><small>Sin calcular</small></div></article>
+  <article><span>Índice de propiedad</span><div id="propertyScore"><strong>—</strong><small>Sin calcular</small></div></article>
+  <article><span>Lectura de precio</span><strong id="priceClassification">—</strong><small>Compara el precio informado con la estimación TPL.</small></article>
+</div>
 <div class="breakdown"><h3>Desglose</h3><div id="breakdown"></div></div>
 <p class="note">Tasación comercial orientativa. No reemplaza una tasación bancaria, judicial ni peritaje presencial.</p>
 <button id="premiumReportBtn" class="premium-btn" type="button">Ver Informe Premium TPL</button>
@@ -93,6 +106,8 @@
 </aside>
 </div>
 </main>
+
+<dialog id="immediateDialog" class="premium-dialog immediate-dialog"><div class="premium-head"><div><span class="eyebrow">Escenario especial</span><strong>Venta Inmediata Referencial</strong></div><button id="closeImmediate" type="button">×</button></div><div class="premium-content"><section class="immediate-value-panel"><small>Referencia basada en cierres rurales anteriores</small><strong id="immediateValue">—</strong><p>Este escenario prioriza fuertemente la velocidad y usa antecedentes históricos de cierres rurales como referencia. No es un valor mínimo garantizado ni significa que debas vender a este precio.</p></section></div></dialog>
 
 <dialog id="premiumDialog" class="premium-dialog"><div class="premium-head"><div><span class="eyebrow">Informe Premium TPL</span><strong>Análisis detallado de la propiedad</strong></div><button id="closePremium" type="button">×</button></div><div id="premiumContent" class="premium-content"></div></dialog>
 </body></html>

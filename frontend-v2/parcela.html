@@ -6,8 +6,8 @@
   <title>Parcelas y campos | Tu Parcela Lista</title>
   <meta name="description" content="Conoce la ubicación, superficie, características y diagnóstico TPL de esta parcela antes de elegir tu vivienda.">
   <meta name="theme-color" content="#003f7a">
-  <link rel="stylesheet" href="./css/parcela.css?v=20260730-hero-desc-1">
-  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+<link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <link rel="stylesheet" href="./css/parcela.css?v=20260730-canonical-1">
   <script src="js/tpl-seo.js"></script>
 </head>
 <body>
@@ -24,7 +24,7 @@
     <div class="tpl-mobile-actions">
       <a href="./index.html">Parcelas</a>
       <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
-      <button id="menu-toggle" class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu">☰</button>
+      <button id="menu-toggle" class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú"><span class="menu-lines" aria-hidden="true"></span></button>
     </div>
     <nav id="mobile-menu" class="mobile-menu" hidden>
       <a href="./index.html">Buscar parcelas</a>
@@ -96,71 +96,79 @@
           <p class="diagnosis-note">Los antecedentes pendientes no significan que la parcela tenga un problema. Indican qué información u obra debe confirmarse antes de calcular el proyecto completo.</p>
         </section>
 
-        <section class="clean-section valuation-section">
-          <div class="section-heading"><span>REFERENCIA TPL</span><h2>Lectura preliminar del valor publicado</h2></div>
-          <div class="valuation-box">
-            <div><span>Precio publicado</span><strong id="valuation-price"></strong></div>
-            <div><span>Valor por m²</span><strong id="valuation-m2"></strong></div>
-            <div><span>Lectura preliminar</span><strong id="valuation-position"></strong></div>
+        <section class="clean-section valuation-section" id="valor-tpl">
+          <div class="section-heading"><span>ANÁLISIS DE VALOR TPL</span><h2>Tres referencias para entender mejor el precio</h2></div>
+          <div class="valuation-box valuation-box--three">
+            <div><span>Precio publicado / m²</span><strong id="valuation-published-m2">—</strong><small>Precio solicitado actualmente</small></div>
+            <div><span>Estimación TPL / m²</span><strong id="valuation-tpl-m2">—</strong><small>Ubicación + atributos declarados</small></div>
+            <div><span>Referencia comunal / m²</span><strong id="valuation-market-m2">—</strong><small id="valuation-market-note">Solo con mercado validado</small></div>
           </div>
-          <p id="valuation-explanation"></p>
-          <small>Esta lectura es orientativa y no reemplaza una tasación formal ni una revisión legal de la propiedad.</small>
+          <div class="valuation-reading" id="valuation-reading">
+            <span id="valuation-position">Analizando</span>
+            <p id="valuation-explanation">Estamos comparando el precio publicado con la estimación TPL y, cuando existe, la referencia comunal validada.</p>
+          </div>
+          <small>Estimación orientativa. No reemplaza una tasación bancaria, peritaje ni estudio de títulos.</small>
         </section>
 
-
         <section class="clean-section investment-section" id="investment-section">
-          <div class="section-heading"><span>ANÁLISIS DE INVERSIÓN</span><h2>Precio publicado frente al valor de referencia</h2></div>
-          <div class="investment-layout">
-            <article class="investment-chart-card">
-              <div class="investment-chart-head">
-                <div><strong id="investment-reading">Calculando referencia…</strong><small id="investment-source">Referencia preliminar TPL</small></div>
-                <span id="investment-badge" class="investment-badge">En análisis</span>
-              </div>
-              <div class="investment-scale" aria-label="Comparación de valor por metro cuadrado">
-                <div class="investment-track"><i id="investment-range"></i><b id="investment-marker"></b></div>
-                <div class="investment-labels"><span id="investment-low">—</span><span id="investment-reference">—</span><span id="investment-high">—</span></div>
-              </div>
-              <div class="investment-bars">
-                <article><span>Referencia comunal</span><div><i id="bar-reference"></i></div><strong id="bar-reference-value">—</strong></article>
-                <article><span>Esta parcela</span><div><i id="bar-published"></i></div><strong id="bar-published-value">—</strong></article>
-              </div>
-              <p id="investment-explanation"></p>
-              <small id="investment-disclaimer">Comparación orientativa. Debe validarse con antecedentes legales, ubicación exacta, servicios y estado real del terreno.</small>
-            </article>
+          <div class="section-heading"><span>ANÁLISIS DE INVERSIÓN</span><h2>Cómo se posiciona esta parcela</h2></div>
 
-            <article class="owner-action-card">
+          <article class="investment-chart-card">
+            <div class="investment-chart-head">
+              <div><strong id="investment-reading">Calculando referencias…</strong><small id="investment-source">Modelo TPL y mercado comunal validado</small></div>
+              <span id="investment-badge" class="investment-badge">En análisis</span>
+            </div>
+            <div class="investment-bars investment-bars--three">
+              <article><span>Precio publicado</span><div><i id="bar-published"></i></div><strong id="bar-published-value">—</strong></article>
+              <article><span>Estimación TPL</span><div><i id="bar-tpl"></i></div><strong id="bar-tpl-value">—</strong></article>
+              <article><span>Referencia comunal</span><div><i id="bar-reference"></i></div><strong id="bar-reference-value">—</strong></article>
+            </div>
+            <div class="market-comparison-note" id="market-comparison-note"></div>
+            <p id="investment-explanation"></p>
+            <div id="investment-signals" class="investment-signals" aria-label="Factores considerados"></div>
+            <small id="investment-disclaimer">La referencia comunal solo se muestra cuando TPL cuenta con una muestra previamente validada para esa comuna.</small>
+          </article>
+
+          <article class="owner-action-card owner-action-card--ordered">
+            <div class="owner-action-intro">
               <span class="owner-action-kicker">ANTES DE RESERVAR</span>
-              <h3>Conversa una mejor condición con el propietario</h3>
+              <h3>Conversa una condición con el propietario</h3>
               <p id="owner-action-advice">Puedes presentar una oferta o pedir una mejora concreta antes de solicitar la reserva.</p>
-              <div class="owner-action-options">
-                <button class="owner-option is-active" type="button" data-owner-action="oferta">Ofertar al dueño</button>
-                <button class="owner-option" type="button" data-owner-action="mejoras">Pedir mejoras</button>
-              </div>
-              <form id="owner-proposal-form" class="owner-proposal-form">
-                <input type="hidden" id="proposal-type" value="oferta">
+            </div>
+            <div class="owner-action-options">
+              <button class="owner-option is-active" type="button" data-owner-action="oferta">Ofertar al dueño</button>
+              <button class="owner-option" type="button" data-owner-action="mejoras">Pedir mejoras</button>
+            </div>
+            <form id="owner-proposal-form" class="owner-proposal-form">
+              <input type="hidden" id="proposal-type" value="oferta">
+              <div class="proposal-grid proposal-grid--primary">
                 <label id="offer-amount-field"><span>Mi oferta</span><input id="proposal-amount" inputmode="numeric" placeholder="$18.500.000"></label>
-                <fieldset id="improvement-field" hidden>
-                  <legend>¿Qué mejora te ayudaría a avanzar?</legend>
+                <label><span>Condición de compra</span><select id="proposal-condition"><option value="">Selecciona una opción</option><option>Compra al contado</option><option>Reserva durante este mes</option><option>Pie alto</option><option>Compra inmediata si acepta</option><option>Necesito financiamiento</option></select></label>
+              </div>
+              <fieldset id="improvement-field" hidden>
+                <legend>¿Qué mejora te ayudaría a avanzar?</legend>
+                <div class="improvement-grid">
                   <label><input type="checkbox" name="improvement" value="Cerco perimetral"> Cerco perimetral</label>
                   <label><input type="checkbox" name="improvement" value="Portón de acceso"> Portón de acceso</label>
                   <label><input type="checkbox" name="improvement" value="Puntera o solución de agua"> Puntera o solución de agua</label>
                   <label><input type="checkbox" name="improvement" value="Panel solar básico"> Panel solar básico</label>
                   <label><input type="checkbox" name="improvement" value="Aporte para fosa séptica"> Aporte para fosa séptica</label>
-                </fieldset>
-                <label><span>Condición de compra</span><select id="proposal-condition"><option value="">Selecciona una opción</option><option>Compra al contado</option><option>Reserva durante este mes</option><option>Pie alto</option><option>Compra inmediata si acepta</option><option>Necesito financiamiento</option></select></label>
-                <label><span>Mensaje al propietario</span><textarea id="proposal-message" rows="3" placeholder="Ej.: Puedo avanzar este mes si se incluye el portón de acceso."></textarea></label>
-                <div class="proposal-contact-grid">
-                  <label><span>Nombre</span><input id="proposal-name" autocomplete="name" required></label>
-                  <label><span>Correo</span><input id="proposal-email" type="email" autocomplete="email" required></label>
-                  <label><span>Teléfono</span><input id="proposal-phone" type="tel" autocomplete="tel" required></label>
                 </div>
-                <label class="proposal-consent"><input id="proposal-consent" type="checkbox" required> Autorizo a TPL a enviar esta propuesta y contactarme con la respuesta.</label>
+              </fieldset>
+              <label class="proposal-message"><span>Mensaje al propietario</span><textarea id="proposal-message" rows="3" placeholder="Ej.: Puedo avanzar este mes si se incluye el portón de acceso."></textarea></label>
+              <div class="proposal-contact-grid proposal-contact-grid--balanced">
+                <label><span>Nombre completo</span><input id="proposal-name" autocomplete="name" required placeholder="Tu nombre"></label>
+                <label><span>Teléfono</span><input id="proposal-phone" type="tel" autocomplete="tel" required placeholder="+56 9 ..."></label>
+                <label class="proposal-email-field"><span>Correo electrónico</span><input id="proposal-email" type="email" autocomplete="email" required placeholder="nombre@correo.cl"></label>
+              </div>
+              <label class="proposal-consent"><input id="proposal-consent" type="checkbox" required> <span>Autorizo a TPL a enviar esta propuesta y contactarme con la respuesta.</span></label>
+              <div class="proposal-submit-row">
                 <button class="proposal-submit" type="submit">Enviar al propietario</button>
                 <p id="proposal-status" class="proposal-status" role="status" aria-live="polite"></p>
-              </form>
-              <div class="proposal-process"><span>1. Enviamos</span><span>2. El dueño responde</span><span>3. Te confirmamos por correo</span></div>
-            </article>
-          </div>
+              </div>
+            </form>
+            <div class="proposal-process"><span>1. Enviamos</span><span>2. El dueño responde</span><span>3. Te confirmamos</span></div>
+          </article>
         </section>
 
         <section class="clean-section location-section">
@@ -189,7 +197,7 @@
       </div>
       <div class="choice-grid">
         <article class="choice-card">
-          <div class="choice-icon">⌂</div>
+          <div class="choice-icon" aria-hidden="true"></div>
           <h3>Casa prefabricada</h3>
           <p>Ideal para avanzar con mayor rapidez y comparar modelos con precios más definidos.</p>
           <ul>
@@ -200,7 +208,7 @@
           <a id="prefab-link" href="./cotizador.html">Explorar casas prefabricadas</a>
         </article>
         <article class="choice-card choice-featured">
-          <div class="choice-icon">✦</div>
+          <div class="choice-icon choice-icon--compass" aria-hidden="true"></div>
           <h3>Diseño propio</h3>
           <p>Ideal para adaptar la casa a las vistas, orientación, familia y posibilidades del terreno.</p>
           <ul>
@@ -231,7 +239,9 @@
   </footer>
 
   <script src="./parcelas.js" defer></script>
-  <script src="./js/parcela.js?v=20260728-2" defer></script>
+  <script src="./plataforma/publicar/tpl-land-engine.js?v=20260731-tpl-v2" defer></script>
+  <script src="./js/tpl-market-intelligence.js?v=20260731-tpl-v2" defer></script>
+  <script src="./js/parcela.js?v=20260730-market-1" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Parcelas y campos | Tu Parcela Lista",description:"Conoce cada parcela con informaci\u00f3n clara de ubicaci\u00f3n, superficie, valor, entorno y posibilidades para tomar una decisi\u00f3n mejor informada."}));</script>
 
 <script>

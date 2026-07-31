@@ -1,0 +1,30 @@
+TPL TU PARCELA LISTA — ORDEN DE INSTALACIÓN
+
+SUPABASE NUEVO:
+1) Ejecutar 202607300000_tpl_nucleo_v1.sql
+2) Confirmar que termina sin errores.
+3) Ejecutar 202607300001_tpl_comercial_crm_v1.sql
+4) NO ejecutar todavía las 71 migraciones antiguas.
+5) Las migraciones antiguas quedan solo como biblioteca para rescatar módulos específicos.
+
+QUÉ CREA EL NÚCLEO:
+- Actores y roles
+- Publicaciones
+- Propiedades e imágenes
+- Proyectos / simulaciones
+- Actores que se incorporan al proyecto
+- Catálogo de servicios
+- Necesidades detectadas
+- Servicios ofrecidos por Partners
+- Órdenes de servicio
+- Contratos y plantillas
+- Pagos
+- Avances de trabajo
+- Eventos / bitácora
+- Tareas
+- Vistas del cerebro CRM
+- Activación automática de servicios tras confirmar primer pago
+
+IMPORTANTE:
+El trigger de primer pago NO contrata ni asigna automáticamente a un Partner.
+Solo habilita las órdenes para comenzar la búsqueda/asignación.

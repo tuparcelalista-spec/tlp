@@ -4710,6 +4710,23 @@ export const TPL_NATIONAL_CATALOG = {
     return this.conurbations[0];
   },
 
+  getMajorCityForCommune(communeName, regionName) {
+    const commObj = this.getCommune(communeName);
+    const byId = id => this.conurbations.find(c => c.id === id) || null;
+    if (commObj) {
+      if (commObj.reg === 'CL-NB') return byId('urb_chillan');
+      if (commObj.reg === 'CL-AR') return byId('urb_temuco_padre_las_casas');
+      if (commObj.reg === 'CL-LR') return byId('urb_valdivia');
+      if (commObj.reg === 'CL-LL') return /Osorno/i.test(commObj.prov || '') ? byId('urb_osorno') : byId('urb_puerto_montt_varas');
+      if (commObj.reg === 'CL-BI') {
+        if (/Biob[ií]o/i.test(commObj.prov || '')) return byId('urb_los_angeles');
+        if (/Concepci[oó]n/i.test(commObj.prov || '')) return byId('urb_gran_concepcion');
+        return byId('urb_gran_concepcion');
+      }
+    }
+    return this.getCityForCommune(communeName, regionName);
+  },
+
   resolveTerritorialCascade(communeName, regionName, lat = null, lng = null, sameCommuneCount = 0) {
     const commObj = this.getCommune(communeName);
     const cityObj = this.getCityForCommune(communeName, regionName);

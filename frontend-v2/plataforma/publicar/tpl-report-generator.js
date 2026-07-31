@@ -39,7 +39,7 @@
     if(!market) return "";
     return `
       <div class="tpl-report-section-box tpl-market-observed-box">
-        <h3 class="tpl-box-title">📊 MERCADO OBSERVADO · ${market.comuna.toUpperCase()}</h3>
+        <h3 class="tpl-box-title">MERCADO OBSERVADO · ${market.comuna.toUpperCase()}</h3>
         <p style="margin:0 0 12px;line-height:1.5">Referencia independiente construida con precios publicados de parcelas cercanas a ${Number(market.superficieObjetivoM2).toLocaleString('es-CL')} m². No modifica el cálculo del Tasador TPL.</p>
         <div class="tpl-grid-2">
           <div><small class="tpl-label">PROMEDIO PUBLICADO</small><strong>${formatMoney(market.promedioClp)}</strong></div>
@@ -55,7 +55,7 @@
     return `
       <div class="tpl-print-header">
         <div class="tpl-print-header-brand">
-          <span class="tpl-print-logo">🛡️</span>
+          <span class="tpl-print-logo tpl-icon tpl-icon-shield"></span>
           <div>
             <strong>TU PARCELA LISTA</strong>
             <small>INFORME PROFESIONAL DE VALORACIÓN COMERCIAL</small>
@@ -91,7 +91,7 @@
     const idealPrice = valData?.ideal || 0;
     const quickPrice = valData?.quick || Math.round(idealPrice * 0.90);
     const patientPrice = valData?.patient || Math.round(idealPrice * 1.10);
-    const confidenceLabel = (valData?.score >= 80) ? '★★★★☆ ALTA CONFIABILIDAD' : (valData?.score >= 55) ? '★★★☆☆ CONFIABILIDAD MEDIA' : '★★☆☆☆ INICIAL';
+    const confidenceLabel = (valData?.score >= 80) ? 'ALTA CONFIABILIDAD' : (valData?.score >= 55) ? 'CONFIABILIDAD MEDIA' : 'CONFIANZA INICIAL';
     const pricePerM2 = area > 0 ? Math.round(idealPrice / area) : 0;
 
     return `
@@ -106,7 +106,7 @@
           </div>
 
           <div class="tpl-report-section-box">
-            <h3 class="tpl-box-title">📍 INDIVIDUALIZACIÓN DE LA PROPIEDAD Y TITULAR</h3>
+            <h3 class="tpl-box-title">INDIVIDUALIZACIÓN DE LA PROPIEDAD Y TITULAR</h3>
             <div class="tpl-grid-2">
               <div>
                 <small class="tpl-label">UBICACIÓN INFORMADA</small>
@@ -129,7 +129,7 @@
 
           <div class="tpl-report-hero-box">
             <div class="tpl-hero-top">
-              <span class="tpl-hero-badge">💎 PRECIO IDEAL RECOMENDADO TPL</span>
+              <span class="tpl-hero-badge">PRECIO IDEAL RECOMENDADO TPL</span>
               <span class="tpl-conf-badge">${confidenceLabel}</span>
             </div>
             <div class="tpl-hero-price">${formatMoney(idealPrice)}</div>
@@ -149,7 +149,7 @@
           </div>
 
           <div class="tpl-report-text-block">
-            <h3>🛡️ ¿Cómo se obtuvo esta recomendación?</h3>
+            <h3>¿Cómo se obtuvo esta recomendación?</h3>
             <p>Esta estimación considera los antecedentes informados sobre la propiedad, su ubicación, superficie, conectividad y servicios disponibles. El resultado sirve como orientación comercial para definir un precio de publicación y conversar con potenciales compradores.</p>
           </div>
         </div>
@@ -177,12 +177,12 @@
         ${createHeader(leadRef, 2, 3)}
 
         <div class="tpl-report-body">
-          <h2 class="tpl-page-heading">🔍 Factores que influyen en el valor estimado</h2>
+          <h2 class="tpl-page-heading">Factores que influyen en el valor estimado</h2>
           <p class="tpl-page-lead">Estos antecedentes fueron considerados para construir la recomendación comercial:</p>
 
           <div class="tpl-attributes-grid">
             <div class="tpl-attr-card">
-              <div class="tpl-attr-icon">⚡</div>
+              <div class="tpl-attr-icon"><span class="tpl-icon tpl-icon-bolt"></span></div>
               <div>
                 <h4>Conectividad Eléctrica</h4>
                 <p>${luz}</p>
@@ -190,7 +190,7 @@
               </div>
             </div>
             <div class="tpl-attr-card">
-              <div class="tpl-attr-icon">💧</div>
+              <div class="tpl-attr-icon"><span class="tpl-icon tpl-icon-water"></span></div>
               <div>
                 <h4>Factibilidad de Agua</h4>
                 <p>${agua}</p>
@@ -198,7 +198,7 @@
               </div>
             </div>
             <div class="tpl-attr-card">
-              <div class="tpl-attr-icon">🚗</div>
+              <div class="tpl-attr-icon"><span class="tpl-icon tpl-icon-car"></span></div>
               <div>
                 <h4>Acceso y Conectividad</h4>
                 <p>${camino}</p>
@@ -206,7 +206,7 @@
               </div>
             </div>
             <div class="tpl-attr-card">
-              <div class="tpl-attr-icon">📐</div>
+              <div class="tpl-attr-icon"><span class="tpl-icon tpl-icon-area"></span></div>
               <div>
                 <h4>Topografía y Aprovechamiento</h4>
                 <p>${topo}</p>
@@ -216,21 +216,21 @@
           </div>
 
           <div class="tpl-owner-interpretation-box">
-            <h3 class="tpl-interp-title">💡 ¿CÓMO INTERPRETAR ESTA RECOMENDACIÓN PARA TU VENTA?</h3>
+            <h3 class="tpl-interp-title">¿CÓMO INTERPRETAR ESTA RECOMENDACIÓN PARA TU VENTA?</h3>
             <p class="tpl-interp-sub">Para vender con éxito, debes elegir tu estrategia según tu tiempo y urgencia:</p>
             
             <div class="tpl-strategies-comparison">
               <div class="tpl-strat-item">
                 <div class="tpl-strat-header">
-                  <strong>1. Venta Rápida (Liquidez)</strong>
+                  <strong>1. Venta Ágil</strong>
                   <span class="tpl-strat-price">${formatMoney(quickPrice)}</span>
                 </div>
-                <p><strong>Tiempo estimado: 1 a 3 meses.</strong> Es un precio atractivo diseñado para captar inversionistas o compradores que compran al contado y buscan una oportunidad clara.</p>
+                <p>Precio orientado a priorizar velocidad de comercialización, sin garantizar un plazo de venta.</p>
               </div>
 
               <div class="tpl-strat-item recommended">
                 <div class="tpl-strat-header">
-                  <strong>2. Precio Ideal TPL (Recomendado)</strong>
+                  <strong>2. Valor TPL Recomendado</strong>
                   <span class="tpl-strat-price">${formatMoney(idealPrice)}</span>
                 </div>
                 <p><strong>Tiempo estimado: 3 a 6 meses.</strong> Busca equilibrar el valor esperado con una probabilidad razonable de recibir consultas. El tiempo real de venta dependerá de la demanda, la presentación de la propiedad y la negociación.</p>
@@ -238,10 +238,10 @@
 
               <div class="tpl-strat-item">
                 <div class="tpl-strat-header">
-                  <strong>3. Venta Paciente (Retorno Máximo)</strong>
+                  <strong>3. Valor de Mercado Potencial</strong>
                   <span class="tpl-strat-price">${formatMoney(patientPrice)}</span>
                 </div>
-                <p><strong>Tiempo estimado: 6 a 12 meses o más.</strong> Puede ser adecuado cuando no existe urgencia, considerando que un precio más alto normalmente requiere más tiempo y una presentación comercial sólida.</p>
+                <p>Referencia técnica de mayor potencial según las características y ubicación de la propiedad; puede requerir un horizonte comercial mayor.</p>
               </div>
             </div>
           </div>
@@ -265,7 +265,7 @@
         ${createHeader(leadRef, 3, 3)}
 
         <div class="tpl-report-body">
-          <h2 class="tpl-page-heading">📄 Referencia y alcance del informe</h2>
+          <h2 class="tpl-page-heading">Referencia y alcance del informe</h2>
           <p class="tpl-page-lead">Este documento resume una estimación comercial generada con los antecedentes entregados por el solicitante y las reglas vigentes del sistema TPL.</p>
 
           <div class="tpl-verification-box">
@@ -282,7 +282,7 @@
 
           <div class="tpl-commercial-cta-box">
             <div class="tpl-cta-header">
-              <span>🚀 PASO SIGUIENTE</span>
+              <span>PASO SIGUIENTE</span>
               <h3>¿Quieres hacer realidad este precio y vender con apoyo profesional?</h3>
             </div>
             <p class="tpl-cta-desc">En Tu Parcela Lista no solo calculamos el valor de tu terreno; <strong>te ayudamos a conseguir al comprador correcto</strong> con la mayor seguridad y sin dolores de cabeza.</p>
@@ -295,7 +295,7 @@
 
             <div class="tpl-cta-action">
               <a href="https://wa.me/56988508361?text=Hola,%20tengo%20mi%20informe%20${leadRef}%20y%20quiero%20apoyo%20para%20vender%20mi%20parcela" target="_blank" class="tpl-print-btn-whatsapp">
-                <span>💬</span> Contáctanos por WhatsApp para Asesoría Personalizada ➔
+                <span></span> Contáctanos por WhatsApp para Asesoría Personalizada ➔
               </a>
               <small>O continúa tu publicación directamente en nuestra plataforma online.</small>
             </div>
@@ -338,15 +338,15 @@
     const html = `
       <div class="tpl-report-topbar">
         <div class="tpl-report-topbar-brand">
-          <span class="tpl-report-topbar-icon">🛡️</span>
+          <span class="tpl-report-topbar-icon tpl-icon tpl-icon-shield"></span>
           <div>
             <strong>Informe Profesional TPL Business</strong>
             <small>Referencia ${leadData?.leadRef || 'TPL'} · Listo para guardar en PDF o imprimir</small>
           </div>
         </div>
         <div class="tpl-report-topbar-actions">
-          <button type="button" class="btn ghost tpl-btn-close-report" onclick="window.TPLReportGenerator.closeReport()">✖ Volver al Tasador</button>
-          <button type="button" class="btn primary tpl-btn-print-report" onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
+          <button type="button" class="btn ghost tpl-btn-close-report" onclick="window.TPLReportGenerator.closeReport()">Volver al Tasador</button>
+          <button type="button" class="btn primary tpl-btn-print-report" onclick="window.print()">Imprimir / Guardar en PDF</button>
         </div>
       </div>
       <div class="tpl-report-pages-wrap">

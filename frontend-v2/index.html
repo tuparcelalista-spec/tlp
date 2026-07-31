@@ -8,12 +8,10 @@
   <meta name="theme-color" content="#003f7a">
   <link rel="canonical" href="https://www.parcelalista.cl/">
   <link rel="preload" href="./assets/logo-tu-parcela-lista.png" as="image">
-  <link rel="stylesheet" href="./css/index.css?v=20260730-3">
-  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <!-- Base visual identity first; page-specific styles load after it. -->
+  <link rel="stylesheet" href="css/tpl-identity-seo.css?v=20260730-1">
+  <link rel="stylesheet" href="./css/index.css?v=20260730-canonical-1">
   <script src="js/tpl-seo.js"></script>
-  <script src="parcelas.js" defer></script>
-  <script src="casas.js" defer></script>
-  <script src="js/tpl-public-stats.js" defer></script>
 
   <style>
     .tpl-campo-story{position:relative;isolation:isolate;overflow:hidden;min-height:420px;display:grid;align-items:end;margin:0;background:#173b2b;color:#fff}
@@ -57,23 +55,28 @@
     </nav>
   </header>
   <section class="tpl-emotional-hero tpl-emotional-hero--family" aria-label="Una nueva vida en el campo">
+    <img class="tpl-emotional-hero__media" src="./assets/hero-familia-casa-campo-premium.webp" alt="Familia caminando hacia una casa en el campo" width="1536" height="553" fetchpriority="high" decoding="async">
     <div class="tpl-emotional-hero__shade"></div>
     <div class="tpl-emotional-hero__content">
-      <span class="tpl-emotional-hero__eyebrow">TU PARCELA LISTA · TU NUEVA ETAPA</span>
-      <h1>Más espacio para vivir.<br><em>Más campo para volver a lo esencial.</em></h1>
-      <p>Una casa que puedas imaginar a tu manera, naturaleza para compartir en familia y un terreno donde cada proyecto tenga espacio para crecer.</p>
+      <span class="tpl-emotional-hero__eyebrow">TU NUEVA ETAPA COMIENZA AQUÍ</span>
+      <h1>Vive el campo.<br><em>Construye tu vida.</em></h1>
+      <p>Encuentra parcelas para crear una vida con más espacio, naturaleza y libertad. Elige el lugar; después diseña el proyecto que quieres construir.</p>
       <div class="tpl-emotional-hero__actions">
         <a href="#resultados" class="tpl-hero-primary">Ver parcelas disponibles</a>
-        <a href="#proyecto-presupuesto" class="tpl-hero-secondary">Imaginar parcela + casa</a>
-      </div>
-      <div class="tpl-emotional-hero__promises" aria-label="Lo que puedes construir">
-        <span><b>Campo</b><small>naturaleza y libertad</small></span>
-        <span><b>Hogar</b><small>diseñado para tu vida</small></span>
-        <span><b>Familia</b><small>espacio para compartir</small></span>
+        <a href="#proyecto-presupuesto" class="tpl-hero-secondary">Proyectos</a>
       </div>
     </div>
   </section>
   <div class="tpl-positive-strip">Encuentra tu lugar. <strong>Diseña tu vida de campo.</strong> Construye una nueva etapa.</div>
+
+  <section class="tpl-valuation-banner" aria-label="Tasador TPL">
+    <div class="tpl-valuation-banner__copy">
+      <span>TASADOR TPL</span>
+      <strong>¿Quieres conocer un valor recomendado para tu propiedad?</strong>
+      <p>Obtén una referencia orientativa considerando ubicación, superficie, servicios, atributos y mercado comunal.</p>
+    </div>
+    <a href="./plataforma/publicar/tasador.html">Tasar mi propiedad <span aria-hidden="true">→</span></a>
+  </section>
 
   <section class="tpl-public-stats" aria-label="Tu Parcela Lista en números">
     <div class="tpl-public-stats__shell">
@@ -195,6 +198,7 @@
         <button type="button" data-priority="payment">Facilidad de pago</button>
         <button type="button" data-priority="nature">Más naturales</button>
         <button type="button" data-priority="services">Servicios cerca</button>
+        <button type="button" data-priority="opportunity" class="priority-opportunity">Oportunidades</button>
         <button type="button" class="is-active" data-priority="economic">Más económicas</button>
         <button type="button" data-priority="large">1 hectárea o más</button>
       </div>
@@ -233,9 +237,12 @@
     </nav>
   </footer>
 
-  <script src="../parcelas.js" defer></script>
-  <script src="../casas.js" defer></script>
-  <script src="./js/index.js?v=20260730-3" defer></script>
+  <script src="./parcelas.js" defer></script>
+  <script src="./casas.js" defer></script>
+  <script src="./js/tpl-public-stats.js?v=20260730-stats-2" defer></script>
+  <script src="./plataforma/publicar/tpl-land-engine.js?v=20260731-tpl-v2" defer></script>
+  <script src="./js/tpl-market-intelligence.js?v=20260731-tpl-v2" defer></script>
+  <script src="./js/index.js?v=20260730-market-1" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Tu Parcela Lista | Ecosistema para tu proyecto de vida rural",description:"Encuentra parcelas y campos, compara alternativas y da forma a tu proyecto de vida rural con acompa\u00f1amiento, casas y servicios en un solo ecosistema."}));</script>
 </body>
 </html>
