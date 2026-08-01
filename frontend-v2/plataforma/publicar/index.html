@@ -182,12 +182,12 @@
           <section id="professionalReportOffer" class="report-offer" hidden>
             <span class="eyebrow">Informe Profesional TPL</span>
             <h3>¿Quieres el informe para mostrar a tus posibles clientes?</h3>
-            <p>Por solo <strong>$1.990</strong> obtén un informe descargable con valoración, escenarios de venta, fortalezas, factores que influyen en el precio, ubicación, conectividad y recomendaciones para tomar mejores decisiones.</p>
+            <p>Por solo <strong>$1.990</strong> solicita un informe descargable con valoración, escenarios de venta, fortalezas, factores que influyen en el precio, ubicación, conectividad y recomendaciones para tomar mejores decisiones.</p>
             <p class="report-business-note">Si activas TPL Business, el informe quedará guardado dentro de tu proyecto para descargarlo cuando quieras.</p>
             <button id="buyProfessionalReportBtn" type="button" class="secondary-action">Obtener informe por $1.990</button>
           </section>
             <button id="immediateSaleBtn" type="button" class="immediate-sale-link" hidden>Ver escenario de Venta Inmediata Referencial</button>
-            <button id="openReportBtn" type="button" disabled>Ver informe</button>
+            <button id="openReportBtn" type="button" disabled>Ver vista previa del informe</button>
           </article>
         </div>
       </section>
@@ -269,7 +269,7 @@
         <button class="valuation-option is-selected" type="button" data-valuation-choice="blend"><small>Valor TPL Recomendado</small><strong id="popupBlendValue">—</strong><span>Referencia principal TPL para un horizonte estimado de 3 a 6 meses.</span></button>
       </div>
       <div class="selected-valuation-summary"><span>Valor seleccionado</span><strong id="popupSelectedValue">—</strong><p id="popupSelectedExplanation">Puedes cambiar de alternativa antes de continuar.</p></div>
-      <div class="premium-preview"><div><span class="eyebrow">Informe Premium TPL</span><h3>Una lectura completa de la propiedad</h3><p>Ordena los antecedentes declarados, valoración, cercanía a servicios, fortalezas, conectividad y contexto de mercado en un solo informe.</p></div><button id="popupPremiumBtn" type="button">Ver informe premium</button></div>
+      <div class="premium-preview"><div><span class="eyebrow">Informe Premium TPL</span><h3>Una lectura completa de la propiedad</h3><p>Ordena los antecedentes declarados, valoración, cercanía a servicios, fortalezas, conectividad y contexto de mercado en un solo informe.</p></div><button id="popupPremiumBtn" type="button">Ver vista previa premium</button></div>
     </div>
     <div class="dialog-actions valuation-result-actions"><button id="useValuationBtn" type="button" class="primary">Usar este valor</button><button id="closeValuationResultBottom" type="button">Seguir editando</button></div>
     </div>
@@ -302,7 +302,23 @@
 <dialog id="reportDialog">
   <div class="dialog-head"><strong>Informe de tasación TPL</strong><button id="closeReport" type="button">×</button></div>
   <div id="reportContent"></div>
-  <div class="dialog-actions"><button id="printReport" type="button">Imprimir / Guardar PDF</button><a href="../tasador/index.html">Ver mis informes</a></div>
+  <div class="dialog-actions"><button id="printReport" type="button">Imprimir vista previa</button><a href="../tasador/index.html">Ver mis informes</a></div>
+</dialog>
+
+<dialog id="reportOrderDialog" class="report-order-dialog">
+  <form id="reportOrderForm" method="dialog">
+    <div class="dialog-head"><div><small>INFORME PREMIUM TPL</small><strong>Solicitar informe completo</strong></div><button id="closeReportOrder" type="button" aria-label="Cerrar">×</button></div>
+    <div class="report-order-body">
+      <p>Registraremos la tasación exacta utilizada y te enviaremos a Flow para completar el pago seguro.</p>
+      <div class="report-order-summary"><span>Informe de tasación premium</span><strong>$1.990</strong></div>
+      <label><span>Nombre del solicitante</span><input id="reportOrderName" required autocomplete="name"></label>
+      <label><span>Correo de entrega</span><input id="reportOrderEmail" type="email" required autocomplete="email"></label>
+      <label><span>Teléfono</span><input id="reportOrderPhone" autocomplete="tel"></label>
+      <label class="report-order-consent"><input id="reportOrderConsent" type="checkbox" required><span>Acepto que TPL utilice estos datos para gestionar la solicitud y entregar el informe.</span></label>
+      <div id="reportOrderStatus" class="report-order-status" role="status" aria-live="polite"></div>
+    </div>
+    <div class="dialog-actions"><button id="cancelReportOrder" type="button">Cancelar</button><button id="submitReportOrder" class="primary" type="submit">Pagar informe</button></div>
+  </form>
 </dialog>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>

@@ -840,9 +840,17 @@ const closeValuationResult=$('#closeValuationResult');if(closeValuationResult)cl
 const valuationErrorClose=$('#valuationErrorClose');if(valuationErrorClose)valuationErrorClose.onclick=()=>$('#valuationResultDialog')?.close();
 const closeValuationResultBottom=$('#closeValuationResultBottom');if(closeValuationResultBottom)closeValuationResultBottom.onclick=()=>$('#valuationResultDialog')?.close();
 const useValuationBtn=$('#useValuationBtn');if(useValuationBtn)useValuationBtn.onclick=applyPopupValuation;
-const popupPremiumBtn=$('#popupPremiumBtn');if(popupPremiumBtn)popupPremiumBtn.onclick=()=>{const resultDialog=$('#valuationResultDialog');if(resultDialog?.open)resultDialog.close();const content=$('#reportContent'),dialog=$('#reportDialog');if(content&&dialog){content.innerHTML=reportHTML();dialog.showModal();loadNearbyServices()}};
+function openReportPreview(){
+ const content=$('#reportContent'),dialog=$('#reportDialog');
+ if(!content||!dialog||!valuation)return;
+ content.classList.add('report-preview-watermark');
+ content.innerHTML=reportHTML();
+ dialog.showModal();
+ loadNearbyServices();
+}
+const popupPremiumBtn=$('#popupPremiumBtn');if(popupPremiumBtn)popupPremiumBtn.onclick=()=>{const resultDialog=$('#valuationResultDialog');if(resultDialog?.open)resultDialog.close();openReportPreview()};
 
-const openReportBtn=$('#openReportBtn');if(openReportBtn)openReportBtn.onclick=()=>{const content=$('#reportContent');const dialog=$('#reportDialog');if(content&&dialog){content.innerHTML=reportHTML();dialog.showModal();loadNearbyServices()}};
+const openReportBtn=$('#openReportBtn');if(openReportBtn)openReportBtn.onclick=openReportPreview;
 const closeReport=$('#closeReport');if(closeReport)closeReport.onclick=()=>$('#reportDialog')?.close();
 const printReport=$('#printReport');if(printReport)printReport.onclick=()=>window.print();
 const photosInput=$('#photos');if(photosInput)photosInput.onchange=e=>{photos.push(...[...e.target.files].map(file=>({name:file.name,url:URL.createObjectURL(file)})));renderPhotos();saveDraft()};
@@ -850,7 +858,47 @@ const descripcion=$('#descripcion');if(descripcion)descripcion.oninput=e=>{const
 const suggestBtn=$('#suggestDescription');if(suggestBtn)suggestBtn.onclick=suggestDescription;
 const geoBtn=$('#geoBtn');if(geoBtn)geoBtn.onclick=()=>requestBrowserLocation();
 initMapPicker();
-const buyReportBtn=$('#buyProfessionalReportBtn');if(buyReportBtn)buyReportBtn.onclick=()=>{const d=data();const intent={createdAt:new Date().toISOString(),property:d,valuation,amount:1990,status:'intencion_compra'};try{localStorage.setItem('tpl_report_purchase_intent_v1',JSON.stringify(intent))}catch{};if(window.TPLDataService?.trackEvent)window.TPLDataService.trackEvent('informe_tasacion_solicitado',intent).catch?.(()=>{});alert('Tu solicitud de informe quedó registrada. El pago de $1.990 se habilitará en el siguiente paso de integración de pagos.');};
+function openReportOrder(){
+ if(!valuation){alert('Primero debes calcular la tasación.');return}
+ const d=data(),dialog=$('#reportOrderDialog');
+ if(!dialog)return;
+ const name=$('#reportOrderName'),email=$('#reportOrderEmail'),phone=$('#reportOrderPhone'),status=$('#reportOrderStatus');
+ if(name)name.value=d.contacto?.nombre||'';
+ if(email)email.value=d.contacto?.email||'';
+ if(phone)phone.value=d.contacto?.telefono||'';
+ if(status){status.textContent='';status.className='report-order-status'}
+ dialog.showModal();
+}
+async function submitReportOrder(event){
+ event.preventDefault();
+ const status=$('#reportOrderStatus'),button=$('#submitReportOrder'),d=data();
+ const payload={
+  tipo_informe:'tasacion_premium',monto_clp:1990,origen:'publicador_v2',
+  tasacion_id:valuation?.tasacionId||null,version_motor:valuation?.version||valuation?.versionMotor||'tpl-land-engine-v2',
+  contacto:{nombre:valueOf('#reportOrderName'),email:valueOf('#reportOrderEmail'),telefono:valueOf('#reportOrderPhone')},
+  entrada:d,resultado:valuation
+ };
+ if(!$('#reportOrderConsent')?.checked){if(status){status.textContent='Debes aceptar el uso de datos para continuar.';status.className='report-order-status is-error'}return}
+ if(button){button.disabled=true;button.textContent='Registrando…'}
+ try{
+  let result;
+  if(window.TPLDataService?.startReportPayment){result=await window.TPLDataService.startReportPayment(payload)}
+  else throw new Error('El servicio de pago seguro aún no está disponible.');
+  try{localStorage.setItem('tpl_report_purchase_intent_v2',JSON.stringify({...payload,...result,createdAt:new Date().toISOString()}))}catch{}
+  if(status){status.textContent=`Orden ${result.codigo} creada. Redirigiendo al pago seguro…`;status.className='report-order-status is-success'}
+  if(button){button.textContent='Abriendo Flow…'}
+  location.href=result.payment_url;
+ }catch(error){
+  const fallback={...payload,localId:id(),createdAt:new Date().toISOString(),estado:'pendiente_sincronizacion'};
+  try{localStorage.setItem('tpl_report_purchase_intent_v2',JSON.stringify(fallback))}catch{}
+  if(status){status.textContent=`No fue posible sincronizar con TPL: ${error.message||'revisa la conexión'}. La solicitud quedó respaldada en este navegador.`;status.className='report-order-status is-error'}
+  if(button){button.disabled=false;button.textContent='Reintentar'}
+ }
+}
+const buyReportBtn=$('#buyProfessionalReportBtn');if(buyReportBtn)buyReportBtn.onclick=openReportOrder;
+const reportOrderForm=$('#reportOrderForm');if(reportOrderForm)reportOrderForm.addEventListener('submit',submitReportOrder);
+const closeReportOrder=$('#closeReportOrder');if(closeReportOrder)closeReportOrder.onclick=()=>$('#reportOrderDialog')?.close();
+const cancelReportOrder=$('#cancelReportOrder');if(cancelReportOrder)cancelReportOrder.onclick=()=>$('#reportOrderDialog')?.close();
 const form=$('#publisherForm');if(form){form.addEventListener('input',()=>{clearTimeout(window.__tplDraftTimer);window.__tplDraftTimer=setTimeout(saveDraft,450)});form.onsubmit=submit;}
 $$('input[name="tipo"]').forEach(el=>el.addEventListener('change',toggleHouseFields));
 const luzDetalle=$('#luzDetalle'),distanciaPosteWrap=$('#distanciaPosteWrap');const syncPoleDistance=()=>{if(distanciaPosteWrap)distanciaPosteWrap.hidden=!/factibilidad|postación|postacion/i.test(luzDetalle?.value||'')};on('#luzDetalle','change',syncPoleDistance);syncPoleDistance();

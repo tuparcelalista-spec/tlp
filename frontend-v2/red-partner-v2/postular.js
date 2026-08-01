@@ -1,7 +1,7 @@
 // Red Partner TPL - postulación pública segura
-const SUPABASE_URL = 'https://qxavbqhyqaqalpzbhwmh.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJxeGF2YnFoeXFhcWFscHpiaHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA';
-const BUCKET = 'partner-postulaciones';
+const SUPABASE_URL = 'https://hwyscirbycojwndyzozn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k';
+const BUCKET = 'partner-postulaciones-v2';
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const MAX_GALLERY = 5;
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -127,7 +127,7 @@ function buildPayload() {
     emite_factura: document.getElementById('emite_factura').checked,
     acepta_proyectos_tpl: document.getElementById('acepta_proyectos_tpl').checked,
     trabaja_bajo_marca_tpl: document.getElementById('trabaja_bajo_marca_tpl').checked,
-    plan_solicitado: 'bienvenida',
+    plan_solicitado: document.getElementById('plan_solicitado')?.value || 'bienvenida',
     acepta_terminos: document.getElementById('acepta_terminos').checked,
     acepta_privacidad: document.getElementById('acepta_privacidad').checked,
     autoriza_contacto: document.getElementById('autoriza_contacto').checked,
@@ -149,19 +149,7 @@ for (const card of document.querySelectorAll('.plan-card')) {
   });
 }
 
-async function startFlowPayment(result, payload) {
-  const plan = payload.plan_solicitado;
-  const amount = 0;
-  if (!amount) return false;
-  const response = await fetch('/api/flow-create', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ amount, email: payload.correo, subject: `Plan Partner TPL ${plan}`, leadId: result.id, returnUrl: `${location.origin}/plataforma/partners/index.html?pago=retorno&postulacion=${encodeURIComponent(result.codigo)}` })
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.redirectUrl) throw new Error(data.error?.message || data.error || 'El pago con Flow aún no está configurado en el servidor. Tu postulación quedó guardada y TPL podrá contactarte.');
-  location.href = data.redirectUrl;
-  return true;
-}
+async function startFlowPayment() { return false; }
 
 form?.addEventListener('submit', async event => {
   event.preventDefault();
@@ -177,7 +165,7 @@ form?.addEventListener('submit', async event => {
     if (!payload.actividades.length) throw new Error('Agrega al menos una actividad que puedas realizar.');
     if (!payload.etapas_servicio.length) throw new Error('Agrega al menos una etapa de tu servicio.');
     if (!payload.modalidades_pago.length) throw new Error('Selecciona al menos una modalidad de pago.');
-    const result = await callRpc('tpl_postular_partner', { p_payload: payload });
+    const result = await callRpc('tpl_postular_partner_v2', { p_payload: payload });
     const applicationId = result.id;
     const uploadToken = result.upload_token;
 
@@ -188,7 +176,7 @@ form?.addEventListener('submit', async event => {
       galleryPaths.push(await uploadFile(gallery[index], applicationId, uploadToken, `galeria-${index + 1}.${safeExtension(gallery[index])}`));
     }
 
-    await callRpc('tpl_confirmar_archivos_partner', {
+    await callRpc('tpl_confirmar_archivos_partner_v2', {
       p_id: applicationId,
       p_token: uploadToken,
       p_logo_path: logoPath,
@@ -199,7 +187,7 @@ form?.addEventListener('submit', async event => {
 
     form.style.display = 'none';
     const success = document.getElementById('success-msg');
-    success.innerHTML = `<strong>Postulación recibida correctamente</strong>Tu código de seguimiento es <b>${result.codigo}</b>. Revisaremos tus antecedentes. Si tu perfil es aprobado, recibirás un enlace de bienvenida para ingresar a TPL Business.`;
+    success.innerHTML = `<strong>Postulación recibida correctamente</strong>Tu código de seguimiento es <b>${result.codigo}</b>. Revisaremos tus antecedentes. Recibirás un correo cuando la revisión cambie de estado. Si tu perfil es aprobado, podrás ingresar a TPL Business, completar tu perfil y activar herramientas de TPL Studio.`;
     success.style.display = 'block';
     window.scrollTo({ top: document.getElementById('postulacion').offsetTop - 30, behavior: 'smooth' });
   } catch (error) {

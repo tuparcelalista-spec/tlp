@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>TPL Studio | Marketing inmobiliario inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="studio.css?v=20260731-2">
+</head>
+<body>
+  <aside class="studio-sidebar">
+    <a class="brand" href="../crm-v2/"><span>TPL</span> Studio</a>
+    <nav>
+      <button class="nav-item active" data-view="crear"><i data-lucide="wand-sparkles"></i> Crear campaña</button>
+      <button class="nav-item" data-view="storyboard"><i data-lucide="clapperboard"></i> Estrategia</button>
+      <button class="nav-item" data-view="cola"><i data-lucide="list-video"></i> Producción</button>
+      <button class="nav-item" data-view="biblioteca"><i data-lucide="folder-kanban"></i> Biblioteca</button>
+      <button class="nav-item" data-view="analitica"><i data-lucide="chart-no-axes-combined"></i> Resultados</button>
+    </nav>
+    <a class="back-link" href="../crm-v2/"><i data-lucide="arrow-left"></i> Volver al CRM</a>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div><span class="eyebrow">Corretaje · marketing · estudios inmobiliarios</span><h1 id="view-title">Crear campaña</h1></div>
+      <span class="status-pill"><span></span> Conectable a CRM y TPL Business</span>
+    </header>
+
+    <section class="view active" id="view-crear">
+      <div class="hero-card">
+        <div><span class="eyebrow">El brazo comercial del Asesor TPL</span><h2>Convierte una propiedad, proyecto, persona o servicio en una campaña medible.</h2><p>Recupera datos existentes, define la estrategia y prepara landing, video, redes, blog, PDF y WhatsApp sin volver a ingresar la misma información.</p></div>
+        <div class="hero-stat"><strong id="asset-count">0</strong><span>recursos registrados</span></div>
+      </div>
+
+      <form id="campaign-form" class="panel form-grid">
+        <div class="section-heading"><div><span class="step">1</span><h2>Origen de la campaña</h2></div><p>Abre Studio desde CRM/TPL Business o busca el registro por ID.</p></div>
+        <label>Tipo de registro<select id="project-type"><option value="propiedad">Propiedad</option><option value="proyecto">Proyecto completo</option><option value="propietario">Propietario</option><option value="corredor">Corredor</option><option value="cliente">Cliente</option><option value="partner">Partner o servicio</option><option value="marca">Marca / campaña administrativa</option></select></label>
+        <label>ID del registro<div class="field-inline"><input id="subject-id" placeholder="UUID o código"><button type="button" class="btn-secondary" id="load-context">Recuperar</button></div></label>
+        <div id="context-status" class="context-status wide"><strong>Sin contexto cargado</strong><span>Puedes crear una campaña manual o recuperar información existente.</span></div>
+
+        <div class="section-heading wide"><div><span class="step">2</span><h2>Datos y estrategia</h2></div><p>Los campos se autocompletan cuando existe contexto.</p></div>
+        <label>Nombre de la campaña<input id="project-name" required placeholder="Ej. Parcela D2 Florida · Captación de compradores"></label>
+        <label>Objetivo<select id="campaign-goal"><option value="captar_compradores">Captar compradores</option><option value="generar_visitas">Generar visitas</option><option value="generar_reservas">Generar reservas</option><option value="captar_propietarios">Captar propietarios</option><option value="captar_clientes_partner">Captar clientes para Partner</option><option value="posicionar_marca">Posicionar marca</option></select></label>
+        <label>Comuna<input id="commune"></label><label>Precio o inversión<input id="price"></label>
+        <label>Superficie de terreno<input id="land-size"></label><label>Vivienda / construcción<input id="house-size"></label>
+        <label class="wide">Propuesta de valor<textarea id="value-proposition" rows="3"></textarea></label>
+        <label class="wide">Virtudes, servicios o características<textarea id="features" rows="3"></textarea></label>
+        <label class="wide">Imágenes disponibles, una por línea<textarea id="images" rows="3"></textarea></label>
+        <label>Video existente<input id="video-url" placeholder="YouTube, Facebook, Instagram o archivo directo"></label>
+        <label>Landing existente<input id="landing-url" placeholder="URL pública o borrador"></label>
+
+        <div class="section-heading wide"><div><span class="step">3</span><h2>Recursos a producir</h2></div><p>Todos comparten la misma estrategia y fuente.</p></div>
+        <div class="format-grid wide" id="formats">
+          <label class="format-card"><input type="checkbox" value="landing" checked><span><i data-lucide="panel-top"></i><strong>Landing premium</strong><small>Captación y conversión</small></span></label>
+          <label class="format-card"><input type="checkbox" value="video_30" checked><span><i data-lucide="video"></i><strong>Video 30 s</strong><small>Presentación comercial</small></span></label>
+          <label class="format-card"><input type="checkbox" value="reel" checked><span><i data-lucide="smartphone"></i><strong>Reel / Short</strong><small>Vertical 9:16</small></span></label>
+          <label class="format-card"><input type="checkbox" value="facebook"><span><i data-lucide="megaphone"></i><strong>Facebook</strong><small>Texto, video o carrusel</small></span></label>
+          <label class="format-card"><input type="checkbox" value="instagram"><span><i data-lucide="images"></i><strong>Instagram</strong><small>Copy y carrusel</small></span></label>
+          <label class="format-card"><input type="checkbox" value="youtube"><span><i data-lucide="play-square"></i><strong>YouTube</strong><small>Video, Short y descripción</small></span></label>
+          <label class="format-card"><input type="checkbox" value="seo"><span><i data-lucide="search"></i><strong>SEO / Blog</strong><small>Artículo con CTA</small></span></label>
+          <label class="format-card"><input type="checkbox" value="pdf"><span><i data-lucide="file-text"></i><strong>Ficha PDF</strong><small>Resumen compartible</small></span></label>
+          <label class="format-card"><input type="checkbox" value="whatsapp"><span><i data-lucide="message-circle"></i><strong>WhatsApp</strong><small>Mensaje de captación</small></span></label>
+        </div>
+
+        <div class="section-heading wide"><div><span class="step">4</span><h2>Canales y comunicación</h2></div><p>La conexión OAuth real de cada red se implementa en backend; aquí se define el destino.</p></div>
+        <div class="channel-grid wide" id="channels">
+          <label><input type="checkbox" value="web" checked><span>Web TPL</span></label><label><input type="checkbox" value="youtube"><span>YouTube</span></label><label><input type="checkbox" value="facebook"><span>Facebook</span></label><label><input type="checkbox" value="instagram"><span>Instagram</span></label>
+        </div>
+        <label>Tono<select id="tone"><option value="experto_cercano">Experto y cercano</option><option value="premium">Premium y elegante</option><option value="inversion">Inversión y plusvalía</option><option value="tecnico">Técnico y confiable</option><option value="emocional">Emocional y familiar</option></select></label>
+        <label>Audiencia<select id="audience"><option value="familias">Familias</option><option value="inversionistas">Inversionistas</option><option value="propietarios">Propietarios</option><option value="corredores">Corredores</option><option value="compradores">Compradores</option><option value="empresas">Empresas y desarrolladores</option></select></label>
+        <label class="wide">Llamado a la acción<input id="cta" value="Conoce todos los detalles en Tu Parcela Lista"></label>
+        <div class="form-actions wide"><button class="btn-primary" type="submit"><i data-lucide="sparkles"></i> Crear estrategia y campaña</button></div>
+      </form>
+    </section>
+
+    <section class="view" id="view-storyboard"><div class="panel"><div class="section-heading"><div><h2>Estrategia y storyboard</h2><p id="storyboard-summary">Aún no has preparado una campaña.</p></div><div class="inline-actions"><button id="copy-script" class="btn-secondary">Copiar guion</button><button id="export-json" class="btn-secondary">Exportar JSON</button></div></div><div id="strategy-box" class="strategy-box"></div><div id="storyboard-empty" class="empty-state"><i data-lucide="clapperboard"></i><h3>Tu estrategia aparecerá aquí</h3><p>Selecciona un registro u objetivo y crea una campaña.</p></div><div id="storyboard-list" class="storyboard-list"></div><div id="narration-box" class="narration-box" hidden><span class="eyebrow">Narración sugerida</span><p id="narration-text"></p></div></div></section>
+    <section class="view" id="view-cola"><div class="metrics-grid"><article><strong id="queue-total">0</strong><span>Producciones</span></article><article><strong id="queue-ready">0</strong><span>Preparadas</span></article><article><strong id="queue-pending">0</strong><span>Pendientes</span></article></div><div class="panel"><div class="section-heading"><div><h2>Cola de producción</h2><p>Recursos listos para revisión, render o publicación.</p></div></div><div id="queue-list" class="queue-list"></div></div></section>
+    <section class="view" id="view-biblioteca"><div class="panel"><div class="section-heading"><div><h2>Biblioteca de campañas</h2><p>Historial común para CRM y TPL Business.</p></div></div><div id="library-list" class="library-grid"></div></div></section>
+    <section class="view" id="view-analitica"><div class="metrics-grid analytics-grid"><article><strong id="analytics-campaigns">0</strong><span>Campañas</span></article><article><strong id="analytics-assets">0</strong><span>Recursos</span></article><article><strong id="analytics-published">0</strong><span>Publicados</span></article><article><strong id="analytics-visits">0</strong><span>Visitas atribuidas</span></article><article><strong id="analytics-leads">0</strong><span>Leads atribuidos</span></article><article><strong id="analytics-conversions">0</strong><span>Conversiones</span></article></div><div class="panel"><div class="section-heading"><div><h2>Ciclo de resultados</h2><p>Las métricas se alimentan desde eventos con campaign_id y vuelven al CRM.</p></div></div><div class="analytics-flow"><span>Contenido</span><i data-lucide="arrow-right"></i><span>Visitas</span><i data-lucide="arrow-right"></i><span>Leads</span><i data-lucide="arrow-right"></i><span>Visitas / reservas</span><i data-lucide="arrow-right"></i><span>Negocio</span></div></div></section>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>
+  <script src="studio-service.js?v=20260731-crm1"></script>
+  <script src="studio.js?v=20260731-crm1"></script>
+</body>
+</html>

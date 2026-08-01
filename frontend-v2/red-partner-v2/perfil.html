@@ -195,7 +195,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <!-- Google Ads Tracking -->
 
-<link rel="stylesheet" href="../../css/tpl-premium-ui.css">
+<link rel="stylesheet" href="../css/tpl-premium-ui.css">
 </head>
 <body class="tpl-premium-ui">
 <!-- Google Tag Manager (noscript) -->
@@ -283,9 +283,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <script type="module">
-    const SUPABASE_URL = 'https://qxavbqhyqaqalpzbhwmh.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJxeGF2YnFoeXFhcWFscHpiaHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA';
-    const allowedImageHosts = new Set(['qxavbqhyqaqalpzbhwmh.supabase.co', location.hostname]);
+    const SUPABASE_URL = 'https://hwyscirbycojwndyzozn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k';
+    const allowedImageHosts = new Set(['hwyscirbycojwndyzozn.supabase.co', location.hostname]);
 
     function safeImageUrl(value) {
       try {
@@ -344,7 +344,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       if (partner.emite_factura) paymentParts.push('Emite factura');
       document.getElementById('payment-summary').textContent = paymentParts.join(' · ');
       const curriculumButton = document.getElementById('btn-curriculum');
-      if (partner.curriculum_publicado !== false) curriculumButton.href = `/plataforma/partners/curriculum.html?slug=${encodeURIComponent(partner.slug)}`;
+      if (partner.curriculum_publicado !== false) curriculumButton.href = `./curriculum.html?slug=${encodeURIComponent(partner.slug)}`;
       else curriculumButton.style.display = 'none';
       document.getElementById('exp-years').textContent = `${Number(partner.anos_experiencia || 0)} años de experiencia`;
       document.getElementById('jobs-done').textContent = `${Number(partner.trabajos_realizados || 0)} trabajos derivados por TPL`;

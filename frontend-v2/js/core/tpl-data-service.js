@@ -1,10 +1,12 @@
 (function (window) {
   'use strict';
 
+  const runtimeConfig = window.TPL_CONFIG || {};
   const CONFIG = Object.freeze({
-    url: 'https://hwyscirbycojwndyzozn.supabase.co',
-    publishableKey: 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
-    storageKey: 'sb-hwyscirbycojwndyzozn-auth-token'
+    url: runtimeConfig.supabaseUrl || 'https://hwyscirbycojwndyzozn.supabase.co',
+    publishableKey: runtimeConfig.supabasePublishableKey || 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
+    storageKey: runtimeConfig.supabaseStorageKey || 'sb-hwyscirbycojwndyzozn-auth-token',
+    environment: runtimeConfig.environment || 'production'
   });
 
   const LOCAL_DRAFT_BACKUP = 'tpl_frontend_v2_publicaciones_backup_v2';
@@ -266,6 +268,70 @@
     return data;
   }
 
+
+  async function createReportOrder(payload) {
+    if (!payload?.contacto?.email || !payload?.contacto?.nombre) {
+      throw new Error('Nombre y correo son obligatorios para solicitar el informe.');
+    }
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crear_orden_informe_v1', {
+      p_payload: payload
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error('Supabase no confirmó la orden del informe.');
+    localEmit('informe_tasacion.solicitado', data);
+    return data;
+  }
+
+
+  async function startReportPayment(payload) {
+    if (!payload?.contacto?.email || !payload?.contacto?.nombre) {
+      throw new Error('Nombre y correo son obligatorios para iniciar el pago.');
+    }
+    const client = await getClient();
+    const { data, error } = await client.functions.invoke('crear-pago-informe', {
+      body: payload
+    });
+    if (error) throw error;
+    if (!data?.ok || !data?.payment_url) {
+      throw new Error(data?.error || 'No fue posible crear el pago seguro.');
+    }
+    localEmit('informe_tasacion.pago_iniciado', data);
+    return data;
+  }
+
+  async function getReportOrderStatus(orderId) {
+    const id = String(orderId || '').trim();
+    if (!id) throw new Error('Falta el identificador de la orden.');
+    const endpoint = `${CONFIG.url}/functions/v1/estado-informe?orden=${encodeURIComponent(id)}`;
+    const response = await fetch(endpoint, {
+      headers: { apikey: CONFIG.publishableKey, Authorization: `Bearer ${CONFIG.publishableKey}` }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data?.ok) throw new Error(data?.error || 'No fue posible consultar el informe.');
+    return data;
+  }
+
+  async function listPublicPlans() {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_listar_planes_publicos_v1');
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
+  async function listMyValuations(limit = 100) {
+    const client = await getClient();
+    const session = await getSession();
+    if (!session?.user) return [];
+    const { data, error } = await client
+      .from('tpl_tasaciones')
+      .select('id,propiedad_id,actor_id,tipo,superficie_m2,precio_publicado,valor_tpl_total,valor_tpl_m2,clasificacion,entrada,resultado,version_motor,created_at')
+      .order('created_at', { ascending: false })
+      .limit(Math.max(1, Math.min(Number(limit) || 100, 200)));
+    if (error) throw error;
+    return data || [];
+  }
+
   async function getCrmSnapshot() {
     const client = await getClient();
     const { data, error } = await client.rpc('tpl_crm_snapshot_v1');
@@ -316,6 +382,11 @@
     getTasadorReferences,
     getTasadorContext,
     registerValuation,
+    createReportOrder,
+    startReportPayment,
+    getReportOrderStatus,
+    listPublicPlans,
+    listMyValuations,
     approvePublication,
     trackEvent,
     emit: localEmit,

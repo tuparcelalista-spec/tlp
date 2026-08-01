@@ -28,3 +28,5 @@ QUÉ CREA EL NÚCLEO:
 IMPORTANTE:
 El trigger de primer pago NO contrata ni asigna automáticamente a un Partner.
 Solo habilita las órdenes para comenzar la búsqueda/asignación.
+
+202608010001_tpl_productos_planes_informes_v1.sql

@@ -30,6 +30,7 @@
     ['Inteligencia', [
       ['tasaciones', 'Tasaciones'],
       ['analytics', 'Analytics'],
+      ['studio', 'TPL Studio'],
       ['eventos', 'Actividad']
     ]],
     ['Comunicación', [
@@ -293,7 +294,7 @@
                 <td>${fmtDate(r.created_at)}</td>
                 <td>
                   <button class="primary small" data-approve="${esc(r.id)}">Aprobar y publicar</button>
-                  <button class="nav-btn detail-btn" data-detail-key="publicaciones_revision" data-detail-id="${esc(r.id)}">Ver</button>
+                  <button class="nav-btn detail-btn" data-detail-key="publicaciones_revision" data-detail-id="${esc(r.id)}">Ver</button><button class="studio-mini-btn" data-studio-key="publicaciones_revision" data-studio-id="${esc(r.id)}">Material premium</button>
                 </td>
               </tr>`).join('') || '<tr><td colspan="5">No hay publicaciones pendientes.</td></tr>'}
           </tbody>
@@ -434,6 +435,24 @@
     }
   };
 
+
+  function studioView() {
+    return `
+      <div class="hero">
+        <div><small>TPL STUDIO</small><h2>Marketing, informes y captación</h2><p>Crea material premium desde cualquier propiedad, publicación, proyecto o actor del CRM.</p></div>
+        <button class="primary" data-open-studio>Entrar a TPL Studio</button>
+      </div>
+      <div class="metric-grid" id="studioCrmMetrics">
+        ${metric('Campañas', '…', 'cargando')}
+        ${metric('Recursos', '…', 'landing, PDF, video y redes')}
+        ${metric('Visitas atribuidas', '…', 'analytics Studio')}
+        ${metric('Conversiones', '…', 'consultas, visitas y reservas')}
+      </div>
+      <div class="grid">
+        <article class="card span6"><h3>Desde propiedades</h3><p class="muted">Abre Parcelas o Parcelas + casas y pulsa <strong>TPL Studio</strong> para generar informe o landing con los datos existentes.</p><button class="primary" data-view="parcelas">Ver parcelas</button></article>
+        <article class="card span6"><h3>Desde proyectos</h3><p class="muted">Crea el informe completo parcela + casa + presupuesto desde una operación activa.</p><button class="primary" data-view="operaciones">Ver proyectos</button></article>
+      </div>`;
+  }
   function genericView(id) {
     const def = viewDefs[id];
     const rows = arr(def.source);
@@ -462,7 +481,7 @@
         const value = row[key];
         return `<td>${formatter ? formatter(value, row) : esc(value ?? '—')}</td>`;
       }).join('')}
-      <td><button class="nav-btn detail-btn" data-detail-key="${esc(source)}" data-detail-id="${esc(id)}">Ver ficha</button></td>
+      <td><div class="row-actions"><button class="nav-btn detail-btn" data-detail-key="${esc(source)}" data-detail-id="${esc(id)}">Ver ficha</button><button class="studio-mini-btn" data-studio-key="${esc(source)}" data-studio-id="${esc(id)}">TPL Studio</button></div></td>
     </tr>`;
   }
 
@@ -495,6 +514,7 @@
 
     if (view === 'inicio') content.innerHTML = dashboard();
     else if (view === 'revision') content.innerHTML = reviewView();
+    else if (view === 'studio') content.innerHTML = studioView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
 
@@ -511,6 +531,18 @@
         alert(error?.message || 'No fue posible actualizar la UF.');
       }
     });
+
+    if (view === 'studio' && window.TPLStudioService?.getAnalytics) {
+      window.TPLStudioService.getAnalytics().then((a) => {
+        const grid = document.querySelector('#studioCrmMetrics');
+        if (grid) grid.innerHTML = [
+          metric('Campañas', a.campaigns || 0, 'creadas en TPL Studio'),
+          metric('Recursos', a.outputs || 0, 'landing, PDF, video y redes'),
+          metric('Visitas atribuidas', a.visits || 0, 'analytics Studio'),
+          metric('Conversiones', a.conversions || 0, 'consultas, visitas y reservas')
+        ].join('');
+      }).catch(console.warn);
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -584,6 +616,12 @@
   }
 
   content?.addEventListener('click', async (event) => {
+    const openStudio = event.target.closest('[data-open-studio]');
+    if (openStudio) {
+      window.location.href = '../studio/index.html?origen=crm';
+      return;
+    }
+
     const refresh = event.target.closest('[data-action="refresh"]');
     if (refresh) {
       await loadSnapshot();
@@ -604,6 +642,14 @@
         approve.disabled = false;
         approve.textContent = 'Aprobar y publicar';
       }
+      return;
+    }
+
+    const studio = event.target.closest('[data-studio-key]');
+    if (studio) {
+      const record = detailFor(studio.dataset.studioKey, studio.dataset.studioId);
+      if (!record) return alert('No pudimos recuperar el registro para TPL Studio.');
+      window.TPLCrmStudio?.open(record, studio.dataset.studioKey);
       return;
     }
 

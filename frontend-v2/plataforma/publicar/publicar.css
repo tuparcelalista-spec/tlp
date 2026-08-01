@@ -98,3 +98,14 @@
 .publish-success-note{font-size:.82rem!important;color:#7b8690!important;margin-bottom:18px!important}
 .publish-success-card .primary{min-width:160px}
 @media (max-width:640px){.publish-success-card{padding:26px 20px}.publish-success-code{align-items:flex-start;flex-direction:column}.property-type-grid .choice-card{min-height:132px}}
+
+/* Flujo comercial del informe premium */
+.report-order-dialog{width:min(560px,calc(100% - 24px));border:0;border-radius:22px;padding:0;box-shadow:0 24px 80px rgba(8,35,72,.28)}
+.report-order-dialog::backdrop{background:rgba(3,18,38,.62);backdrop-filter:blur(4px)}
+.report-order-dialog form{margin:0}.report-order-dialog .dialog-head small{display:block;color:#6b7890;font-size:.72rem;letter-spacing:.12em;margin-bottom:3px}
+.report-order-body{padding:22px;display:grid;gap:15px}.report-order-body>p{margin:0;color:#536176;line-height:1.55}
+.report-order-body label{display:grid;gap:7px;font-weight:700;color:#18314f}.report-order-body input{width:100%;box-sizing:border-box;border:1px solid #ccd5e2;border-radius:12px;padding:12px 13px;font:inherit}
+.report-order-summary{display:flex;justify-content:space-between;gap:16px;align-items:center;padding:14px 16px;border-radius:14px;background:#f2f7fc;border:1px solid #dbe7f2}.report-order-summary strong{font-size:1.3rem;color:#0b4c86}
+.report-order-consent{grid-template-columns:auto 1fr!important;align-items:start;font-weight:500!important;font-size:.9rem;line-height:1.45}.report-order-consent input{width:auto;margin-top:3px}
+.report-order-status{min-height:1.2em;font-size:.9rem;font-weight:700}.report-order-status.is-error{color:#a42a2a}.report-order-status.is-success{color:#14733c}
+.report-preview-watermark{position:relative}.report-preview-watermark::before{content:'VISTA PREVIA · NO VÁLIDO COMO INFORME EMITIDO';position:sticky;top:10px;display:block;z-index:3;margin:10px auto -42px;width:max-content;max-width:90%;padding:7px 12px;border-radius:999px;background:rgba(255,244,198,.94);color:#6b5210;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-align:center}

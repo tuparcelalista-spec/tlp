@@ -8,11 +8,21 @@ let reports=[];let activeId=null;
 const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch{return[]}};
 async function loadReports(){
  try{
-  const client=await window.TPLDataService?.getClient?.();if(!client)return read();
-  const {data,error}=await client.from('tasaciones').select('id,codigo,comuna,tipo_propiedad,superficie_m2,precio_publicado,valor_agil,valor_tpl_recomendado,valor_mercado_potencial,valor_tpl_recomendado_uf,uf_clp_usada,valor_tpl_m2,estado,created_at,entrada,resultado').order('created_at',{ascending:false}).limit(100);
-  if(error)throw error;
+  const data=await window.TPLDataService?.listMyValuations?.(100);
   if(!data?.length)return read();
-  return data.map(x=>({id:x.id,codigo:x.codigo,comuna:x.comuna,tipo:x.tipo_propiedad,area:Number(x.superficie_m2||0),asking:Number(x.precio_publicado||0),quick:Number(x.valor_agil||0),market:Number(x.valor_tpl_recomendado||0),patient:Number(x.valor_mercado_potencial||0),recommendedUf:Number(x.valor_tpl_recomendado_uf||0),ufClpUsed:Number(x.uf_clp_usada||0),rate:Number(x.valor_tpl_m2||0),status:x.estado||'calculada',createdAt:x.created_at,property:x.entrada||{},result:x.resultado||{},source:'supabase'}));
+  return data.map(x=>{
+   const result=x.resultado||{},input=x.entrada||{};
+   const recommended=Number(result.market||result.recommended||x.valor_tpl_total||0);
+   return {
+    id:x.id,codigo:result.codigo||x.id,comuna:input.comuna||'',tipo:input.tipo||x.tipo||'propiedad',
+    area:Number(x.superficie_m2||input.superficie||0),asking:Number(x.precio_publicado||input.precio||0),
+    quick:Number(result.quick||recommended*.93||0),market:recommended,
+    patient:Number(result.patient||result.technical||recommended||0),
+    recommendedUf:Number(result.recommendedUf||0),ufClpUsed:Number(result.ufClpUsed||0),
+    rate:Number(x.valor_tpl_m2||result.rate||0),status:'calculada',createdAt:x.created_at,
+    property:input,result,source:'supabase'
+   };
+  });
  }catch(e){console.warn('Tasador TPL: usando respaldo local.',e);return read()}
 }
 const write=()=>localStorage.setItem(KEY,JSON.stringify(reports));
