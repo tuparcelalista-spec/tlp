@@ -309,6 +309,21 @@
     return { uf, references: normalized };
   }
 
+  async function getObservedComparables(input = {}) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_resumen_comparables_v1', {
+      p_entrada: {
+        comuna: input.comuna || '',
+        superficie_terreno_m2: Number(input.area || input.superficie || 0) || null,
+        tiene_casa: Boolean(input.incluyeVivienda),
+        superficie_construida_m2: Number(input.areaCasa || 0) || null,
+        dormitorios: Number(input.dormitorios || 0) || null
+      }
+    });
+    if (error) throw error;
+    return data || { ok:true, cantidad:0, confianza:'insuficiente', peso_sugerido:0 };
+  }
+
   async function registerValuation(input, result) {
     const client = await getClient();
     const { data, error } = await client.rpc('tpl_registrar_tasacion_v1', {
@@ -479,6 +494,7 @@
     updateUfConfig,
     getTasadorReferences,
     getTasadorContext,
+    getObservedComparables,
     registerValuation,
     registerTerritorialAnalysis,
     getTerritorialPublicSummary,

@@ -124,7 +124,14 @@ async function calculate(ev){
   x.nearbyContext=null;
   x.territorialIndex=window.TPLLandEngine?.calculateTerritorialIndex?.(x.nearbyContext||{}, {majorCityDistanceKm:x.majorCityDistanceKm,distanceKm:x.majorCityDistanceKm,tourism:x.tourism})||null;
   x.propertyIndex=window.TPLLandEngine?.calculatePropertyIndex?.(x)||null;
-  const res=x.incluyeVivienda?window.TPLHouseEngine?.calculate(x):window.TPLLandEngine?.calculate(x);
+  x.observedComparables=await withTimeout(window.TPLTasadorSupabase?.loadObservedComparables?.(x),2500,{ok:true,cantidad:0,confianza:'insuficiente',peso_sugerido:0});
+  let res=x.incluyeVivienda?window.TPLHouseEngine?.calculate(x):window.TPLLandEngine?.calculate(x);
+  if(res && x.incluyeVivienda && Number(x.observedComparables?.peso_sugerido)>0 && Number(x.observedComparables?.mediana_total)>0){
+    const w=Math.min(.25,Number(x.observedComparables.peso_sugerido));
+    const technical=Number(res.ideal||0), observed=Number(x.observedComparables.mediana_total||0);
+    const blended=Math.round((technical*(1-w))+(observed*w));
+    res={...res,ideal:blended,recommended:blended,quick:Math.round(blended*.93),agile:Math.round(blended*.93),observedComparables:x.observedComparables,observedBlend:{technicalWeight:1-w,observedWeight:w,technicalValue:technical,observedMedian:observed}};
+  }else if(res){res={...res,observedComparables:x.observedComparables};}
   if(!res||res.error){$('#status').textContent=res?.error||'No fue posible calcular. Revisa los datos.';$('#result').hidden=true;return}
   const enriched=window.TPLTasadorSupabase?.enrich?.(x,res,tasadorContext);
   lastResult=enriched?.result||res;lastInput=enriched?.input||x;
@@ -140,7 +147,29 @@ async function calculate(ev){
   const b=displayResult.desglose||{valorTerreno:displayResult.ideal};const labels={valorTerreno:'Terreno',valorCasa:'Vivienda',valorFundacion:'Fundación',sumaObrasAdicionales:'Obras adicionales','bonificaciónDiferenciadora':'Característica diferenciadora'};
   $('#breakdown').innerHTML=Object.entries(labels).filter(([k])=>Number(b[k])).map(([k,l])=>`<div class="breakdown-row"><span>${l}</span><strong>${money(b[k])}</strong></div>`).join('')||`<div class="breakdown-row"><span>Terreno</span><strong>${money(displayResult.ideal)}</strong></div>`;
   const mr=displayResult.marketReference||displayResult.landResult?.marketReference||null,box=$('#marketReference');
-  if(mr){box.hidden=false;box.innerHTML=`<small>Referencia comunal disponible</small><strong>${money(mr.medianM2)}/m²</strong><span>Rango central ${money(mr.p25M2)}–${money(mr.p75M2)}/m² · confianza ${String(mr.confidence||'referencial').replace('-',' ')}</span>`}else box.hidden=true;
+  const blend=displayResult.marketBlend||displayResult.landResult?.marketBlend||null;
+  const formula=$('#tplValueFormula');
+  if(mr){
+    box.hidden=false;
+    box.innerHTML=`<small>Referencia comunal validada</small><strong>${money(mr.medianM2)}/m²</strong><span>Rango central ${money(mr.p25M2)}–${money(mr.p75M2)}/m² · confianza ${String(mr.confidence||'referencial').replace('-',' ')}</span>`;
+    if(formula){
+      const technicalPct=Math.round(Number(blend?.technicalWeight??.5)*100);
+      const marketPct=Math.round(Number(blend?.marketWeight??.5)*100);
+      formula.className='tpl-value-formula is-market';
+      formula.innerHTML=`<strong>El Valor TPL sí incorporó el mercado comunal</strong><span>Se combinó el potencial técnico de la propiedad con la mediana comunal validada.</span><div class="valuation-weight"><b>${technicalPct}% análisis técnico TPL</b><b>${marketPct}% referencia comunal</b></div>`;
+    }
+  }else{
+    box.hidden=true;
+    if(formula){
+      formula.className='tpl-value-formula is-technical';
+      formula.innerHTML=`<strong>El Valor TPL se calculó sin referencia comunal</strong><span>Se utilizó el potencial técnico de la propiedad porque no existe una muestra comunal validada para este segmento o la superficie es de 10.000 m² o más.</span>`;
+    }
+  }
+  const observed=displayResult.observedComparables;
+  if(observed?.cantidad){
+    box.hidden=false;
+    box.innerHTML += `<hr><small>Mercado observado comparable</small><strong>${observed.cantidad} avisos similares</strong><span>${x.incluyeVivienda?`Casas de ${Math.max(20,x.areaCasa-20)}–${x.areaCasa+20} m² · ${x.dormitorios||'sin filtro'} dormitorios · `:''}confianza ${observed.confianza}. ${Number(observed.peso_sugerido)>0?'Aporte moderado al Valor TPL.':'Solo referencia informativa.'}</span>`;
+  }
   const q=new URLSearchParams({region:x.region,comuna:x.comuna,superficie:x.area,tasacion:String(Math.round(displayResult.ideal)),tipo:x.incluyeVivienda?'casa':'parcela'});$('#publishLink').href=`index.html?${q.toString()}`;
  }catch(e){
   console.error(e);$('#status').textContent='No pudimos completar el análisis. Puedes intentarlo nuevamente.';$('#result').hidden=true;

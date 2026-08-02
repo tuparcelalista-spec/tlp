@@ -53,5 +53,6 @@ async function register(input,result,ctx){
  try{if(global.TPLDataService?.registerTerritorialAnalysis)analysis=await global.TPLDataService.registerTerritorialAnalysis(canonical(payload.input,payload.result,registration))}catch(error){console.warn('TPL Tasador: análisis territorial pendiente.',error)}
  return {...payload,registration,analysis};
 }
-global.TPLTasadorSupabase=Object.freeze({loadContext,enrich,canonical,register});
+async function loadObservedComparables(input){ try{return await global.TPLDataService?.getObservedComparables?.(input)}catch(error){console.warn('TPL Tasador: comparables observados no disponibles.',error);return {ok:true,cantidad:0,confianza:'insuficiente',peso_sugerido:0}} }
+global.TPLTasadorSupabase=Object.freeze({loadContext,loadObservedComparables,enrich,canonical,register});
 })(window);
