@@ -215,6 +215,39 @@
     return null;
   }
 
+  async function prepareCrmPremiumReport(propertyId, contact = {}, send = false) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_preparar_informe_tasacion_v1', {
+      p_propiedad_id: propertyId,
+      p_contacto: contact || {},
+      p_enviar: Boolean(send)
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible preparar el informe.');
+    return data;
+  }
+
+  async function generateCrmPremiumReport(orderId, options = {}) {
+    const client = await getClient();
+    const { data, error } = await client.functions.invoke('generar-informe-premium', {
+      body: {
+        orden_id: orderId,
+        enviar: options.enviar !== false,
+        email: options.email || ''
+      }
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible generar el informe premium.');
+    return data;
+  }
+
+  async function getCrmReportHistory(propertyId) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_historial_informes_v1', { p_propiedad_id: propertyId });
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
+  }
+
   async function createPublicOpportunity(payload) {
     if (!payload?.nombre_contacto || !payload?.email) {
       throw new Error('Nombre y correo son obligatorios.');
@@ -480,6 +513,9 @@
   window.TPLDataService = Object.freeze({
     config: CONFIG,
     getClient,
+    prepareCrmPremiumReport,
+    generateCrmPremiumReport,
+    getCrmReportHistory,
     getSession,
     signIn,
     signOut,

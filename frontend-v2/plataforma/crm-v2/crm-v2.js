@@ -64,6 +64,20 @@
 
   const arr = (key) => Array.isArray(state.snapshot?.[key]) ? state.snapshot[key] : [];
 
+  const publicAsset = (value) => {
+    const path = String(value || '').trim();
+    if (!path) return '';
+    if (/^(https?:|data:|blob:)/i.test(path)) return path;
+    return `../../${path.replace(/^\.\//, '').replace(/^\.\.\//, '')}`;
+  };
+
+  function previewImage(record, kind = 'parcela') {
+    const raw = record?.imagen_principal || record?.imagen || record?.imagenes?.[0] || '';
+    const src = publicAsset(raw);
+    if (!src) return `<div class="catalog-preview-empty">${kind === 'casa' ? 'CASA' : 'PARCELA'}</div>`;
+    return `<img src="${esc(src)}" alt="${esc(record?.nombre || record?.titulo || kind)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'catalog-preview-empty',textContent:'SIN FOTO'}))">`;
+  }
+
   function pill(value) {
     const text = String(value || 'Sin definir');
     const cls =
@@ -481,6 +495,54 @@
   };
 
 
+  function reportDialogHtml(record, history = []) {
+    const owner = arr('duenos').find((x) => x.id === record.propietario_actor_id || x.actor_id === record.propietario_actor_id) || {};
+    return `
+      <dialog id="premiumReportDialog" class="premium-report-dialog">
+        <form method="dialog"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></form>
+        <div class="premium-report-head"><small>INFORME PREMIUM TPL</small><h2>${esc(record.titulo || 'Parcela')}</h2><p>${esc([record.comuna, record.region].filter(Boolean).join(' · '))}</p></div>
+        <div class="premium-report-grid">
+          <label>Nombre del destinatario<input id="premiumReportName" value="${esc(owner.nombre || '')}" placeholder="Nombre del propietario o cliente"></label>
+          <label>Correo<input id="premiumReportEmail" type="email" value="${esc(owner.email || '')}" placeholder="cliente@correo.cl"></label>
+          <label>WhatsApp<input id="premiumReportPhone" value="${esc(owner.telefono || owner.whatsapp || '')}" placeholder="+56 9..."></label>
+        </div>
+        <div class="premium-report-note">La vista previa y descarga son internas. El envío por correo usa <strong>informes@parcelalista.cl</strong> y queda registrado en el historial.</div>
+        <div class="premium-report-actions">
+          <button type="button" class="nav-btn" data-report-action="preview">Generar y descargar</button>
+          <button type="button" class="primary" data-report-action="send">Generar y enviar</button>
+        </div>
+        <section class="premium-report-history"><h3>Historial</h3>${history.length ? history.map((h) => `<article><div><strong>${esc(h.codigo || 'Informe')}</strong><small>${fmtDate(h.generado_at || h.created_at)}${h.enviado_a ? ` · enviado a ${esc(h.enviado_a)}` : ''}</small></div>${h.estado ? pill(h.estado) : ''}</article>`).join('') : '<p class="muted">Todavía no existen informes generados para esta parcela.</p>'}</section>
+      </dialog>`;
+  }
+
+  async function openPremiumReport(record) {
+    document.querySelector('#premiumReportDialog')?.remove();
+    let history = [];
+    try { history = await window.TPLDataService.getCrmReportHistory(record.id); } catch (error) { console.warn(error); }
+    document.body.insertAdjacentHTML('beforeend', reportDialogHtml(record, history));
+    const dialog = document.querySelector('#premiumReportDialog');
+    dialog.showModal();
+    dialog.addEventListener('click', async (event) => {
+      const action = event.target.closest('[data-report-action]');
+      if (!action) return;
+      const name = document.querySelector('#premiumReportName')?.value?.trim() || 'Propietario';
+      const email = document.querySelector('#premiumReportEmail')?.value?.trim() || '';
+      const telefono = document.querySelector('#premiumReportPhone')?.value?.trim() || '';
+      const send = action.dataset.reportAction === 'send';
+      if (send && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return alert('Ingresa un correo válido.');
+      action.disabled = true; action.textContent = send ? 'Generando y enviando…' : 'Generando PDF…';
+      try {
+        const order = await window.TPLDataService.prepareCrmPremiumReport(record.id, { nombre: name, email, telefono }, send);
+        const result = await window.TPLDataService.generateCrmPremiumReport(order.orden_id, { enviar: send, email });
+        if (result.download_url) window.open(result.download_url, '_blank', 'noopener,noreferrer');
+        alert(send ? (result.enviado ? 'Informe generado y enviado correctamente.' : 'Informe generado. No se pudo confirmar el envío por correo.') : 'Informe Premium generado correctamente.');
+        dialog.close();
+      } catch (error) { console.error(error); alert(error?.message || 'No fue posible generar el informe.'); }
+      finally { action.disabled = false; action.textContent = send ? 'Generar y enviar' : 'Generar y descargar'; }
+    });
+  }
+
+
   function studioView() {
     return `
       ${commandWelcome()}
@@ -499,6 +561,36 @@
         <article class="card span6"><h3>Desde proyectos</h3><p class="muted">Crea el informe completo parcela + casa + presupuesto desde una operación activa.</p><button class="primary" data-view="operaciones">Ver proyectos</button></article>
       </div>`;
   }
+  function parcelsView() {
+    const rows = arr('parcelas');
+    const published = rows.filter((x) => x.estado === 'publicada').length;
+    const withoutImage = rows.filter((x) => !x.imagen_principal && !(Array.isArray(x.imagenes) && x.imagenes.length)).length;
+    return `
+      <div class="toolbar catalog-toolbar">
+        <div><h2>Parcelas y campos</h2><p class="muted">Vista completa del inventario canónico. Incluye publicaciones nuevas y el catálogo histórico migrado.</p></div>
+        <div class="catalog-toolbar-actions"><input id="search" placeholder="Buscar nombre, comuna, código…"><button class="primary" data-action="refresh">Actualizar</button></div>
+      </div>
+      <div class="metric-grid">${metric('Inventario', rows.length, 'propiedades en Supabase')}${metric('Publicadas', published, 'visibles o listas para revisión')}${metric('Sin fotografía', withoutImage, 'requieren completar ficha')}${metric('Oportunidades', rows.filter(x=>x.es_oportunidad).length, 'detectadas por TPL')}</div>
+      <div class="catalog-grid">
+        ${rows.map((r) => `
+          <article class="catalog-card" data-search-row="${esc(JSON.stringify(r).toLowerCase())}">
+            <div class="catalog-card-media">${previewImage(r, 'parcela')}<span class="catalog-state">${esc(r.estado || 'sin estado')}</span><span class="catalog-count">${Number(r.total_imagenes || 0)} fotos</span></div>
+            <div class="catalog-card-body">
+              <small>${esc(r.codigo || r.id || '')}</small>
+              <h3>${esc(r.titulo || 'Parcela sin título')}</h3>
+              <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
+              <div class="catalog-facts"><b>${Number(r.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(r.precio_publicado)}</b></div>
+              <div class="catalog-actions">
+                <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
+                <a class="primary-link" href="../../parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
+                <button class="report-premium-btn" data-premium-report="${esc(r.id)}">Informe Premium</button>
+                <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
+              </div>
+            </div>
+          </article>`).join('') || '<div class="empty">No hay parcelas en Supabase.</div>'}
+      </div>`;
+  }
+
   function housesView() {
     const rows = arr('casas');
     return `
@@ -566,6 +658,18 @@
     alert(text);
   }
 
+  function showPreview(record, source) {
+    if (!record) return;
+    const isHouse = source === 'casas';
+    const titleText = isHouse ? record.nombre : record.titulo;
+    const media = previewImage(record, isHouse ? 'casa' : 'parcela');
+    const dialog = document.querySelector('#previewDialog');
+    const body = document.querySelector('#previewDialogBody');
+    if (!dialog || !body) return showDetail(record);
+    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="../../parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
+    dialog.showModal();
+  }
+
   function render(view) {
     state.current = view;
     document.querySelectorAll('.nav-btn[data-view]').forEach((button) => {
@@ -580,6 +684,7 @@
     if (view === 'inicio') content.innerHTML = dashboard();
     else if (view === 'revision') content.innerHTML = reviewView();
     else if (view === 'studio') content.innerHTML = studioView();
+    else if (view === 'parcelas') content.innerHTML = parcelsView();
     else if (view === 'casas') content.innerHTML = housesView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
@@ -716,6 +821,14 @@
       return;
     }
 
+    const premiumReport = event.target.closest('[data-premium-report]');
+    if (premiumReport) {
+      const record = detailFor('parcelas', premiumReport.dataset.premiumReport);
+      if (!record) return alert('No pudimos recuperar la parcela.');
+      await openPremiumReport(record);
+      return;
+    }
+
     const studio = event.target.closest('[data-studio-key]');
     if (studio) {
       const record = detailFor(studio.dataset.studioKey, studio.dataset.studioId);
@@ -723,6 +836,9 @@
       window.TPLCrmStudio?.open(record, studio.dataset.studioKey);
       return;
     }
+
+    const preview = event.target.closest('[data-preview-key]');
+    if (preview) { showPreview(detailFor(preview.dataset.previewKey, preview.dataset.previewId), preview.dataset.previewKey); return; }
 
     const detail = event.target.closest('[data-detail-key]');
     if (detail) {

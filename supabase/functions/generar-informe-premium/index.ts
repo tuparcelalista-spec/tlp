@@ -3,19 +3,38 @@ import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
 
 const money = (n: unknown) => `$${Math.round(Number(n || 0)).toLocaleString('es-CL')}`;
-const clean = (v: unknown) => String(v ?? 'No informado').replace(/[\r\n]+/g, ' ').slice(0, 160);
+const clean = (v: unknown, max = 500) => String(v ?? 'No informado').replace(/[\r\n]+/g, ' ').slice(0, max);
+const isEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    const auth = req.headers.get('Authorization') || '';
-    if (!auth.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '__missing__')) return jsonResponse({ ok: false, error: 'No autorizado.' }, 401);
-    const { orden_id } = await req.json();
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const url = Deno.env.get('SUPABASE_URL')!;
+    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(url, service);
+    const bearer = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+    let authorized = false;
+    let userId: string | null = null;
+    if (bearer && bearer === service) {
+      authorized = true;
+    } else if (bearer) {
+      const userClient = createClient(url, anon, { global: { headers: { Authorization: `Bearer ${bearer}` } } });
+      const { data: { user } } = await userClient.auth.getUser();
+      userId = user?.id || null;
+      if (userId) {
+        const { data: staff } = await supabase.from('tpl_staff').select('user_id').eq('user_id', userId).eq('activo', true).maybeSingle();
+        authorized = Boolean(staff);
+      }
+    }
+    if (!authorized) return jsonResponse({ ok: false, error: 'No autorizado.' }, 401);
+    const body = await req.json();
+    const orden_id = body.orden_id;
+    const enviar = body.enviar !== false;
+    const overrideEmail = clean(body.email || '', 180).toLowerCase();
     const { data: order, error } = await supabase.from('tpl_ordenes_informe').select('*').eq('id', orden_id).single();
     if (error || !order) throw new Error('Orden no encontrada.');
-    if (!['pagado','generando','disponible'].includes(order.estado)) throw new Error('La orden aún no está pagada.');
-    if (order.estado === 'disponible') return jsonResponse({ ok: true, already_generated: true });
+    if (!['pagado','generando','disponible'].includes(order.estado)) throw new Error('La orden no está habilitada para generar el informe.');
     await supabase.from('tpl_ordenes_informe').update({ estado: 'generando' }).eq('id', orden_id);
 
     let territorial: any = null;
@@ -92,16 +111,34 @@ Deno.serve(async (req) => {
     await supabase.storage.createBucket('informes-tasacion', { public: false }).catch(() => null);
     const { error: uploadError } = await supabase.storage.from('informes-tasacion').upload(path, bytes, { contentType: 'application/pdf', upsert: true });
     if (uploadError) throw uploadError;
-    await supabase.from('tpl_informes_tasacion').upsert({ orden_id: order.id, tasacion_id: order.tasacion_id, version_plantilla: 'tpl-premium-v1', storage_bucket: 'informes-tasacion', storage_path: path, estado: 'disponible', generado_at: new Date().toISOString(), metadata: { engine_version: order.version_motor, analisis_territorial_id: territorial?.id || null } }, { onConflict: 'orden_id' });
+    await supabase.from('tpl_informes_tasacion').upsert({ orden_id: order.id, tasacion_id: order.tasacion_id, propiedad_id: order.propiedad_id, version_plantilla: 'tpl-premium-crm-v3', storage_bucket: 'informes-tasacion', storage_path: path, estado: 'disponible', generado_at: new Date().toISOString(), generado_por: userId, metadata: { engine_version: order.version_motor, analisis_territorial_id: territorial?.id || null, source: 'crm' } }, { onConflict: 'orden_id' });
     await supabase.from('tpl_ordenes_informe').update({ estado: 'disponible', disponible_at: new Date().toISOString() }).eq('id', order.id);
 
+    const { data: signed } = await supabase.storage.from('informes-tasacion').createSignedUrl(path, 60 * 60 * 24 * 7);
+    const recipient = isEmail(overrideEmail) ? overrideEmail : clean(order.contacto?.email || '', 180).toLowerCase();
+    let sent = false;
     const resendKey = Deno.env.get('RESEND_API_KEY');
-    const from = Deno.env.get('TPL_EMAIL_FROM');
-    if (resendKey && from && order.contacto?.email) {
-      const { data: signed } = await supabase.storage.from('informes-tasacion').createSignedUrl(path, 60 * 60 * 24 * 7);
-      await fetch('https://api.resend.com/emails', { method:'POST', headers:{ Authorization:`Bearer ${resendKey}`,'Content-Type':'application/json' }, body:JSON.stringify({ from, to:[order.contacto.email], subject:`Tu Informe Premium TPL ${order.codigo}`, html:`<h2>Tu informe está listo</h2><p>Hola ${clean(order.contacto.nombre)}, puedes descargarlo durante los próximos 7 días.</p><p><a href="${signed?.signedUrl}">Descargar informe PDF</a></p>` }) });
+    const from = Deno.env.get('TPL_EMAIL_FROM') || 'Tu Parcela Lista <informes@parcelalista.cl>';
+    const replyTo = Deno.env.get('TPL_REPLY_TO');
+    if (enviar && resendKey && recipient) {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from,
+          to: [recipient],
+          reply_to: replyTo || undefined,
+          subject: `Informe Premium TPL · ${clean(input.titulo || input.codigo || order.codigo, 80)}`,
+          html: `<h2>Tu Informe Premium TPL está listo</h2><p>Hola ${clean(order.contacto?.nombre || 'cliente')}, puedes descargarlo durante los próximos 7 días.</p><p><a href="${signed?.signedUrl}">Descargar informe PDF</a></p>`
+        })
+      });
+      sent = response.ok;
+      if (!sent) console.error('Resend:', await response.text());
+      if (sent) {
+        await supabase.from('tpl_informes_tasacion').update({ enviado_at: new Date().toISOString(), enviado_a: recipient, asunto_envio: `Informe Premium TPL · ${clean(input.titulo || input.codigo || order.codigo, 80)}` }).eq('orden_id', order.id);
+      }
     }
-    return jsonResponse({ ok: true, orden_id: order.id, estado: 'disponible' });
+    return jsonResponse({ ok: true, orden_id: order.id, estado: 'disponible', download_url: signed?.signedUrl || null, enviado: sent, email: recipient || null });
   } catch (error) {
     console.error(error);
     return jsonResponse({ ok: false, error: error instanceof Error ? error.message : 'No fue posible generar el informe.' }, 400);
