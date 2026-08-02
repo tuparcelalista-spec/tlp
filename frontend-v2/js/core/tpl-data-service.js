@@ -201,18 +201,47 @@
     const value = String(identifier || '').trim();
     if (!value) return null;
     const client = await getClient();
-    const fields = 'id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,lat,lng,superficie_m2,precio_publicado,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,atributos_naturales,casa_datos,diagnostico,destacada,oportunidad_tpl,publicada_at,updated_at';
+    const fields = 'id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,direccion_referencia,lat,lng,superficie_m2,precio_publicado,moneda,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,distancia_ruta_principal_km,atributos_naturales,cercanias,casa_datos,diagnostico,destacada,oportunidad_tpl,metadata,publicada_at,updated_at';
+    const publicStates = ['publicada', 'activa', 'disponible'];
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
-    let response = await client.from('tpl_propiedades').select(fields).eq('codigo', value).eq('estado', 'publicada').maybeSingle();
+    let query = client.from('tpl_propiedades').select(fields).in('estado', publicStates);
+    query = isUuid ? query.eq('id', value) : query.eq('codigo', value);
+    let response = await query.maybeSingle();
     if (response.error) throw response.error;
-    if (response.data) return response.data;
 
-    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
-      response = await client.from('tpl_propiedades').select(fields).eq('id', value).eq('estado', 'publicada').maybeSingle();
-      if (response.error) throw response.error;
-      return response.data || null;
+    if (!response.data && !isUuid) {
+      response = await client
+        .from('tpl_propiedades')
+        .select(fields)
+        .in('estado', publicStates)
+        .contains('metadata', { source_legacy_id: value })
+        .maybeSingle();
+      if (response.error && response.error.code !== 'PGRST116') throw response.error;
     }
-    return null;
+
+    const row = response.data || null;
+    if (!row) return null;
+
+    const media = await client
+      .from('tpl_propiedad_imagenes')
+      .select('url,storage_path,tipo,orden,es_portada,alt')
+      .eq('propiedad_id', row.id)
+      .in('tipo', ['foto', 'plano', 'video_thumb'])
+      .order('es_portada', { ascending: false })
+      .order('orden', { ascending: true });
+
+    if (media.error) {
+      console.warn('TPL Data Service: no fue posible cargar medios de la propiedad.', media.error);
+    }
+
+    const metadataImages = Array.isArray(row.metadata?.imagenes) ? row.metadata.imagenes : [];
+    const remoteImages = (media.data || []).map((item) => item.url || item.storage_path).filter(Boolean);
+    return {
+      ...row,
+      imagenes: [...new Set([...remoteImages, ...metadataImages])],
+      imagen: remoteImages[0] || metadataImages[0] || row.metadata?.imagen_principal || ''
+    };
   }
 
   async function prepareCrmPremiumReport(propertyId, contact = {}, send = false) {

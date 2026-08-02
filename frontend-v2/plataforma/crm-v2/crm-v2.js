@@ -582,7 +582,7 @@
               <div class="catalog-facts"><b>${Number(r.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(r.precio_publicado)}</b></div>
               <div class="catalog-actions">
                 <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
-                <a class="primary-link" href="../../parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
+                <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}">Informe Premium</button>
                 <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
               </div>
@@ -666,7 +666,7 @@
     const dialog = document.querySelector('#previewDialog');
     const body = document.querySelector('#previewDialogBody');
     if (!dialog || !body) return showDetail(record);
-    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="../../parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
+    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
     dialog.showModal();
   }
 

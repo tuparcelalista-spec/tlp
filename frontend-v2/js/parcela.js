@@ -59,12 +59,16 @@
       porton: row.porton ?? fallback.porton,
       atributos_naturales: row.atributos_naturales || fallback.atributos_naturales,
       diagnostico: row.diagnostico || fallback.diagnostico,
+      imagenes: Array.isArray(row.imagenes) ? row.imagenes : fallback.imagenes,
+      imagen: row.imagen || (Array.isArray(row.imagenes) ? row.imagenes[0] : '') || fallback.imagen,
+      metadata: row.metadata || fallback.metadata,
       fuenteDatos: 'supabase'
     };
   }
 
   async function loadParcel(identifier){
-    const fallback=catalog().find(p=>String(p.id)===String(identifier)) || {};
+    const wanted=normalize(decodeURIComponent(String(identifier||"")));
+    const fallback=catalog().find(p=>[p.id,p.codigo,p.slug,p.source_legacy_id].some(v=>normalize(v)===wanted)) || {};
     try{
       const remote=await window.TPLDataService?.getPublishedPropertyById?.(identifier);
       if(remote) return mapCanonical(remote,fallback);
@@ -75,7 +79,12 @@
   }
 
   async function init(){
-    const id=params.get("id");
+    const id=params.get("id") || params.get("codigo") || params.get("parcela");
+    if(!id){
+      console.warn("TPL Parcela: la URL no contiene id, codigo ni parcela.");
+      $("not-found").hidden=false;
+      return;
+    }
     const parcel=await loadParcel(id);
     if(!parcel){ $("not-found").hidden=false; return; }
     const context=getContext();
