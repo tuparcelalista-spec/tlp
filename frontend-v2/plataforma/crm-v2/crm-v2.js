@@ -21,7 +21,7 @@
     ['Catálogo', [
       ['parcelas', 'Parcelas'],
       ['parcelas-casas', 'Parcelas + casas'],
-      ['casas', 'Casas']
+      ['casas', 'Casas canónicas']
     ]],
     ['Operación', [
       ['operaciones', 'Operaciones'],
@@ -320,7 +320,7 @@
         ['nombre', 'Dueño / corredor'],
         ['comuna', 'Comuna'],
         ['parcelas', 'Parcelas'],
-        ['casas', 'Casas'],
+        ['casas', 'Casas canónicas'],
         ['ultima_actualizacion', 'Actualización', fmtDate]
       ]
     },
@@ -453,6 +453,25 @@
         <article class="card span6"><h3>Desde proyectos</h3><p class="muted">Crea el informe completo parcela + casa + presupuesto desde una operación activa.</p><button class="primary" data-view="operaciones">Ver proyectos</button></article>
       </div>`;
   }
+  function housesView() {
+    const rows = arr('casas');
+    return `
+      <div class="toolbar"><div><h2>Casas canónicas</h2><p class="muted">Una sola ficha alimenta CRM, Casas, PlaceMarket, cotizador y landing del Partner.</p></div><div><button class="primary" data-new-house>Nueva casa</button><button class="nav-btn" data-action="refresh">Actualizar</button></div></div>
+      <div class="metric-grid">${metric('Modelos', rows.length, 'en Supabase')}${metric('Sin proveedor', rows.filter(x=>/pendiente/i.test(x.proveedor_estado||'')).length, 'requieren identificación')}${metric('Publicadas', rows.filter(x=>x.estado==='activa').length, 'visibles en catálogo')}</div>
+      <div class="table-wrap"><table><thead><tr><th>Casa</th><th>Proveedor</th><th>m²</th><th>Dorm.</th><th>Precio</th><th>Publicación</th><th>Acción</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr data-search-row="${esc(JSON.stringify(r).toLowerCase())}"><td><strong>${esc(r.nombre)}</strong><small style="display:block">${esc(r.codigo||r.source_legacy_id||'')}</small></td><td>${esc(r.nombre_proveedor_pendiente||'Proveedor por confirmar')}<small style="display:block">${esc(r.proveedor_estado||'')}</small></td><td>${esc(r.superficie_m2||'—')}</td><td>${esc(r.dormitorios||'—')}</td><td>${fmtMoney(r.precio_base)}</td><td>${pill(r.estado_publicacion||r.estado)}</td><td><button class="primary small" data-edit-house="${esc(r.id)}">Editar</button></td></tr>`).join('')||'<tr><td colspan="7">Sin casas todavía.</td></tr>'}
+      </tbody></table></div>`;
+  }
+
+  function openHouseDialog(record={}) {
+    const dialog=document.querySelector('#houseDialog'); if(!dialog)return;
+    const set=(id,v)=>{const el=document.querySelector(id);if(el)el.value=v??''};
+    set('#houseId',record.id);set('#houseName',record.nombre);set('#houseCode',record.codigo);set('#houseM2',record.superficie_m2);set('#houseBedrooms',record.dormitorios);set('#houseBathrooms',record.banos);set('#houseFloors',record.pisos||1);set('#houseMaterial',record.material);set('#housePrice',record.precio_base);set('#houseState',record.estado||'pausada');set('#houseProviderState',record.proveedor_estado||'pendiente_identificacion');set('#houseProviderName',record.nombre_proveedor_pendiente);set('#housePartnerId',record.partner_actor_id);set('#houseRelation',record.tipo_relacion||'comercializador');set('#houseDays',record.plazo_estimado_dias);set('#houseWarranty',record.garantia);set('#houseDescription',record.descripcion);set('#houseImages',(Array.isArray(record.imagenes)?record.imagenes:[]).join('\n'));set('#housePlans',(Array.isArray(record.planos)?record.planos:[]).join('\n'));
+    document.querySelector('#houseDialogTitle').textContent=record.id?'Editar casa':'Nueva casa'; dialog.showModal();
+  }
+
+  function lines(id){return String(document.querySelector(id)?.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean)}
+
   function genericView(id) {
     const def = viewDefs[id];
     const rows = arr(def.source);
@@ -515,6 +534,7 @@
     if (view === 'inicio') content.innerHTML = dashboard();
     else if (view === 'revision') content.innerHTML = reviewView();
     else if (view === 'studio') content.innerHTML = studioView();
+    else if (view === 'casas') content.innerHTML = housesView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
 
@@ -622,6 +642,10 @@
       return;
     }
 
+    const newHouse = event.target.closest('[data-new-house]');
+    if (newHouse) { openHouseDialog(); return; }
+    const editHouse = event.target.closest('[data-edit-house]');
+    if (editHouse) { openHouseDialog(detailFor('casas', editHouse.dataset.editHouse)); return; }
     const refresh = event.target.closest('[data-action="refresh"]');
     if (refresh) {
       await loadSnapshot();
@@ -669,6 +693,15 @@
     content.querySelectorAll('[data-search-row]').forEach((row) => {
       row.hidden = q && !row.dataset.searchRow.includes(q);
     });
+  });
+
+  document.querySelector('#saveHouse')?.addEventListener('click', async () => {
+    const button=document.querySelector('#saveHouse'); button.disabled=true; button.textContent='Guardando…';
+    try {
+      const val=id=>document.querySelector(id)?.value?.trim()||'';
+      await window.TPLDataService.saveCrmHouse({id:val('#houseId')||null,nombre:val('#houseName'),codigo:val('#houseCode')||null,superficie_m2:val('#houseM2')||null,dormitorios:val('#houseBedrooms')||null,banos:val('#houseBathrooms')||null,pisos:val('#houseFloors')||null,material:val('#houseMaterial')||null,precio_base:val('#housePrice')||null,estado:val('#houseState'),proveedor_estado:val('#houseProviderState'),nombre_proveedor_pendiente:val('#houseProviderName')||null,partner_actor_id:val('#housePartnerId')||null,tipo_relacion:val('#houseRelation'),plazo_estimado_dias:val('#houseDays')||null,garantia:val('#houseWarranty')||null,descripcion:val('#houseDescription')||null,imagenes:lines('#houseImages'),planos:lines('#housePlans')});
+      document.querySelector('#houseDialog')?.close(); await loadSnapshot(); render('casas');
+    } catch(error){console.error(error);alert(error?.message||'No fue posible guardar la casa.')} finally {button.disabled=false;button.textContent='Guardar y sincronizar';}
   });
 
   async function bootstrap() {

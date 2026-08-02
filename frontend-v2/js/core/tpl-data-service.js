@@ -368,6 +368,15 @@
     return data;
   }
 
+
+  async function saveCrmHouse(payload) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_guardar_casa_v1', { p_payload: payload || {} });
+    if (error) throw error;
+    if (!data?.ok) throw new Error('Supabase no confirmó la casa.');
+    return data;
+  }
+
   async function trackEvent(evento, payload = {}) {
     const client = await getClient();
     const safePayload = {
@@ -408,6 +417,7 @@
     listPublicPlans,
     listMyValuations,
     approvePublication,
+    saveCrmHouse,
     trackEvent,
     emit: localEmit,
     getPendingBackups,
