@@ -54,6 +54,15 @@
       <a href="./plataforma/tpl-business/index.html">TPL Business</a>
     </nav>
   </header>
+  <section class="commune-ribbon" aria-label="Explorar parcelas por comuna">
+    <div class="commune-ribbon__shell">
+      <div class="commune-ribbon__intro">
+        <span>EXPLORA POR ZONA</span>
+        <strong>Comunas disponibles</strong>
+      </div>
+      <div id="commune-ribbon-groups" class="commune-ribbon__groups" aria-live="polite"></div>
+    </div>
+  </section>
   <section class="tpl-emotional-hero tpl-emotional-hero--family" aria-label="Una nueva vida en el campo">
     <img class="tpl-emotional-hero__media" src="./assets/hero-familia-casa-campo-premium.webp" alt="Familia caminando hacia una casa en el campo" width="1536" height="553" fetchpriority="high" decoding="async">
     <div class="tpl-emotional-hero__shade"></div>
@@ -111,51 +120,63 @@
 
 
   <main>
-    <section id="buscador" class="search-hero" aria-labelledby="search-title">
-      <div class="search-copy">
-        <span>EN TU PROYECTO DE CAMPO TE ACOMPAÑAMOS</span>
-        <h1 id="search-title">Encuentra primero el lugar correcto.</h1>
-        <p>Busca por distancia desde tu ubicación o elige directamente una comuna.</p>
+    <section id="buscador" class="discovery-section discovery-section--land" aria-labelledby="search-title">
+      <div class="discovery-section__intro">
+        <span class="discovery-kicker">BUSCAR PARCELA</span>
+        <div class="discovery-step">01</div>
+        <h1 id="search-title">Elige primero dónde quieres estar.</h1>
+        <p>Encuentra una parcela por cercanía real o explora directamente las comunas donde hoy tenemos oportunidades.</p>
+        <div class="discovery-note">
+          <strong>Solo parcelas y campos</strong>
+          <span>Esta búsqueda no suma vivienda. Te ayuda a encontrar el terreno correcto.</span>
+        </div>
       </div>
 
-      <div class="search-panel">
-        <div class="search-methods" role="group" aria-label="Método de búsqueda">
+      <div class="search-panel search-panel--premium">
+        <div class="search-methods" role="group" aria-label="Método de búsqueda de parcelas">
           <button id="nearby-method" class="search-method is-active" type="button" data-method="nearby">
-            <strong>Cercanas a mí</strong>
-            <small>Ordenadas por distancia real</small>
+            <span class="search-method__icon" aria-hidden="true">◎</span>
+            <strong>Cerca de tu ubicación</strong>
+            <small>Ordena las parcelas por distancia real.</small>
           </button>
           <button id="commune-method" class="search-method" type="button" data-method="commune">
-            <strong>Buscar por comuna</strong>
-            <small>Elige una zona específica</small>
+            <span class="search-method__icon" aria-hidden="true">⌖</span>
+            <strong>En una comuna</strong>
+            <small>Ve directamente a una zona específica.</small>
           </button>
         </div>
 
         <div id="nearby-panel" class="method-panel">
-          <p>Usaremos tu ubicación solamente para calcular la distancia a las parcelas.</p>
-          <button id="locate-button" class="primary-button" type="button">Usar mi ubicación</button>
+          <p>Tu ubicación se utiliza únicamente para ordenar resultados por distancia. No se publica ni se guarda.</p>
+          <button id="locate-button" class="primary-button" type="button">Mostrar parcelas cercanas</button>
           <small id="location-status" class="status-text" aria-live="polite"></small>
         </div>
 
         <div id="commune-panel" class="method-panel" hidden>
-          <label for="commune-select">Comuna</label>
+          <label for="commune-select">Selecciona la comuna</label>
           <select id="commune-select">
             <option value="">Selecciona una comuna</option>
           </select>
-          <button id="commune-search-button" class="primary-button" type="button">Ver parcelas de esta comuna</button>
+          <button id="commune-search-button" class="primary-button" type="button">Ver parcelas disponibles</button>
         </div>
       </div>
     </section>
 
 
-    <section id="proyecto-presupuesto" class="combo-budget-section" aria-labelledby="combo-budget-title">
+    <section id="proyecto-presupuesto" class="combo-budget-section combo-budget-section--premium" aria-labelledby="combo-budget-title">
       <div class="combo-budget-copy">
-        <span>PARCELA + CASA PREFABRICADA</span>
-        <h2 id="combo-budget-title">¿Cuánto quieres invertir en tu proyecto?</h2>
-        <p>Combinamos parcelas y casas cuyo valor total se acerque a tu presupuesto. Cada búsqueda mezcla alternativas distintas para mostrarte nuevas posibilidades.</p>
+        <span class="discovery-kicker">PARCELA + VIVIENDA</span>
+        <div class="discovery-step">02</div>
+        <h2 id="combo-budget-title">Imagina el proyecto completo.</h2>
+        <p>Indica tu presupuesto total y combinaremos terrenos con viviendas prefabricadas para mostrarte proyectos cercanos a lo que quieres invertir.</p>
+        <div class="discovery-note discovery-note--home">
+          <strong>Terreno y vivienda en una sola búsqueda</strong>
+          <span>Los valores son referenciales y se ajustan según modelo, instalación y ubicación.</span>
+        </div>
       </div>
 
-      <form id="combo-budget-form" class="combo-budget-form">
-        <label for="combo-budget-input">Presupuesto total</label>
+      <form id="combo-budget-form" class="combo-budget-form combo-budget-form--premium">
+        <label for="combo-budget-input">Presupuesto total para parcela + vivienda</label>
         <div class="combo-budget-input-wrap">
           <b>$</b>
           <input id="combo-budget-input" type="text" inputmode="numeric" autocomplete="off" placeholder="50.000.000" aria-describedby="combo-budget-help">
@@ -166,8 +187,8 @@
           <button type="button" data-combo-budget="70000000">$70 millones</button>
           <button type="button" data-combo-budget="100000000">$100 millones</button>
         </div>
-        <button class="primary-button combo-search-button" type="submit">Buscar parcela + casa</button>
-        <small id="combo-budget-help">Valores referenciales según los precios disponibles en parcelas.js y casas.js.</small>
+        <button class="primary-button combo-search-button" type="submit">Ver proyectos parcela + vivienda</button>
+        <small id="combo-budget-help">Comparamos el valor del terreno y de la vivienda. La instalación y los extras se confirman al cotizar.</small>
       </form>
 
       <div id="combo-results-wrap" class="combo-results-wrap" hidden>

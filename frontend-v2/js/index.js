@@ -65,9 +65,32 @@
     return distanceKm(state.coords.lat, state.coords.lng, lat, lng);
   }
 
+  const communeRegionMap = {
+    "Yumbel":"Biobío","Nacimiento":"Biobío","Negrete":"Biobío","Florida":"Biobío","Pemuco":"Ñuble","Quillón":"Ñuble","Ñipas":"Ñuble","Coelemu":"Ñuble","Cobquecura":"Ñuble","Chillán":"Ñuble","Bulnes":"Ñuble","San Nicolás":"Ñuble","Caburgua":"La Araucanía","Pucón":"La Araucanía","Villarrica":"La Araucanía"
+  };
+
+  function regionOf(p) {
+    const explicit = String(p.region || p.region_nombre || "").trim();
+    if (explicit) return explicit;
+    return communeRegionMap[String(p.comuna || "").trim()] || "Otras zonas";
+  }
+
   function populateCommunes() {
-    const communes = [...new Set(catalog().map((p) => String(p.comuna || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const entries = catalog().map((p) => ({ commune: String(p.comuna || "").trim(), region: regionOf(p) })).filter((x) => x.commune);
+    const communes = [...new Set(entries.map((x) => x.commune))].sort((a, b) => a.localeCompare(b, "es"));
     $("commune-select").insertAdjacentHTML("beforeend", communes.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join(""));
+
+    const regionOrder = ["Biobío","Ñuble","La Araucanía","Otras zonas"];
+    const grouped = new Map();
+    entries.forEach(({ commune, region }) => {
+      if (!grouped.has(region)) grouped.set(region, new Set());
+      grouped.get(region).add(commune);
+    });
+    const ribbon = $("commune-ribbon-groups");
+    if (ribbon) ribbon.innerHTML = [...grouped.entries()].sort((a,b) => {
+      const ai = regionOrder.indexOf(a[0]), bi = regionOrder.indexOf(b[0]);
+      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a[0].localeCompare(b[0], "es");
+    }).map(([region, values]) => `<div class="commune-region"><strong>${escapeHtml(region)}</strong>${[...values].sort((a,b)=>a.localeCompare(b,"es")).map((c)=>`<button type="button" class="commune-chip" data-commune-shortcut="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}</div>`).join("");
   }
 
   function escapeHtml(value) {
@@ -199,6 +222,8 @@
     else if (state.method === "commune" && state.active) $("search-context").textContent = `Resultados en ${state.commune}`;
     else $("search-context").textContent = "Oportunidades disponibles · catálogo general";
     if (state.mapReady && !$("map-panel").hidden) paintMap(list);
+    const inlineStatus = $("scroll-anchor")?.querySelector(".priority-inline-status");
+    if (inlineStatus && state.coords && state.priority === "distance") inlineStatus.textContent = "Parcelas ordenadas por distancia desde tu ubicación.";
     if (scroll) scrollToResults();
   }
 
@@ -210,7 +235,7 @@
     });
   }
 
-  function locate() {
+  function locate({ scroll = true } = {}) {
     if (!navigator.geolocation) {
       $("location-status").textContent = "Tu navegador no permite obtener ubicación.";
       return;
@@ -225,7 +250,7 @@
       syncPriorityButtons();
       $("location-status").textContent = "Ubicación lista. Mostrando las parcelas más cercanas.";
       $("locate-button").disabled = false;
-      render({ scroll: true });
+      render({ scroll });
     }, (error) => {
       const messages = {1:"No autorizaste la ubicación.",2:"No pudimos obtener tu ubicación.",3:"La búsqueda de ubicación tardó demasiado."};
       $("location-status").textContent = messages[error.code] || "No fue posible usar tu ubicación.";
@@ -476,18 +501,46 @@ function comboCandidates(budget) {
     document.querySelectorAll("[data-method]").forEach((button) => button.addEventListener("click", () => setMethod(button.dataset.method)));
     document.querySelectorAll("[data-priority]").forEach((button) => button.addEventListener("click", () => {
       if (button.dataset.priority === "distance" && !state.coords) {
-        setMethod("nearby");
-        $("location-status").textContent = "Usa tu ubicación para ordenar por distancia real.";
-        $("locate-button").focus();
+        state.method = "nearby";
+        state.priority = "distance";
+        syncPriorityButtons();
+        const toolbar = $("scroll-anchor");
+        let status = toolbar.querySelector(".priority-inline-status");
+        if (!status) {
+          status = document.createElement("small");
+          status.className = "priority-inline-status";
+          toolbar.querySelector("div").appendChild(status);
+        }
+        status.textContent = "Calculando tu ubicación para ordenar esta misma grilla…";
+        locate({ scroll: false });
         return;
       }
       state.priority = button.dataset.priority;
       state.visible = 20;
       syncPriorityButtons();
-      render({ scroll: state.active });
+      render({ scroll: false });
     }));
 
-    $("locate-button").addEventListener("click", locate);
+    $("locate-button").addEventListener("click", () => locate({ scroll: true }));
+    document.addEventListener("click", (event) => {
+      const shortcut = event.target.closest("[data-commune-shortcut]");
+      if (!shortcut) return;
+      const commune = shortcut.dataset.communeShortcut;
+      state.method = "commune";
+      state.commune = commune;
+      state.active = true;
+      state.visible = 20;
+      state.priority = "economic";
+      $("commune-select").value = commune;
+      document.querySelectorAll("[data-commune-shortcut]").forEach((item) => item.classList.toggle("is-active", item === shortcut));
+      setMethod("commune");
+      state.commune = commune;
+      state.active = true;
+      state.visible = 20;
+      state.priority = "economic";
+      syncPriorityButtons();
+      render({ scroll: true });
+    });
     $("commune-search-button").addEventListener("click", searchCommune);
     $("commune-select").addEventListener("change", () => { if ($("commune-select").value) searchCommune(); });
     $("load-more").addEventListener("click", () => { state.visible += 12; render(); });
