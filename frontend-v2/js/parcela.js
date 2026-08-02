@@ -11,7 +11,7 @@
   const absoluteAsset = (path) => {
     const value = String(path || "");
     if (/^(https?:)?\/\//i.test(value) || value.startsWith("data:")) return value;
-    return `../${value.replace(/^\.?\//, "")}`;
+    try{return new URL(value.replace(/^\.\//, ""), document.baseURI).href}catch{return value}
   };
   function inferSoil(p){
     const t=normalize([p.descripcion,p.detalle,p.nombre].join(" "));
@@ -30,13 +30,58 @@
       distance: params.get("distancia") || saved.distance || null
     };
   }
-  const id=params.get("id");
-  const parcel=catalog().find(p=>String(p.id)===String(id));
-  if(!parcel){ $("not-found").hidden=false; return; }
-  const context=getContext();
+  function mapCanonical(row, fallback={}){
+    if(!row) return fallback;
+    return {
+      ...fallback,
+      id: row.codigo || row.id || fallback.id,
+      canonicalId: row.id || null,
+      codigo: row.codigo || fallback.codigo || '',
+      nombre: row.titulo || fallback.nombre,
+      descripcion: row.descripcion || fallback.descripcion,
+      region: row.region || fallback.region,
+      comuna: row.comuna || fallback.comuna,
+      sector: row.sector || fallback.sector,
+      lat: row.lat ?? fallback.lat,
+      lng: row.lng ?? fallback.lng,
+      tamano: row.superficie_m2 ?? fallback.tamano,
+      superficie: row.superficie_m2 ?? fallback.superficie,
+      precio: row.precio_publicado ? formatMoney(row.precio_publicado) : fallback.precio,
+      precioNumero: row.precio_publicado || fallback.precioNumero,
+      rol: row.rol_situacion || fallback.rol,
+      electricidad: row.electricidad ?? fallback.electricidad,
+      luz: row.electricidad ?? fallback.luz,
+      agua: row.agua ?? fallback.agua,
+      acceso: row.acceso || fallback.acceso,
+      topografia: row.topografia || fallback.topografia,
+      suelo: row.suelo || fallback.suelo,
+      cierre_perimetral: row.cierre_perimetral ?? fallback.cierre_perimetral,
+      porton: row.porton ?? fallback.porton,
+      atributos_naturales: row.atributos_naturales || fallback.atributos_naturales,
+      diagnostico: row.diagnostico || fallback.diagnostico,
+      fuenteDatos: 'supabase'
+    };
+  }
+
+  async function loadParcel(identifier){
+    const fallback=catalog().find(p=>String(p.id)===String(identifier)) || {};
+    try{
+      const remote=await window.TPLDataService?.getPublishedPropertyById?.(identifier);
+      if(remote) return mapCanonical(remote,fallback);
+    }catch(error){
+      console.warn('TPL Parcela: se utilizará el respaldo local.',error);
+    }
+    return Object.keys(fallback).length ? {...fallback,fuenteDatos:'respaldo-local'} : null;
+  }
+
+  async function init(){
+    const id=params.get("id");
+    const parcel=await loadParcel(id);
+    if(!parcel){ $("not-found").hidden=false; return; }
+    const context=getContext();
   const images=(Array.isArray(parcel.imagenes)&&parcel.imagenes.length?parcel.imagenes:[parcel.imagen]).filter(Boolean).map(absoluteAsset);
   let imageIndex=0;
-  const size=sizeOf(parcel), price=priceNumber(parcel.precio), type=size>=10000?"Campo":"Parcela";
+  const size=sizeOf(parcel), price=Number(parcel.precioNumero)||priceNumber(parcel.precio), type=size>=10000?"Campo":"Parcela";
   function contextLabel(){
     const labels={distance:"más cercanas",payment:"facilidad de pago",nature:"entorno natural",services:"servicios cercanos",economic:"precio más económico",large:"1 hectárea o más",opportunity:"Oportunidad TPL"};
     if(context.method==="nearby") return `Encontrada entre las ${labels[context.priority]||"parcelas cercanas"}${context.distance?` · A ${context.distance} km de tu ubicación`:""}`;
@@ -137,25 +182,46 @@
     if(payload.tipo==='mejoras'&&!payload.mejoras.length){status.textContent='Selecciona al menos una mejora.';status.className='proposal-status is-error';return}
     button.disabled=true;status.textContent='Enviando tu solicitud…';status.className='proposal-status';
     try{
-      let remote=false;
-      try{const r=await fetch('/api/propuesta-propietario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(r.ok)remote=true;else if(r.status!==404)throw new Error('No fue posible registrar la propuesta')}catch(error){if(!String(error.message||'').includes('fetch')&&!String(error.message||'').includes('404'))throw error}
-      const saved=JSON.parse(localStorage.getItem('tpl_owner_proposals')||'[]');saved.unshift(payload);localStorage.setItem('tpl_owner_proposals',JSON.stringify(saved.slice(0,30)));
-      status.textContent=remote?'Solicitud enviada. Te avisaremos por correo cuando el propietario responda.':'Solicitud guardada en este dispositivo. Falta conectar el correo/CRM para enviarla automáticamente al propietario.';
+      const result=await window.TPLDataService.createPublicOpportunity({
+        tipo: payload.tipo==='oferta'?'compra':'consulta',
+        origen: 'parcela_html',
+        prioridad: payload.tipo==='oferta'?'alta':'media',
+        nombre_contacto: payload.cliente.nombre,
+        email: payload.cliente.email,
+        telefono: payload.cliente.telefono,
+        mensaje: payload.mensaje,
+        presupuesto: payload.montoOferta || null,
+        metadata: {
+          parcela_id: parcel.canonicalId || null,
+          parcela_codigo: parcel.codigo || parcel.id || '',
+          parcela_nombre: parcel.nombre || type,
+          comuna: parcel.comuna || '',
+          precio_publicado: price,
+          mejoras: payload.mejoras,
+          condicion: payload.condicion,
+          contexto: {origen:payload.origen,prioridad:payload.prioridad}
+        }
+      });
+      localStorage.removeItem('tpl_owner_proposals');
+      status.textContent=`Solicitud ${result.codigo||''} enviada. TPL la registró y dará seguimiento.`.trim();
       status.className='proposal-status is-success';
-      if(remote)event.target.reset();
-    }catch(error){status.textContent=error.message||'No fue posible enviar la solicitud.';status.className='proposal-status is-error'}finally{button.disabled=false}
+      event.target.reset();
+    }catch(error){try{const saved=JSON.parse(localStorage.getItem('tpl_owner_proposals')||'[]');saved.unshift(payload);localStorage.setItem('tpl_owner_proposals',JSON.stringify(saved.slice(0,30)))}catch{} status.textContent=(error.message||'No fue posible enviar la solicitud.')+' Dejamos un respaldo local para reintentar.';status.className='proposal-status is-error'}finally{button.disabled=false}
   }
   function setImage(){
     $("main-image").src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";
     $("main-image").alt=`${parcel.nombre||type} · fotografía ${imageIndex+1}`;
     $("gallery-count").textContent=images.length?`${imageIndex+1} / ${images.length}`:"";
     $("gallery-prev").hidden=images.length<2; $("gallery-next").hidden=images.length<2;
+    const hero=$("parcel-emotional-hero");
+    if(hero && images[imageIndex]){hero.style.setProperty("--tpl-hero-photo",`url("${images[imageIndex].replace(/"/g,"%22")}")`);hero.classList.add("has-parcel-photo")}
   }
   function persistParcelForProject(){
     try{
       localStorage.setItem("selectedParcelaId",String(parcel.id||""));
       localStorage.setItem("selectedParcelaData",JSON.stringify(parcel));
       localStorage.setItem("tpl_project_origin","parcela.html");
+      localStorage.setItem("tpl_project_context",JSON.stringify({version:1,parcela_id:parcel.canonicalId||null,parcela_codigo:parcel.codigo||parcel.id||'',nombre:parcel.nombre||type,comuna:parcel.comuna||'',superficie_m2:size,precio_publicado:price,updated_at:new Date().toISOString()}));
     }catch(error){console.warn("TPL: no fue posible guardar respaldo local de la parcela.",error)}
   }
   function cotizadorUrl(kind){
@@ -167,7 +233,7 @@
   }
   function render(){
     document.title=`${parcel.nombre||type} | Tu Parcela Lista`;
-    $("search-memory").textContent=contextLabel();
+    $("search-memory").textContent=`${contextLabel()}${parcel.fuenteDatos==='respaldo-local'?' · Datos de respaldo':''}`;
     $("parcel-name").textContent=parcel.nombre||`${type} en ${parcel.comuna||"Chile"}`;
     $("parcel-price").textContent=parcel.precio||formatMoney(price);
     $("fact-distance").textContent=context.distance?`${context.distance} km desde tu ubicación`:parcel.distanciaConcepcion||"Por calcular";
@@ -196,7 +262,7 @@
     const lat=Number(parcel.lat||parcel.latitude||parcel.latitud),lng=Number(parcel.lng||parcel.lon||parcel.longitude||parcel.longitud);
     if(!lat||!lng){$("map").innerHTML="<p>La ubicación exacta todavía no está disponible.</p>";return}
     $("map").innerHTML="";
-    try{await loadLeaflet();const map=L.map("map",{scrollWheelZoom:false}).setView([lat,lng],13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);L.marker([lat,lng]).addTo(map).bindPopup(parcel.nombre||type).openPopup()}catch{$("map").innerHTML="<p>No fue posible cargar el mapa.</p>"}
+    try{await loadLeaflet();const map=L.map("map",{scrollWheelZoom:false}).setView([lat,lng],13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(map);L.circle([lat,lng],{radius:650,color:"#0d5b86",fillColor:"#0d5b86",fillOpacity:.12,weight:2}).addTo(map).bindPopup("Ubicación aproximada · "+(parcel.comuna||type)).openPopup()}catch{$("map").innerHTML="<p>No fue posible cargar el mapa.</p>"}
   }
   $("gallery-prev").addEventListener("click",()=>{imageIndex=(imageIndex-1+images.length)%images.length;setImage()});
   $("gallery-next").addEventListener("click",()=>{imageIndex=(imageIndex+1)%images.length;setImage()});
@@ -210,4 +276,7 @@
   $("load-map").addEventListener("click",showMap);
   $("menu-toggle").addEventListener("click",()=>{const m=$("mobile-menu"),open=m.hidden;m.hidden=!open;$("menu-toggle").setAttribute("aria-expanded",String(open))});
   render();
+  }
+
+  init().catch(error=>{console.error('TPL Parcela:',error);$("parcel-page").hidden=true;$("not-found").hidden=false;});
 })();

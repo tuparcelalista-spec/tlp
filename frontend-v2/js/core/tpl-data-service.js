@@ -196,6 +196,39 @@
     return data || [];
   }
 
+
+  async function getPublishedPropertyById(identifier) {
+    const value = String(identifier || '').trim();
+    if (!value) return null;
+    const client = await getClient();
+    const fields = 'id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,lat,lng,superficie_m2,precio_publicado,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,atributos_naturales,casa_datos,diagnostico,destacada,oportunidad_tpl,publicada_at,updated_at';
+
+    let response = await client.from('tpl_propiedades').select(fields).eq('codigo', value).eq('estado', 'publicada').maybeSingle();
+    if (response.error) throw response.error;
+    if (response.data) return response.data;
+
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) {
+      response = await client.from('tpl_propiedades').select(fields).eq('id', value).eq('estado', 'publicada').maybeSingle();
+      if (response.error) throw response.error;
+      return response.data || null;
+    }
+    return null;
+  }
+
+  async function createPublicOpportunity(payload) {
+    if (!payload?.nombre_contacto || !payload?.email) {
+      throw new Error('Nombre y correo son obligatorios.');
+    }
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_registrar_oportunidad_publica_v1', {
+      p_payload: payload
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible registrar la solicitud.');
+    localEmit('oportunidad.publica_creada', data);
+    return data;
+  }
+
   async function getSession() {
     const client = await getClient();
     const { data, error } = await client.auth.getSession();
@@ -405,6 +438,8 @@
     publishProperty,
     activateFreeOwner,
     listPublishedProperties,
+    getPublishedPropertyById,
+    createPublicOpportunity,
     getCrmSnapshot,
     getUfConfig,
     updateUfConfig,

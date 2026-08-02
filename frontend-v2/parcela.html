@@ -7,7 +7,7 @@
   <meta name="description" content="Conoce la ubicación, superficie, características y diagnóstico TPL de esta parcela antes de elegir tu vivienda.">
   <meta name="theme-color" content="#003f7a">
 <link rel="stylesheet" href="css/tpl-identity-seo.css">
-  <link rel="stylesheet" href="./css/parcela.css?v=20260730-canonical-1">
+  <link rel="stylesheet" href="./css/parcela.css?v=20260802-ecosistema-1">
   <script src="js/tpl-seo.js"></script>
 </head>
 <body>
@@ -17,8 +17,8 @@
     </a>
     <nav class="tpl-nav" aria-label="Navegación principal">
       <a href="./index.html">Buscar parcelas</a>
-      <a href="../como-comprar.html">Cómo comprar</a>
-      <a href="./red-partner/index.html">Red Partner</a>
+      <a href="./index.html#como-comprar">Cómo comprar</a>
+      <a href="./red-partner-v2/index.html">Red Partner</a>
       <a class="tpl-publish" href="./plataforma/publicar/index.html">Publicar</a>
     </nav>
     <div class="tpl-mobile-actions">
@@ -28,15 +28,16 @@
     </div>
     <nav id="mobile-menu" class="mobile-menu" hidden>
       <a href="./index.html">Buscar parcelas</a>
-      <a href="../como-comprar.html">Cómo comprar</a>
-      <a href="./red-partner/index.html">Red Partner</a>
-      <a href="../plataforma/tpl-business/index.html">TPL Business</a>
+      <a href="./index.html#como-comprar">Cómo comprar</a>
+      <a href="./red-partner-v2/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business/index.html">TPL Business</a>
     </nav>
   </header>
   <section class="tpl-emotional-hero" id="parcel-emotional-hero" aria-label="Puede ser mucho más que una parcela">
     <div class="tpl-emotional-hero__content">
-      <span class="tpl-emotional-hero__eyebrow">CONOCE ANTES DE DECIDIR</span>
-      <h2>Puede ser mucho más que una parcela</h2>
+      <span class="tpl-emotional-hero__eyebrow">FICHA TPL · INFORMACIÓN PARA DECIDIR</span>
+      <h2>Conoce el terreno. Imagina el proyecto.</h2>
+      <p>Ubicación, atributos, valor y próximos pasos en una sola vista.</p>
     </div>
   </section>
   <div class="tpl-positive-strip">Menos visitas por curiosidad. <strong>Más decisiones bien informadas.</strong></div>
@@ -223,7 +224,7 @@
 
     <section id="contact-section" class="contact-section">
       <div><span>ASESORÍA HUMANA</span><h2>¿Quieres revisar esta parcela antes de decidir?</h2><p>Podemos ayudarte a confirmar antecedentes, coordinar una visita y preparar el siguiente paso.</p></div>
-      <a id="contact-link" href="https://wa.me/56900000000" target="_blank" rel="noopener">Hablar con un asesor</a>
+      <a id="contact-link" href="https://wa.me/56964659162" target="_blank" rel="noopener">Hablar con un asesor</a>
     </section>
   </main>
 
@@ -239,81 +240,33 @@
   </footer>
 
   <script src="./parcelas.js" defer></script>
+  <script src="./js/core/tpl-data-service.js" defer></script>
   <script src="./plataforma/publicar/tpl-land-engine.js?v=20260731-tpl-v2" defer></script>
   <script src="./js/tpl-market-intelligence.js?v=20260731-tpl-v2" defer></script>
-  <script src="./js/parcela.js?v=20260730-market-1" defer></script>
+  <script src="./js/parcela.js?v=20260802-ecosistema-1" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Parcelas y campos | Tu Parcela Lista",description:"Conoce cada parcela con informaci\u00f3n clara de ubicaci\u00f3n, superficie, valor, entorno y posibilidades para tomar una decisi\u00f3n mejor informada."}));</script>
 
 <script>
 (function(){
-  const hero = document.getElementById('parcel-emotional-hero');
-  const mainImage = document.getElementById('main-image');
-  const description = document.getElementById('parcel-description');
-  const toggle = document.getElementById('parcel-description-toggle');
-
-  function syncHeroPhoto(){
-    if(!hero || !mainImage) return;
-    const src = mainImage.currentSrc || mainImage.src || '';
-    if(!src || src.includes('logo-tu-parcela-lista')) return;
-    const safe = src.replace(/"/g, '%22');
-    hero.style.setProperty('--tpl-hero-photo', `url("${safe}")`);
-    hero.classList.add('has-parcel-photo');
-  }
-
+  const description=document.getElementById('parcel-description');
+  const toggle=document.getElementById('parcel-description-toggle');
+  function escapeHtml(value){const d=document.createElement('div');d.textContent=value;return d.innerHTML}
   function splitDescription(text){
-    const clean = String(text || '').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
-    if(!clean) return [];
-    const explicit = clean.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
-    if(explicit.length > 1) return explicit;
-    const lines = clean.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-    if(lines.length > 1) return lines;
-    const sentences = clean.match(/[^.!?]+[.!?]+(?:[”"']+)?|[^.!?]+$/g) || [clean];
-    const paragraphs=[];
-    for(let i=0;i<sentences.length;i+=2){
-      paragraphs.push(sentences.slice(i,i+2).join(' ').trim());
-    }
+    const clean=String(text||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
+    if(!clean)return [];
+    const explicit=clean.split(/\n\s*\n+/).map(x=>x.trim()).filter(Boolean);
+    if(explicit.length>1)return explicit;
+    const sentences=clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[clean];
+    const paragraphs=[];for(let i=0;i<sentences.length;i+=2)paragraphs.push(sentences.slice(i,i+2).join(' ').trim());
     return paragraphs.filter(Boolean);
   }
-
   function formatDescription(){
-    if(!description) return;
-    const raw = (description.dataset.rawDescription || description.textContent || '').trim();
-    if(!raw) return;
-    if(description.dataset.formattedRaw === raw) return;
-    const paragraphs = splitDescription(raw);
-    description.dataset.rawDescription = raw;
-    description.dataset.formattedRaw = raw;
-    description.innerHTML = paragraphs.map(p=>`<p>${p.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`).join('');
-    requestAnimationFrame(()=>{
-      const needsToggle = description.scrollHeight > description.clientHeight + 12 || raw.length > 430;
-      if(toggle) toggle.hidden = !needsToggle;
-    });
+    if(!description)return;const raw=(description.dataset.rawDescription||description.textContent||'').trim();if(!raw||description.dataset.formattedRaw===raw)return;
+    description.dataset.rawDescription=raw;description.dataset.formattedRaw=raw;description.innerHTML=splitDescription(raw).map(p=>`<p>${escapeHtml(p)}</p>`).join('');
+    requestAnimationFrame(()=>{if(toggle)toggle.hidden=!(description.scrollHeight>description.clientHeight+12||raw.length>430)});
   }
-
-  if(mainImage){
-    mainImage.addEventListener('load', syncHeroPhoto);
-    new MutationObserver(syncHeroPhoto).observe(mainImage,{attributes:true,attributeFilter:['src','srcset']});
-    setTimeout(syncHeroPhoto,250);
-    setTimeout(syncHeroPhoto,900);
-  }
-
-  if(description){
-    const observer = new MutationObserver(()=>{
-      if(description.querySelector('p')) return;
-      description.dataset.rawDescription = description.textContent.trim();
-      formatDescription();
-    });
-    observer.observe(description,{childList:true,subtree:true,characterData:true});
-    setTimeout(()=>{description.dataset.rawDescription=description.textContent.trim();formatDescription()},350);
-    setTimeout(()=>{description.dataset.rawDescription=description.textContent.trim();formatDescription()},1000);
-  }
-
-  toggle?.addEventListener('click',()=>{
-    const expanded = description.classList.toggle('is-expanded');
-    description.classList.toggle('is-collapsed',!expanded);
-    toggle.textContent = expanded ? 'Leer menos' : 'Leer más';
-    toggle.setAttribute('aria-expanded', String(expanded));
-  });
+  if(description){new MutationObserver(()=>{if(!description.querySelector('p')){description.dataset.rawDescription=description.textContent.trim();formatDescription()}}).observe(description,{childList:true,subtree:true,characterData:true});setTimeout(formatDescription,500)}
+  toggle?.addEventListener('click',()=>{const expanded=description.classList.toggle('is-expanded');description.classList.toggle('is-collapsed',!expanded);toggle.textContent=expanded?'Leer menos':'Leer más';toggle.setAttribute('aria-expanded',String(expanded))});
 })();
 </script>
 
