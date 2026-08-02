@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s);
 const money=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Number(n||0));
 const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const works={quincho_abierto:'Quincho abierto (m²)',quincho_cerrado:'Quincho cerrado (m²)',terraza_sin_techo:'Terraza sin techo (m²)',terraza_techada:'Terraza techada (m²)',bodega_madera:'Bodega madera (m²)',bodega_solida:'Bodega sólida (m²)',galpon:'Galpón (m²)',cobertizo:'Cobertizo (m²)',estacionamiento_techado:'Estacionamiento techado (m²)',piscina_fibra:'Piscina fibra (m²)',piscina_hormigon:'Piscina hormigón (m²)',tinaja_simple:'Tinaja simple (un.)',tinaja_equipada:'Tinaja equipada (un.)',porton_automatico:'Portón automático (un.)'};
-let mode='rapida',lastResult=null,lastInput=null,catalog=null,tasadorContext=null;
+let mode='rapida',lastResult=null,lastInput=null,catalog=null,tasadorContext=null,locationMap=null,locationMarker=null;
 const withTimeout=(promise,ms,fallback)=>Promise.race([Promise.resolve(promise),new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))]);
 
 function buildWorks(){
@@ -28,8 +28,46 @@ function fillCommunes(regionName){
 function setMode(next){
  mode=next;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('is-active',b.dataset.mode===next));
  $('#preciseFields').hidden=next!=='precisa';document.body.dataset.valuationMode=next;
+ if(next==='precisa')setTimeout(()=>{initLocationMap();locationMap?.invalidateSize()},80);
 }
 function parseMoney(v){return Number(String(v||'').replace(/[^0-9]/g,''))||0}
+function validCoordinate(lat,lng){return Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&Number(lat)>=-90&&Number(lat)<=90&&Number(lng)>=-180&&Number(lng)<=180}
+function setLocation(lat,lng,source='manual'){
+ if(!validCoordinate(lat,lng))return false;
+ const a=Number(lat),o=Number(lng);$('#lat').value=a.toFixed(6);$('#lng').value=o.toFixed(6);
+ initLocationMap();if(locationMap){locationMap.setView([a,o],Math.max(locationMap.getZoom(),15));if(!locationMarker)locationMarker=L.marker([a,o],{draggable:true}).addTo(locationMap);else locationMarker.setLatLng([a,o]);}
+ updateLocationStatus(a,o,source);return true;
+}
+function updateLocationStatus(lat,lng,source='manual'){
+ const box=$('#locationStatus'),link=$('#openGoogleMaps');if(!box)return;
+ const labels={mapa:'Marcada en el mapa',google:'Importada desde Google Maps',gps:'Detectada desde tu dispositivo',manual:'Coordenadas ingresadas'};
+ box.classList.add('is-ready');box.innerHTML=`<span class="location-dot"></span><div><strong>${labels[source]||labels.manual}</strong><small>${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)} · este punto se usará en el análisis territorial.</small></div>`;
+ if(link){link.hidden=false;link.href=`https://www.google.com/maps?q=${encodeURIComponent(`${lat},${lng}`)}`;}
+}
+function initLocationMap(){
+ const el=$('#tasadorMap');if(!el||locationMap||!window.L)return;
+ locationMap=L.map(el,{scrollWheelZoom:false}).setView([-36.82,-73.05],7);
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(locationMap);
+ locationMap.on('click',e=>setLocation(e.latlng.lat,e.latlng.lng,'mapa'));
+ const lat=Number($('#lat')?.value),lng=Number($('#lng')?.value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual');
+}
+function parseGoogleMapsCoordinates(value){
+ const raw=String(value||'').trim();if(!raw)return null;
+ const patterns=[/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/,/q=(-?\d+(?:\.\d+)?)(?:%2C|,)(-?\d+(?:\.\d+)?)/i,/query=(-?\d+(?:\.\d+)?)(?:%2C|,)(-?\d+(?:\.\d+)?)/i,/place\/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/i];
+ for(const p of patterns){const m=raw.match(p);if(m&&validCoordinate(m[1],m[2]))return {lat:Number(m[1]),lng:Number(m[2])};}
+ const plain=raw.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,; ]\s*(-?\d+(?:\.\d+)?)\s*$/);return plain&&validCoordinate(plain[1],plain[2])?{lat:Number(plain[1]),lng:Number(plain[2])}:null;
+}
+function applyGoogleMapsLink(){
+ const input=$('#googleMapsLink'),coords=parseGoogleMapsCoordinates(input?.value);
+ if(coords){setLocation(coords.lat,coords.lng,'google');return;}
+ const box=$('#locationStatus');if(box){box.classList.remove('is-ready');box.innerHTML='<span class="location-dot"></span><div><strong>No pudimos leer ese enlace</strong><small>Abre el lugar en Google Maps y copia la URL completa que muestra las coordenadas.</small></div>';}
+}
+function setLocationMethod(method){
+ document.querySelectorAll('[data-location-method]').forEach(b=>b.classList.toggle('is-active',b.dataset.locationMethod===method));
+ const mapPanel=$('#mapLocationPanel'),googlePanel=$('#googleLocationPanel');if(mapPanel)mapPanel.hidden=method!=='mapa';if(googlePanel)googlePanel.hidden=method!=='google';
+ if(method==='mapa')setTimeout(()=>{initLocationMap();locationMap?.invalidateSize()},50);
+}
+
 function inputs(){
  const obras={};document.querySelectorAll('[data-work]').forEach(el=>{const n=Number(el.value||0);if(n>0)obras[el.dataset.work]=n});
  const withHouse=$('#incluyeVivienda').checked;const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
@@ -148,12 +186,13 @@ async function openPremium(){
 function useLocation(){
  if(!navigator.geolocation){alert('Tu navegador no permite geolocalización.');return}
  const b=$('#useMyLocation');b.disabled=true;b.textContent='Obteniendo ubicación…';
- navigator.geolocation.getCurrentPosition(p=>{$('#lat').value=p.coords.latitude.toFixed(6);$('#lng').value=p.coords.longitude.toFixed(6);b.disabled=false;b.textContent='Ubicación cargada'},()=>{b.disabled=false;b.textContent='Usar mi ubicación actual';alert('No pudimos obtener tu ubicación.')},{enableHighAccuracy:true,timeout:10000});
+ navigator.geolocation.getCurrentPosition(p=>{setLocation(p.coords.latitude,p.coords.longitude,'gps');b.disabled=false;b.innerHTML='<span>Ubicación lista</span><small>Punto cargado correctamente</small>'},()=>{b.disabled=false;b.innerHTML='<span>Mi ubicación</span><small>Usa el GPS del dispositivo</small>';alert('No pudimos obtener tu ubicación.')},{enableHighAccuracy:true,timeout:10000});
 }
 document.addEventListener('DOMContentLoaded',async()=>{
  buildWorks();await fillRegions();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));setMode('rapida');
  $('#incluyeVivienda').addEventListener('change',e=>$('#houseFields').hidden=!e.target.checked);
  $('#tasadorForm').addEventListener('submit',calculate);$('#useMyLocation').onclick=useLocation;$('#premiumReportBtn').onclick=openPremium;$('#closePremium').onclick=()=>$('#premiumDialog').close();
+ document.querySelectorAll('[data-location-method]').forEach(b=>b.addEventListener('click',()=>setLocationMethod(b.dataset.locationMethod)));$('#applyGoogleMapsLink')?.addEventListener('click',applyGoogleMapsLink);$('#googleMapsLink')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyGoogleMapsLink();}});['lat','lng'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{const lat=Number($('#lat').value),lng=Number($('#lng').value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual')}));
  const electricity=$('#electricity'),poleWrap=$('#electricityPoleWrap');const syncPole=()=>{if(poleWrap)poleWrap.hidden=!/factibilidad|postación|postacion/i.test(electricity?.value||'')};electricity?.addEventListener('change',syncPole);syncPole();
  $('#immediateValueBtn')?.addEventListener('click',()=>{const v=Number($('#immediateValueBtn').dataset.value||0);if(!v)return;$('#immediateValue').textContent=money(v);$('#immediateDialog').showModal()});$('#closeImmediate')?.addEventListener('click',()=>$('#immediateDialog').close());
 });

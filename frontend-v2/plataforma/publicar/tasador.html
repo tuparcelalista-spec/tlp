@@ -6,13 +6,15 @@
 <title>Tasador Integral TPL | Tu Parcela Lista</title>
 <meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynWdq4bV8hN3J1uVSc8VxjD60W0A=" crossorigin="">
 <link rel="stylesheet" href="tasador-publico.css?v=20260731-tpl-v2">
 <script src="../../js/core/tpl-data-service.js?v=20260731-tasador-db"></script>
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
-<script defer src="tasador-publico.js?v=20260731-fix2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script defer src="tasador-publico.js?v=20260802-map1"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
@@ -63,7 +65,24 @@
 <label><input type="checkbox" value="termas" data-nature><span>Aguas termales / termas</span></label>
 </div></fieldset>
 
-<div class="coordinates-card"><div><strong>Ubicación exacta para cercanías</strong><p>Las coordenadas permiten calcular el Índice Territorial TPL con centro urbano, servicios de salud, comercio, seguridad, educación, servicios generales, gastronomía y atractivos.</p></div><div class="grid coordinates-grid"><label><span>Latitud</span><input id="lat" type="number" step="any" placeholder="-36.000000"></label><label><span>Longitud</span><input id="lng" type="number" step="any" placeholder="-72.000000"></label></div><button id="useMyLocation" type="button" class="ghost">Usar mi ubicación actual</button></div>
+<div class="coordinates-card location-card">
+<div class="location-intro"><span class="location-kicker">Ubicación precisa</span><strong>Marca el terreno sin conocer las coordenadas</strong><p>Usa el mapa, pega un enlace de Google Maps o permite que el navegador detecte tu ubicación. TPL utilizará el punto para analizar cercanías y conectividad.</p></div>
+<div class="location-methods" role="group" aria-label="Formas de indicar la ubicación">
+<button type="button" class="location-method is-active" data-location-method="mapa"><span>Mapa</span><small>Haz clic sobre el terreno</small></button>
+<button type="button" class="location-method" data-location-method="google"><span>Google Maps</span><small>Pega el enlace compartido</small></button>
+<button id="useMyLocation" type="button" class="location-method"><span>Mi ubicación</span><small>Usa el GPS del dispositivo</small></button>
+</div>
+<div id="mapLocationPanel" class="location-panel">
+<div id="tasadorMap" class="tasador-map" aria-label="Mapa para marcar la ubicación de la propiedad"></div>
+<p class="map-help">Haz clic en el mapa para mover el marcador. Puedes acercarte hasta identificar el acceso o lote correcto.</p>
+</div>
+<div id="googleLocationPanel" class="location-panel" hidden>
+<label class="full"><span>Enlace de Google Maps</span><div class="location-link-row"><input id="googleMapsLink" type="url" inputmode="url" placeholder="https://maps.google.com/... o https://maps.app.goo.gl/..."><button id="applyGoogleMapsLink" type="button" class="ghost">Usar enlace</button></div><small>Los enlaces que contienen coordenadas se reconocen automáticamente. Los enlaces cortos pueden requerir abrir Google Maps y copiar la URL completa.</small></label>
+</div>
+<div class="grid coordinates-grid"><label><span>Latitud</span><input id="lat" type="number" step="any" placeholder="-36.000000"></label><label><span>Longitud</span><input id="lng" type="number" step="any" placeholder="-72.000000"></label></div>
+<div id="locationStatus" class="location-status" aria-live="polite"><span class="location-dot"></span><div><strong>Ubicación pendiente</strong><small>Marca un punto para mejorar la tasación precisa.</small></div></div>
+<a id="openGoogleMaps" class="maps-preview-link" href="#" target="_blank" rel="noopener" hidden>Comprobar punto en Google Maps</a>
+</div>
 </section>
 
 <div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa los antecedentes de casa y construcción.</small></label></div>

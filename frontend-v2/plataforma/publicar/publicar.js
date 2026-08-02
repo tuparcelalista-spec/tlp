@@ -814,6 +814,22 @@ async function submit(e){
 
   localStorage.removeItem(KEY);
 
+  // La tasación del publicador se convierte en la fuente canónica de la propiedad recién creada.
+  if(valuation && window.TPLTasadorSupabase?.canonical && window.TPLDataService?.registerTerritorialAnalysis){
+   try{
+    const property=data();
+    const canonical=window.TPLTasadorSupabase.canonical({
+      area:Number(property?.terreno?.superficie||0),region:property.region,comuna:property.comuna,
+      lat:Number(property?.ubicacion?.lat||0)||null,lng:Number(property?.ubicacion?.lng||0)||null,
+      water:property?.terreno?.agua||'',electricity:property?.terreno?.luz||'',rol:property?.terreno?.rol||'',
+      topography:property?.terreno?.topografia||'',access:property?.ubicacion?.acceso||'',
+      propiedadId:result.propiedad_id,propiedadCodigo:result.codigo_propiedad||result.codigo,origen:'publicador'
+    },valuation,{tasacion_id:valuation.tasacionId||null,propiedad_id:result.propiedad_id});
+    canonical.propiedad_id=result.propiedad_id;canonical.propiedad_codigo=result.codigo_propiedad||result.codigo;canonical.origen='publicador';
+    await window.TPLDataService.registerTerritorialAnalysis(canonical);
+   }catch(analysisError){console.warn('Publicación guardada; análisis territorial pendiente:',analysisError)}
+  }
+
   let onboarding=null;
   try{
    if(status)status.textContent='Publicación recibida. Activando Plan Gratis y enviando tus accesos…';

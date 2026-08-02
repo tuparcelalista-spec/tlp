@@ -231,6 +231,29 @@
     if(context.distance)q.set("distancia",context.distance);
     return `./cotizador.html?${q.toString()}`;
   }
+
+  async function renderTerritorialProfile(parcel){
+    const section=$("analisis-territorial");
+    if(!section||!window.TPLDataService?.getTerritorialPublicSummary)return;
+    const identifier=parcel.canonicalId||parcel.codigo||parcel.id;
+    try{
+      const a=await window.TPLDataService.getTerritorialPublicSummary(identifier);
+      if(!a)return;
+      const idx=a.indices_tpl||{},dist=a.distancias||{},infra=a.infraestructura||{},sum=a.resumen_publico||{};
+      const cards=[
+        ['Índice territorial',idx.territorial?.score!=null?`${idx.territorial.score}/100 · ${idx.territorial.label||''}`:'En análisis'],
+        ['Accesibilidad',a.accesibilidad?.tipo||a.accesibilidad?.topografia||'Por confirmar'],
+        ['Centro comunal',dist.centro_comuna_km!=null?`${Number(dist.centro_comuna_km).toFixed(1).replace('.',',')} km aprox.`:'Por confirmar'],
+        ['Servicios básicos',[infra.agua?'Agua declarada':null,infra.electricidad?'Electricidad declarada':null].filter(Boolean).join(' · ')||'Por confirmar']
+      ];
+      $("territorial-summary-grid").innerHTML=cards.map(([l,v])=>`<article><span>${l}</span><strong>${v}</strong></article>`).join('');
+      const rec=Array.isArray(a.recomendaciones)?a.recomendaciones:[];
+      $("territorial-public-advice").innerHTML=rec.slice(0,4).map(r=>`<div><strong>${r.title||'Recomendación TPL'}</strong><small>${r.detail||''}</small></div>`).join('')||`<div><strong>${sum.headline||'Ubicación analizada por TPL'}</strong><small>${sum.confidence||''}</small></div>`;
+      $("territorial-confidence").textContent=sum.confidence||'Información orientativa basada en antecedentes declarados y cálculos TPL.';
+      section.hidden=false;
+    }catch(error){console.warn('TPL Parcela: perfil territorial no disponible.',error)}
+  }
+
   function render(){
     document.title=`${parcel.nombre||type} | Tu Parcela Lista`;
     $("search-memory").textContent=`${contextLabel()}${parcel.fuenteDatos==='respaldo-local'?' · Datos de respaldo':''}`;
@@ -252,7 +275,7 @@
     $("custom-link").href=cotizadorUrl("diseno-propio");
     $("prefab-link").addEventListener("click",persistParcelForProject,{once:false});
     $("custom-link").addEventListener("click",persistParcelForProject,{once:false});
-    valuation(); renderInvestment(); setImage(); $("parcel-page").hidden=false;
+    valuation(); renderInvestment(); setImage(); $("parcel-page").hidden=false; renderTerritorialProfile(parcel);
   }
   function loadLeaflet(){
     if(window.L)return Promise.resolve();

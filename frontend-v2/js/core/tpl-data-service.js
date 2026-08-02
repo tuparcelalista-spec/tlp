@@ -321,6 +321,32 @@
   }
 
 
+  async function registerTerritorialAnalysis(payload) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_registrar_analisis_tasador_v1', { p_payload: payload || {} });
+    if (error) throw error;
+    if (!data?.ok) throw new Error('Supabase no confirmó el análisis territorial.');
+    return data;
+  }
+
+  async function getTerritorialPublicSummary(identifier) {
+    const id = String(identifier || '').trim();
+    if (!id) return null;
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_analisis_publico_propiedad_v1', { p_identificador: id });
+    if (error) throw error;
+    return data && Object.keys(data).length ? data : null;
+  }
+
+  async function getTerritorialProjectAnalysis(identifier) {
+    const id = String(identifier || '').trim();
+    if (!id) return null;
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_analisis_proyecto_propiedad_v1', { p_identificador: id });
+    if (error) throw error;
+    return data && Object.keys(data).length ? data : null;
+  }
+
   async function createReportOrder(payload) {
     if (!payload?.contacto?.email || !payload?.contacto?.nombre) {
       throw new Error('Nombre y correo son obligatorios para solicitar el informe.');
@@ -454,6 +480,9 @@
     getTasadorReferences,
     getTasadorContext,
     registerValuation,
+    registerTerritorialAnalysis,
+    getTerritorialPublicSummary,
+    getTerritorialProjectAnalysis,
     createReportOrder,
     startReportPayment,
     getReportOrderStatus,
