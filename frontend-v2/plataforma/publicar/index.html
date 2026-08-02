@@ -290,12 +290,12 @@
     <p>Gracias por confiar en Tu Parcela Lista. Revisaremos la información, fotografías, tasación y antecedentes comerciales antes de dejarla preparada para su publicación.</p>
     <div class="publish-success-code"><span>Código de seguimiento</span><strong id="publishSuccessCode">—</strong></div>
     <div class="publish-success-next">
-      <div><strong>Recibirás un correo</strong><span>Enviaremos la confirmación y los próximos pasos a <b id="publishSuccessEmail">tu correo registrado</b>.</span></div>
+      <div><strong>Recibirás dos correos</strong><span id="publishSuccessMailStatus">Enviaremos la confirmación de publicación y el acceso a Mi Propiedad TPL a <b id="publishSuccessEmail">tu correo registrado</b>.</span></div>
       <div><strong>Revisión TPL</strong><span id="publishSuccessNeeds">Validaremos la información y oportunidades de mejora de tu propiedad.</span></div>
       <div><strong>Seguimiento</strong><span>La publicación quedará vinculada al CRM para acompañar consultas, interesados, tasación y avances comerciales.</span></div>
     </div>
     <p class="publish-success-note">Si necesitamos confirmar algún antecedente, el equipo TPL podrá contactarte antes de activar la publicación.</p>
-    <button id="closePublishSuccess" class="primary" type="button">Entendido</button>
+    <div class="publish-success-actions"><a id="publishSuccessAgendaLink" class="primary" href="../tpl-business/" hidden>Ir a Mi Propiedad TPL</a><button id="closePublishSuccess" class="primary" type="button">Entendido</button></div>
   </div>
 </dialog>
 
@@ -321,12 +321,12 @@
   </form>
 </dialog>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../../js/core/tpl-data-service.js?v=20260728-1"></script>
+<script src="../../js/core/tpl-data-service.js?v=20260801-onboarding1"></script>
 <script src="tpl-land-engine.js?v=20260731-fix3"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix3"></script>
 <script src="tpl-house-engine.js"></script>
 <script src="tpl-market-observed.js"></script>
 <script src="tpl-report-generator.js"></script>
-<script src="publicar.js?v=20260731-fix3"></script>
+<script src="publicar.js?v=20260801-onboarding1"></script>
 </body>
 </html>

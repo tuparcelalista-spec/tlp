@@ -165,6 +165,25 @@
     }
   }
 
+
+
+  async function activateFreeOwner(payload) {
+    if (!payload?.publicacion_id || !payload?.email) {
+      throw new Error('Faltan los datos para activar la cuenta gratuita.');
+    }
+    const client = await getClient();
+    const { data, error } = await client.functions.invoke('activar-propietario-gratis', {
+      body: {
+        publicacion_id: payload.publicacion_id,
+        email: String(payload.email || '').trim().toLowerCase()
+      }
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible activar Mi Propiedad TPL.');
+    localEmit('propietario_gratis.activado', data);
+    return data;
+  }
+
   async function listPublishedProperties() {
     const client = await getClient();
     const { data, error } = await client
@@ -375,6 +394,7 @@
     signIn,
     signOut,
     publishProperty,
+    activateFreeOwner,
     listPublishedProperties,
     getCrmSnapshot,
     getUfConfig,

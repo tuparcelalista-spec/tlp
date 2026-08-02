@@ -764,14 +764,21 @@ function renderReview(){
  <section class="review-section"><h3>Tasación y medios</h3><div class="review-row"><span>Valor recomendado</span><strong>${valuation?money(valuation.market):'No calculada'}</strong></div><div class="review-row"><span>Fotografías</span><strong>${photos.length}</strong></div><div class="review-row"><span>Video</span><strong>${d.videoUrl?'Sí':'No'}</strong></div></section>
  <section class="review-section"><h3>Responsable</h3><div class="review-row"><span>Nombre</span><strong>${d.contacto.nombre||'—'}</strong></div><div class="review-row"><span>Correo</span><strong>${d.contacto.email||'—'}</strong></div></section>`;
 }
-function showPublishSuccess(result,d){
+function showPublishSuccess(result,d,onboarding=null){
  const dialog=$('#publishSuccessDialog');
  if(!dialog)return;
  const code=$('#publishSuccessCode'),email=$('#publishSuccessEmail'),needs=$('#publishSuccessNeeds');
+ const mailStatus=$('#publishSuccessMailStatus'),agendaLink=$('#publishSuccessAgendaLink');
  if(code)code.textContent=result?.codigo||'Publicación recibida';
  if(email)email.textContent=d?.contacto?.email||'tu correo registrado';
  const count=Number(result?.necesidades_detectadas||0);
  if(needs)needs.textContent=count?`TPL detectó ${count} mejora${count===1?'':'s'} o necesidad${count===1?'':'es'} que podremos considerar para potenciar la propiedad.`:'Tu publicación quedó preparada para revisión comercial y validación de antecedentes.';
+ if(mailStatus){
+  mailStatus.innerHTML=onboarding?.ok
+   ? `Confirmación y acceso enviados a <b>${d?.contacto?.email||'tu correo'}</b>. Tu Plan Gratis quedó activado.`
+   : `La publicación quedó registrada. El acceso y los correos están pendientes de reintento automático para <b>${d?.contacto?.email||'tu correo'}</b>.`;
+ }
+ if(agendaLink){agendaLink.hidden=!onboarding?.ok;agendaLink.href=onboarding?.agenda_url||'../tpl-business/'}
  if(!dialog.open)dialog.showModal();
 }
 
@@ -807,12 +814,23 @@ async function submit(e){
 
   localStorage.removeItem(KEY);
 
+  let onboarding=null;
+  try{
+   if(status)status.textContent='Publicación recibida. Activando Plan Gratis y enviando tus accesos…';
+   onboarding=await window.TPLDataService.activateFreeOwner({publicacion_id:result.publicacion_id,email:d.contacto.email});
+  }catch(onboardingError){
+   console.warn('Onboarding propietario pendiente:',onboardingError);
+   onboarding={ok:false,error:onboardingError?.message||'Activación pendiente'};
+  }
+
   if(status){
    const needs=Number(result.necesidades_detectadas||0);
-   status.textContent=`Publicación ${result.codigo} recibida correctamente y enviada a revisión TPL${needs?` · ${needs} necesidad${needs===1?'':'es'} detectada${needs===1?'':'s'}`:''}.`;
+   status.textContent=onboarding?.ok
+    ? `Publicación ${result.codigo} recibida · Plan Gratis activado · correos enviados${needs?` · ${needs} necesidad${needs===1?'':'es'} detectada${needs===1?'':'s'}`:''}.`
+    : `Publicación ${result.codigo} recibida correctamente. El acceso y los correos quedaron pendientes de reintento; la publicación no se perdió.`;
   }
   if(btn)btn.textContent='Enviada correctamente ✓';
-  showPublishSuccess(result,d);
+  showPublishSuccess(result,d,onboarding);
  }catch(error){
   console.error('Publicador TPL:',error);
   if(status){
