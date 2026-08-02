@@ -5,36 +5,36 @@
     snapshot: null,
     current: 'inicio',
     loading: false,
-    uf: null
+    uf: null,
+    command: null,
+    universalQuery: ''
   };
 
   const groups = [
-    ['Inicio', [
-      ['inicio', 'Inicio'],
-      ['revision', 'Revisión']
+    ['Centro de Operaciones', [
+      ['inicio', 'Resumen ejecutivo'],
+      ['operaciones', 'Proyectos y operaciones'],
+      ['revision', 'Bandeja de revisión'],
+      ['tareas', 'Tareas y prioridades']
     ]],
     ['Personas', [
       ['compradores', 'Compradores'],
-      ['duenos', 'Dueños'],
-      ['partners', 'Partners']
+      ['duenos', 'Propietarios'],
+      ['partners', 'Partners y empresas']
     ]],
     ['Catálogo', [
       ['parcelas', 'Parcelas'],
-      ['parcelas-casas', 'Parcelas + casas'],
-      ['casas', 'Casas canónicas']
+      ['parcelas-casas', 'Proyectos parcela + casa'],
+      ['casas', 'Casas y modelos']
     ]],
-    ['Operación', [
-      ['operaciones', 'Operaciones'],
-      ['tareas', 'Tareas']
+    ['Información y documentos', [
+      ['tasaciones', 'Tasaciones e informes'],
+      ['studio', 'TPL Studio'],
+      ['mensajes', 'Comunicaciones']
     ]],
     ['Inteligencia', [
-      ['tasaciones', 'Tasaciones'],
       ['analytics', 'Analytics'],
-      ['studio', 'TPL Studio'],
-      ['eventos', 'Actividad']
-    ]],
-    ['Comunicación', [
-      ['mensajes', 'Mensajes / Automatizaciones']
+      ['eventos', 'Actividad y trazabilidad']
     ]]
   ];
 
@@ -63,20 +63,6 @@
   };
 
   const arr = (key) => Array.isArray(state.snapshot?.[key]) ? state.snapshot[key] : [];
-
-  const publicAsset = (value) => {
-    const path = String(value || '').trim();
-    if (!path) return '';
-    if (/^(https?:|data:|blob:)/i.test(path)) return path;
-    return `../../${path.replace(/^\.\//, '').replace(/^\.\.\//, '')}`;
-  };
-
-  function previewImage(record, kind = 'parcela') {
-    const raw = record?.imagen_principal || record?.imagen || record?.imagenes?.[0] || '';
-    const src = publicAsset(raw);
-    if (!src) return `<div class="catalog-preview-empty">${kind === 'casa' ? 'CASA' : 'PARCELA'}</div>`;
-    return `<img src="${esc(src)}" alt="${esc(record?.nombre || record?.titulo || kind)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'catalog-preview-empty',textContent:'SIN FOTO'}))">`;
-  }
 
   function pill(value) {
     const text = String(value || 'Sin definir');
@@ -177,6 +163,50 @@
     return `<article class="metric"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>${esc(note)}</small></article>`;
   }
 
+  function allSearchRecords() {
+    const definitions = [
+      ['parcelas', 'Parcela'], ['casas', 'Casa'], ['compradores', 'Comprador'],
+      ['duenos', 'Propietario'], ['partners', 'Partner'], ['operaciones', 'Proyecto'],
+      ['tasaciones', 'Tasación'], ['eventos', 'Actividad']
+    ];
+    return definitions.flatMap(([key, type]) => arr(key).map((record) => ({
+      key, type, record,
+      id: record.id || record.propiedad_id || record.actor_id || record.codigo,
+      label: record.titulo || record.nombre || record.nombre_comercial || record.nombre_completo || record.codigo || record.evento || type,
+      detail: record.comuna || record.correo || record.estado || record.clasificacion || record.descripcion || '',
+      haystack: JSON.stringify(record).toLowerCase()
+    })));
+  }
+
+  function universalSearchView(query) {
+    const q = String(query || '').trim().toLowerCase();
+    const results = q ? allSearchRecords().filter((item) => item.haystack.includes(q)).slice(0, 80) : [];
+    return `<section class="command-search-results">
+      <div class="section-title"><div><small>BUSCADOR UNIVERSAL</small><h3>Resultados para “${esc(query)}”</h3></div><span class="pill">${results.length} resultados</span></div>
+      <div class="search-result-grid">
+        ${results.map((item) => `<button class="search-result-card" data-detail-key="${esc(item.key)}" data-detail-id="${esc(item.id)}">
+          <span>${esc(item.type)}</span><strong>${esc(item.label)}</strong><small>${esc(item.detail || 'Abrir registro')}</small>
+        </button>`).join('') || '<div class="card empty">No encontramos coincidencias en el CRM.</div>'}
+      </div>
+    </section>`;
+  }
+
+  function commandWelcome() {
+    const c = state.command || {};
+    const staff = c.staff || {};
+    const p = c.prioridades || {};
+    return `<section class="command-welcome">
+      <div><small>CENTRO DE OPERACIONES TPL</small><h2>Hola, ${esc(staff.nombre || 'equipo TPL')}</h2><p>Estas son las acciones que requieren atención ahora.</p></div>
+      <div class="command-role"><span>${esc(staff.rol || 'staff')}</span><small>${esc(staff.email || '')}</small></div>
+      <div class="command-priorities">
+        <button data-view="revision"><b>${Number(p.publicaciones_revision || 0)}</b><span>Publicaciones por revisar</span></button>
+        <button data-view="tareas"><b>${Number(p.tareas_vencidas || 0)}</b><span>Tareas vencidas</span></button>
+        <button data-view="partners"><b>${Number(p.partners_pendientes || 0)}</b><span>Partners pendientes</span></button>
+        <button data-view="tasaciones"><b>${Number(p.informes_pendientes || 0)}</b><span>Informes pendientes</span></button>
+      </div>
+    </section>`;
+  }
+
   function dashboard() {
     const parcels = arr('parcelas');
     const operations = arr('operaciones');
@@ -189,6 +219,7 @@
     const opportunities = parcels.filter((p) => p.es_oportunidad).length;
 
     return `
+      ${commandWelcome()}
       <div class="hero">
         <div>
           <h2>Cerebro TPL</h2>
@@ -452,6 +483,7 @@
 
   function studioView() {
     return `
+      ${commandWelcome()}
       <div class="hero">
         <div><small>TPL STUDIO</small><h2>Marketing, informes y captación</h2><p>Crea material premium desde cualquier propiedad, publicación, proyecto o actor del CRM.</p></div>
         <button class="primary" data-open-studio>Entrar a TPL Studio</button>
@@ -467,46 +499,14 @@
         <article class="card span6"><h3>Desde proyectos</h3><p class="muted">Crea el informe completo parcela + casa + presupuesto desde una operación activa.</p><button class="primary" data-view="operaciones">Ver proyectos</button></article>
       </div>`;
   }
-  function parcelsView() {
-    const rows = arr('parcelas');
-    const published = rows.filter((x) => x.estado === 'publicada').length;
-    const withoutImage = rows.filter((x) => !x.imagen_principal && !(Array.isArray(x.imagenes) && x.imagenes.length)).length;
-    return `
-      <div class="toolbar catalog-toolbar">
-        <div><h2>Parcelas y campos</h2><p class="muted">Vista completa del inventario canónico. Incluye publicaciones nuevas y el catálogo histórico migrado.</p></div>
-        <div class="catalog-toolbar-actions"><input id="search" placeholder="Buscar nombre, comuna, código…"><button class="primary" data-action="refresh">Actualizar</button></div>
-      </div>
-      <div class="metric-grid">${metric('Inventario', rows.length, 'propiedades en Supabase')}${metric('Publicadas', published, 'visibles o listas para revisión')}${metric('Sin fotografía', withoutImage, 'requieren completar ficha')}${metric('Oportunidades', rows.filter(x=>x.es_oportunidad).length, 'detectadas por TPL')}</div>
-      <div class="catalog-grid">
-        ${rows.map((r) => `
-          <article class="catalog-card" data-search-row="${esc(JSON.stringify(r).toLowerCase())}">
-            <div class="catalog-card-media">${previewImage(r, 'parcela')}<span class="catalog-state">${esc(r.estado || 'sin estado')}</span><span class="catalog-count">${Number(r.total_imagenes || 0)} fotos</span></div>
-            <div class="catalog-card-body">
-              <small>${esc(r.codigo || r.id || '')}</small>
-              <h3>${esc(r.titulo || 'Parcela sin título')}</h3>
-              <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
-              <div class="catalog-facts"><b>${Number(r.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(r.precio_publicado)}</b></div>
-              <div class="catalog-actions">
-                <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
-                <a class="primary-link" href="../../parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
-                <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
-              </div>
-            </div>
-          </article>`).join('') || '<div class="empty">No hay parcelas en Supabase.</div>'}
-      </div>`;
-  }
-
   function housesView() {
     const rows = arr('casas');
     return `
-      <div class="toolbar catalog-toolbar"><div><h2>Casas canónicas</h2><p class="muted">Cada ficha alimenta Casas, PlaceMarket, cotizador y la landing del Partner.</p></div><div class="catalog-toolbar-actions"><input id="search" placeholder="Buscar casa o proveedor…"><button class="primary" data-new-house>Nueva casa</button><button class="nav-btn" data-action="refresh">Actualizar</button></div></div>
-      <div class="metric-grid">${metric('Modelos', rows.length, 'en Supabase')}${metric('Sin proveedor', rows.filter(x=>/pendiente/i.test(x.proveedor_estado||'')).length, 'requieren identificación')}${metric('Publicadas', rows.filter(x=>x.estado==='activa'||x.estado_publicacion==='publicado').length, 'visibles en catálogo')}${metric('Sin foto', rows.filter(x=>!x.imagen_principal).length, 'requieren contenido')}</div>
-      <div class="catalog-grid">
-        ${rows.map((r) => `<article class="catalog-card" data-search-row="${esc(JSON.stringify(r).toLowerCase())}">
-          <div class="catalog-card-media">${previewImage(r,'casa')}<span class="catalog-state">${esc(r.estado_publicacion||r.estado||'sin estado')}</span><span class="catalog-count">${Number(r.total_imagenes||0)} fotos · ${Number(r.total_planos||0)} planos</span></div>
-          <div class="catalog-card-body"><small>${esc(r.codigo||r.source_legacy_id||'')}</small><h3>${esc(r.nombre||'Casa sin nombre')}</h3><p>${esc(r.nombre_proveedor_pendiente||'Proveedor por confirmar')}</p><div class="catalog-facts"><b>${esc(r.superficie_m2||'—')} m² · ${esc(r.dormitorios||'—')} dorm.</b><b>${fmtMoney(r.precio_base)}</b></div><div class="catalog-actions"><button class="nav-btn detail-btn" data-preview-key="casas" data-preview-id="${esc(r.id)}">Vista CRM</button><button class="primary small" data-edit-house="${esc(r.id)}">Editar</button><button class="studio-mini-btn" data-studio-key="casas" data-studio-id="${esc(r.id)}">TPL Studio</button></div></div>
-        </article>`).join('')||'<div class="empty">Sin casas todavía.</div>'}
-      </div>`;
+      <div class="toolbar"><div><h2>Casas canónicas</h2><p class="muted">Una sola ficha alimenta CRM, Casas, PlaceMarket, cotizador y landing del Partner.</p></div><div><button class="primary" data-new-house>Nueva casa</button><button class="nav-btn" data-action="refresh">Actualizar</button></div></div>
+      <div class="metric-grid">${metric('Modelos', rows.length, 'en Supabase')}${metric('Sin proveedor', rows.filter(x=>/pendiente/i.test(x.proveedor_estado||'')).length, 'requieren identificación')}${metric('Publicadas', rows.filter(x=>x.estado==='activa').length, 'visibles en catálogo')}</div>
+      <div class="table-wrap"><table><thead><tr><th>Casa</th><th>Proveedor</th><th>m²</th><th>Dorm.</th><th>Precio</th><th>Publicación</th><th>Acción</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr data-search-row="${esc(JSON.stringify(r).toLowerCase())}"><td><strong>${esc(r.nombre)}</strong><small style="display:block">${esc(r.codigo||r.source_legacy_id||'')}</small></td><td>${esc(r.nombre_proveedor_pendiente||'Proveedor por confirmar')}<small style="display:block">${esc(r.proveedor_estado||'')}</small></td><td>${esc(r.superficie_m2||'—')}</td><td>${esc(r.dormitorios||'—')}</td><td>${fmtMoney(r.precio_base)}</td><td>${pill(r.estado_publicacion||r.estado)}</td><td><button class="primary small" data-edit-house="${esc(r.id)}">Editar</button></td></tr>`).join('')||'<tr><td colspan="7">Sin casas todavía.</td></tr>'}
+      </tbody></table></div>`;
   }
 
   function openHouseDialog(record={}) {
@@ -566,18 +566,6 @@
     alert(text);
   }
 
-  function showPreview(record, source) {
-    if (!record) return;
-    const isHouse = source === 'casas';
-    const titleText = isHouse ? record.nombre : record.titulo;
-    const media = previewImage(record, isHouse ? 'casa' : 'parcela');
-    const dialog = document.querySelector('#previewDialog');
-    const body = document.querySelector('#previewDialogBody');
-    if (!dialog || !body) return showDetail(record);
-    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="../../parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
-    dialog.showModal();
-  }
-
   function render(view) {
     state.current = view;
     document.querySelectorAll('.nav-btn[data-view]').forEach((button) => {
@@ -592,7 +580,6 @@
     if (view === 'inicio') content.innerHTML = dashboard();
     else if (view === 'revision') content.innerHTML = reviewView();
     else if (view === 'studio') content.innerHTML = studioView();
-    else if (view === 'parcelas') content.innerHTML = parcelsView();
     else if (view === 'casas') content.innerHTML = housesView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
@@ -640,6 +627,7 @@
         return;
       }
 
+      try { state.command = await window.TPLDataService.getCrmCommandCenter(); } catch (commandError) { console.warn('CRM Command Center no disponible:', commandError); state.command = null; }
       const snapshot = await window.TPLDataService.getCrmSnapshot();
       state.snapshot = snapshot;
       try { state.uf = await window.TPLDataService.getUfConfig(); } catch (error) { console.warn('CRM TPL: UF no disponible.', error); state.uf = null; }
@@ -736,9 +724,6 @@
       return;
     }
 
-    const preview = event.target.closest('[data-preview-key]');
-    if (preview) { showPreview(detailFor(preview.dataset.previewKey, preview.dataset.previewId), preview.dataset.previewKey); return; }
-
     const detail = event.target.closest('[data-detail-key]');
     if (detail) {
       showDetail(detailFor(detail.dataset.detailKey, detail.dataset.detailId));
@@ -755,6 +740,14 @@
     content.querySelectorAll('[data-search-row]').forEach((row) => {
       row.hidden = q && !row.dataset.searchRow.includes(q);
     });
+  });
+
+  document.querySelector('#universalSearch')?.addEventListener('input', (event) => {
+    state.universalQuery = event.target.value || '';
+    const q = state.universalQuery.trim();
+    if (!q) { render(state.current || 'inicio'); return; }
+    if (title) title.textContent = 'Búsqueda TPL';
+    if (content) content.innerHTML = universalSearchView(q);
   });
 
   document.querySelector('#saveHouse')?.addEventListener('click', async () => {

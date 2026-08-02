@@ -391,6 +391,13 @@
     return data || {};
   }
 
+  async function getCrmCommandCenter() {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_command_center_v1');
+    if (error) throw error;
+    return data || {};
+  }
+
   async function approvePublication(publicacionId, publish = true) {
     const client = await getClient();
     const { data, error } = await client.rpc('tpl_aprobar_publicacion_v1', {
@@ -441,6 +448,7 @@
     getPublishedPropertyById,
     createPublicOpportunity,
     getCrmSnapshot,
+    getCrmCommandCenter,
     getUfConfig,
     updateUfConfig,
     getTasadorReferences,
