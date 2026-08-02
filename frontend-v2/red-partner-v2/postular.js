@@ -22,6 +22,24 @@ function addRepeatableRow(containerId, placeholder, value = '') {
 }
 function renumber(container) { [...container.querySelectorAll('.row-number')].forEach((node, i) => node.textContent = i + 1); }
 function repeatableValues(id) { return [...document.querySelectorAll(`#${id} input`)].map(input => input.value.trim()).filter(Boolean); }
+function addStructuredStage(value = {}) {
+  const container = document.getElementById('last-job-stages-list');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'repeatable-row structured';
+  row.innerHTML = `<span class="row-number"></span><input data-field="etapa" type="text" maxlength="140" placeholder="Etapa: visita, cotización, ejecución…"><input data-field="duracion" type="text" maxlength="60" placeholder="Duración"><input data-field="evidencia" type="text" maxlength="180" placeholder="Qué se entregó o verificó"><button type="button" aria-label="Eliminar">×</button>`;
+  for (const input of row.querySelectorAll('input')) input.value = value[input.dataset.field] || '';
+  row.querySelector('button').addEventListener('click', () => { row.remove(); renumber(container); updateProfileScore(); });
+  container.appendChild(row); renumber(container);
+}
+function structuredStageValues() {
+  return [...document.querySelectorAll('#last-job-stages-list .repeatable-row')].map(row => ({
+    etapa: row.querySelector('[data-field="etapa"]')?.value.trim() || '',
+    duracion: row.querySelector('[data-field="duracion"]')?.value.trim() || '',
+    evidencia: row.querySelector('[data-field="evidencia"]')?.value.trim() || ''
+  })).filter(item => item.etapa);
+}
+function countWords(value) { return String(value || '').trim().split(/\s+/).filter(Boolean).length; }
 function paymentValues() { return [...document.querySelectorAll('#payment-options input:checked')].map(input => input.value); }
 document.getElementById('add-activity')?.addEventListener('click', () => addRepeatableRow('activities-list','Ej: Construcción de radier'));
 document.getElementById('add-service-stage')?.addEventListener('click', () => addRepeatableRow('service-stages-list','Ej: Visita y evaluación inicial'));
@@ -29,6 +47,19 @@ addRepeatableRow('activities-list','Ej: Construcción de radier');
 addRepeatableRow('service-stages-list','Ej: Visita y evaluación inicial');
 addRepeatableRow('service-stages-list','Ej: Presupuesto y planificación');
 addRepeatableRow('service-stages-list','Ej: Ejecución y entrega final');
+document.getElementById('add-last-job-stage')?.addEventListener('click', () => addStructuredStage());
+addStructuredStage({ etapa: 'Reunión o visita con el cliente', duracion: '1 día', evidencia: 'Necesidades y alcance confirmados' });
+addStructuredStage({ etapa: 'Cotización y planificación', duracion: '1 a 3 días', evidencia: 'Propuesta económica entregada' });
+addStructuredStage({ etapa: 'Ejecución del trabajo', duracion: '', evidencia: 'Avances registrados' });
+addStructuredStage({ etapa: 'Entrega y conformidad', duracion: '1 día', evidencia: 'Trabajo revisado con el cliente' });
+
+const proposalInput = document.getElementById('propuesta_corta');
+proposalInput?.addEventListener('input', () => {
+  const words = String(proposalInput.value || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length > 5) proposalInput.value = words.slice(0, 5).join(' ');
+  document.getElementById('propuesta-word-count').textContent = String(Math.min(words.length, 5));
+  updateProfileScore();
+});
 
 const submitButton = document.getElementById('btn-submit');
 const statusBox = document.getElementById('form-status');
@@ -110,6 +141,39 @@ async function uploadFile(file, applicationId, uploadToken, filename) {
   return objectPath;
 }
 
+function updateProfileScore() {
+  const checks = [
+    ['nombre_comercial', 6], ['nombre_responsable', 4], ['correo', 4], ['whatsapp', 4],
+    ['descripcion_servicios', 10], ['propuesta_corta', 8], ['diferenciacion', 10],
+    ['tipo_servicio', 5], ['especialidades', 6], ['region', 4], ['comunas_atendidas', 5],
+    ['anos_experiencia', 4], ['ultimo_trabajo_nombre', 5], ['ultimo_trabajo_resultado', 5],
+    ['condiciones_pago', 4], ['garantia_servicio', 3]
+  ];
+  let score = 0;
+  for (const [id, points] of checks) {
+    const node = document.getElementById(id);
+    const value = node?.type === 'checkbox' ? node.checked : String(node?.value || '').trim();
+    if (value) score += points;
+  }
+  if (repeatableValues('activities-list').length >= 2) score += 5;
+  if (repeatableValues('service-stages-list').length >= 3) score += 5;
+  if (structuredStageValues().length >= 4) score += 7;
+  if (paymentValues().length) score += 3;
+  if (document.getElementById('logo_file')?.files?.length) score += 4;
+  if (document.getElementById('gallery_files')?.files?.length >= 3) score += 4;
+  score = Math.min(100, score);
+  const bar = document.getElementById('profile-score-bar');
+  const label = document.getElementById('profile-score-label');
+  if (bar) bar.style.width = `${score}%`;
+  if (label) label.textContent = `${score}%`;
+  return score;
+}
+for (const node of document.querySelectorAll('#partner-form input, #partner-form select, #partner-form textarea')) {
+  node.addEventListener('input', updateProfileScore);
+  node.addEventListener('change', updateProfileScore);
+}
+updateProfileScore();
+
 function buildPayload() {
   return {
     nombre_comercial: document.getElementById('nombre_comercial').value.trim(),
@@ -118,6 +182,9 @@ function buildPayload() {
     whatsapp: normalizePhone(document.getElementById('whatsapp').value),
     correo: document.getElementById('correo').value.trim().toLowerCase(),
     descripcion_servicios: document.getElementById('descripcion_servicios').value.trim(),
+    propuesta_corta: document.getElementById('propuesta_corta').value.trim(),
+    diferenciacion: document.getElementById('diferenciacion').value.trim(),
+    puntaje_completitud_inicial: updateProfileScore(),
     tipo_servicio: document.getElementById('tipo_servicio').value,
     especialidades: splitValues(document.getElementById('especialidades').value),
     region: document.getElementById('region').value,
@@ -135,7 +202,15 @@ function buildPayload() {
     etapas_servicio: repeatableValues('service-stages-list'),
     modalidades_pago: paymentValues(),
     porcentaje_anticipo: Number(document.getElementById('porcentaje_anticipo')?.value || 0),
-    garantia_servicio: document.getElementById('garantia_servicio')?.value || 'No informada'
+    garantia_servicio: document.getElementById('garantia_servicio')?.value.trim() || 'No informada',
+    condiciones_pago: document.getElementById('condiciones_pago')?.value.trim() || '',
+    ultimo_trabajo: {
+      nombre: document.getElementById('ultimo_trabajo_nombre')?.value.trim() || '',
+      ubicacion: document.getElementById('ultimo_trabajo_ubicacion')?.value.trim() || '',
+      duracion: document.getElementById('ultimo_trabajo_duracion')?.value.trim() || '',
+      resultado: document.getElementById('ultimo_trabajo_resultado')?.value.trim() || '',
+      etapas: structuredStageValues()
+    }
   };
 }
 
@@ -165,6 +240,8 @@ form?.addEventListener('submit', async event => {
     if (!payload.actividades.length) throw new Error('Agrega al menos una actividad que puedas realizar.');
     if (!payload.etapas_servicio.length) throw new Error('Agrega al menos una etapa de tu servicio.');
     if (!payload.modalidades_pago.length) throw new Error('Selecciona al menos una modalidad de pago.');
+    if (countWords(payload.propuesta_corta) > 5) throw new Error('Resume lo que ofreces en máximo 5 palabras.');
+    if (payload.ultimo_trabajo.etapas.length < 3) throw new Error('Explica al menos 3 etapas de tu último trabajo.');
     const result = await callRpc('tpl_postular_partner_v2', { p_payload: payload });
     const applicationId = result.id;
     const uploadToken = result.upload_token;

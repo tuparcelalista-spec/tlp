@@ -310,6 +310,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <small class="field-help">Escríbelo con tus propias palabras. Usaremos esta información para tu perfil, currículum y landing.</small>
 </div>
 <div class="input-group">
+<label for="propuesta_corta">¿Qué ofreces en máximo 5 palabras?</label>
+<input id="propuesta_corta" maxlength="60" placeholder="Ej: Pozos profundos con garantía" required type="text"/>
+<small class="field-help"><span id="propuesta-word-count">0</span>/5 palabras. Será el mensaje principal de tu perfil.</small>
+</div>
+<div class="input-group">
+<label for="diferenciacion">¿Qué te diferencia de otros proveedores?</label>
+<textarea id="diferenciacion" minlength="30" maxlength="400" placeholder="Ej: Visito el terreno antes de cotizar, explico cada costo y entrego evidencia fotográfica semanal." required></textarea>
+<small class="field-help">Evita frases genéricas. Explica una práctica concreta, garantía, especialidad o forma de atención.</small>
+</div>
+<div class="input-group full-width profile-score-card" aria-live="polite">
+<div><strong>Completitud de tu perfil</strong><span id="profile-score-label">0%</span></div>
+<div class="profile-score-track"><span id="profile-score-bar"></span></div>
+<p id="profile-score-help">Mientras más información útil y verificable agregues, mejor será la calidad y visibilidad inicial de tu perfil.</p>
+</div>
+<div class="input-group">
 <label>Logo de Empresa o Fotografía Personal</label>
 <input accept="image/jpeg,image/png,image/webp" id="logo_file" required="" type="file"/>
 </div>
@@ -371,6 +386,49 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </select>
 </div>
 </div>
+
+<div class="partner-detail-block full-width">
+<h3>Actividades que realizas</h3>
+<p>Agrega trabajos concretos. Esto ayuda a que TPL te relacione con solicitudes compatibles.</p>
+<div id="activities-list" class="repeatable-list"></div>
+<button type="button" class="btn-add-row" id="add-activity">+ Agregar actividad</button>
+</div>
+
+<div class="partner-detail-block full-width">
+<h3>Tu proceso habitual de trabajo</h3>
+<p>Explica el recorrido normal desde el primer contacto hasta la entrega. El cliente podrá entender qué esperar antes de solicitar una propuesta.</p>
+<div id="service-stages-list" class="repeatable-list"></div>
+<button type="button" class="btn-add-row" id="add-service-stage">+ Agregar etapa</button>
+</div>
+
+<div class="partner-detail-block full-width">
+<h3>Tu último trabajo, explicado por etapas</h3>
+<div class="form-grid">
+<div class="input-group"><label for="ultimo_trabajo_nombre">Nombre o tipo de trabajo</label><input id="ultimo_trabajo_nombre" placeholder="Ej: Instalación de pozo profundo" required type="text"/></div>
+<div class="input-group"><label for="ultimo_trabajo_ubicacion">Comuna o sector</label><input id="ultimo_trabajo_ubicacion" placeholder="Ej: Florida, Biobío" required type="text"/></div>
+<div class="input-group"><label for="ultimo_trabajo_duracion">Duración total</label><input id="ultimo_trabajo_duracion" placeholder="Ej: 8 días" required type="text"/></div>
+<div class="input-group"><label for="ultimo_trabajo_resultado">Resultado principal</label><input id="ultimo_trabajo_resultado" placeholder="Ej: Pozo operativo y probado" required type="text"/></div>
+</div>
+<div id="last-job-stages-list" class="repeatable-list structured-stages"></div>
+<button type="button" class="btn-add-row" id="add-last-job-stage">+ Agregar etapa del último trabajo</button>
+</div>
+
+<div class="partner-detail-block full-width">
+<h3>Formas de pago y condiciones</h3>
+<div id="payment-options" class="payment-options">
+<label><input type="checkbox" value="Transferencia bancaria"/> Transferencia bancaria</label>
+<label><input type="checkbox" value="Efectivo"/> Efectivo</label>
+<label><input type="checkbox" value="Tarjeta o link de pago"/> Tarjeta o link de pago</label>
+<label><input type="checkbox" value="Pago por etapas"/> Pago por etapas</label>
+<label><input type="checkbox" value="Crédito directo evaluado"/> Crédito directo evaluado</label>
+</div>
+<div class="form-grid">
+<div class="input-group"><label for="porcentaje_anticipo">Anticipo habitual (%)</label><input id="porcentaje_anticipo" min="0" max="100" value="0" type="number"/></div>
+<div class="input-group"><label for="garantia_servicio">Garantía ofrecida</label><input id="garantia_servicio" maxlength="160" placeholder="Ej: 6 meses por fallas de instalación" type="text"/></div>
+<div class="input-group full-width"><label for="condiciones_pago">Explica tus condiciones de pago</label><textarea id="condiciones_pago" maxlength="500" placeholder="Ej: 30% al iniciar, 40% al completar la obra gruesa y 30% contra entrega."></textarea></div>
+</div>
+</div>
+
 <h3 style="font-size: 1.2rem; margin-top: 30px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px;">4. Términos y Condiciones</h3>
 <div class="checkbox-group">
 <input id="emite_factura" type="checkbox"/>

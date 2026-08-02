@@ -228,7 +228,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span class="badge-verified">✓ Partner Verificado por TPL</span>
         </div>
         
-        <h1 id="partner-name">Nombre Empresa</h1>
+        <h1 id="partner-name">Nombre Empresa</h1><p id="partner-short-value" style="text-align:center;font-weight:800;color:var(--secondary);font-size:1.05rem;margin:8px 0 4px"></p><p id="partner-differentiation" style="text-align:center;color:var(--text-muted);max-width:680px;margin:0 auto 18px"></p>
         
         <div class="rating">
           <span class="partner-rating-label">Valoración</span> <span id="partner-rating">5.0 (0 evaluaciones)</span>
@@ -273,7 +273,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p id="payment-summary" style="margin:24px 0 0;color:var(--text-muted);"></p>
       </div>
 
-      <div class="card" id="gallery-card">
+      <div class="card" id="last-job-card"><h2 style="color: var(--primary); margin-top: 0;">Último trabajo explicado paso a paso</h2><h3 id="last-job-title" style="margin-bottom:6px"></h3><p id="last-job-meta" style="color:var(--text-muted)"></p><ol id="last-job-stages" style="line-height:1.7"></ol></div><div class="card" id="gallery-card">
         <h2 style="color: var(--primary); margin-top: 0;">Trabajos Realizados</h2>
         <div class="gallery" id="gallery-grid">
           <!-- Imágenes dinámicas -->
@@ -326,6 +326,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       document.getElementById('partner-name').textContent = partner.nombre_comercial || 'Partner TPL';
       document.getElementById('partner-rating').textContent = `${Number(partner.rating || 0).toFixed(1)} (${Number(partner.trabajos_realizados || 0)} trabajos)`;
       document.getElementById('partner-desc').textContent = partner.descripcion_servicios || '';
+      document.getElementById('partner-short-value').textContent = partner.propuesta_corta || '';
+      document.getElementById('partner-differentiation').textContent = partner.diferenciacion ? `Lo que nos diferencia: ${partner.diferenciacion}` : '';
+      const lastJob = partner.ultimo_trabajo || {};
+      document.getElementById('last-job-title').textContent = lastJob.nombre || 'Trabajo reciente no informado';
+      document.getElementById('last-job-meta').textContent = [lastJob.ubicacion, lastJob.duracion, lastJob.resultado].filter(Boolean).join(' · ');
+      populateList('last-job-stages', (lastJob.etapas || []).map(item => [item.etapa, item.duracion, item.evidencia].filter(Boolean).join(' — ')));
+      document.getElementById('last-job-card').classList.toggle('hidden', !(lastJob.etapas || []).length);
       const number = safePhone(partner.whatsapp);
       const waBtn = document.getElementById('btn-whatsapp');
       if (number) waBtn.href = `https://wa.me/${number}?text=${encodeURIComponent(`Hola, vengo desde Tu Parcela Lista y me gustaría cotizar servicios de ${partner.tipo_servicio || 'tu empresa'}.`)}`;
