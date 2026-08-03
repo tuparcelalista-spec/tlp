@@ -127,96 +127,54 @@
   }
   function valuation(){
     const a=marketAnalysis();
-    const published=a?.publishedM2||0, tplM2=a?.tplM2||0, marketM2=a?.marketM2||0;
-    $('valuation-published-m2').textContent=published?`${formatMoney(published)} / m²`:'No calculable';
-    $('valuation-tpl-m2').textContent=tplM2?`${formatMoney(tplM2)} / m²`:'Antecedentes insuficientes';
-    $('valuation-market-m2').textContent=marketM2?`${formatMoney(marketM2)} / m²`:'En construcción';
+    const technical=Number(a?.technicalValue||a?.tpl?.ideal||0);
+    const observed=Number(a?.observedCommunalValue||0);
+    const suggested=Number(a?.suggestedCommunalValue||technical||observed||0);
+    const urgency=Number(a?.urgencyValue||0);
+    $('valuation-technical').textContent=technical?formatMoney(technical):'Antecedentes insuficientes';
+    $('valuation-suggested').textContent=suggested?formatMoney(suggested):'En construcción';
+    $('valuation-observed').textContent=observed?formatMoney(observed):'Sin muestra validada';
+    $('valuation-urgency').textContent=urgency?formatMoney(urgency):'En construcción';
     $('valuation-market-note').textContent=a?.market?`${a.market.sampleSize} comparables · confianza ${String(a.market.confidence||'referencial').replace('-',' ')}`:'Aún no hay referencia comunal validada';
-    $('valuation-position').textContent=a?.label||'Sin lectura suficiente';
+    $('valuation-position').textContent=a?.label||'Lectura orientativa';
     $('valuation-reading').className=`valuation-reading is-${a?.tone||'neutral'}`;
-    $('valuation-explanation').textContent=a?.summary||'Aún faltan antecedentes suficientes para comparar el precio.';
+    const diff=technical&&observed?Math.round(((technical-observed)/observed)*100):null;
+    $('valuation-explanation').textContent=diff===null
+      ? 'El TPL Valor Tasación se mantiene técnico e independiente. El sugerido utiliza el mercado comunal solo cuando existe una muestra validada.'
+      : `El TPL Valor Tasación está ${Math.abs(diff)}% ${diff>=0?'sobre':'bajo'} el valor observado comunal. El TPL Valor Comunal Sugerido equilibra ambos resultados.`;
   }
   function renderInvestment(){
     const a=marketAnalysis();
     if(!a){
       $('investment-reading').textContent='Antecedentes insuficientes';
       $('investment-source').textContent='No fue posible ejecutar el motor TPL';
-      $('investment-explanation').textContent='La publicación necesita más información estructurada para generar una comparación responsable.';
+      $('investment-explanation').textContent='La publicación necesita región, comuna y superficie para generar una lectura básica.';
       return;
     }
-    const values=[a.publishedM2,a.tplM2,a.marketM2].filter(Boolean),max=Math.max(...values,1);
+    const technical=Number(a.technicalValue||a.tpl?.ideal||0), observed=Number(a.observedCommunalValue||0), suggested=Number(a.suggestedCommunalValue||0), urgency=Number(a.urgencyValue||0);
+    const values=[urgency,observed,suggested,technical].filter(Boolean),max=Math.max(...values,1);
     const width=v=>v?`${Math.max(8,Math.min(100,(v/max)*100))}%`:'0%';
-    $('bar-published').style.width=width(a.publishedM2);
-    $('bar-tpl').style.width=width(a.tplM2);
-    $('bar-reference').style.width=width(a.marketM2);
-    $('bar-published-value').textContent=a.publishedM2?`${formatMoney(a.publishedM2)} / m²`:'No calculable';
-    $('bar-tpl-value').textContent=a.tplM2?`${formatMoney(a.tplM2)} / m²`:'Sin cálculo';
-    $('bar-reference-value').textContent=a.marketM2?`${formatMoney(a.marketM2)} / m²`:'En construcción';
+    $('bar-urgency').style.width=width(urgency);
+    $('bar-reference').style.width=width(observed);
+    $('bar-suggested').style.width=width(suggested);
+    $('bar-tpl').style.width=width(technical);
+    $('bar-urgency-value').textContent=urgency?formatMoney(urgency):'—';
+    $('bar-reference-value').textContent=observed?formatMoney(observed):'Sin muestra';
+    $('bar-suggested-value').textContent=suggested?formatMoney(suggested):'—';
+    $('bar-tpl-value').textContent=technical?formatMoney(technical):'—';
     $('investment-reading').textContent=a.label;
     const tier=window.TPLMarketIntelligence?.commercialTier?.(parcel,a);
     $('investment-badge').textContent=tier?.key&&tier.key!=='none'?tier.label:a.label;
     $('investment-badge').className=`investment-badge is-${tier?.key&&tier.key!=='none'?tier.key:a.tone}`;
-    $('investment-source').textContent=a.market?`Modelo TPL + referencia validada de ${parcel.comuna}`:'Modelo TPL · referencia comunal aún no validada';
-    $('investment-explanation').textContent=a.summary;
+    $('investment-source').textContent=a.market?`Motor TPL + ${a.market.sampleSize} comparables validados de ${parcel.comuna}`:'Motor TPL independiente · referencia comunal aún no validada';
     const marketNote=$('market-comparison-note');
-    if(a.market && a.diffMarket!=null){
-      const direction=a.diffMarket<=0?'bajo':'sobre';
-      marketNote.textContent=`Frente a la referencia comunal validada, esta parcela está ${Math.abs(Math.round(a.diffMarket))}% ${direction}.`;
-    } else {
-      marketNote.textContent='No mostramos un promedio comunal hasta contar con una muestra validada para esta comuna.';
-    }
-    $('investment-signals').innerHTML=(a.signals||[]).slice(0,6).map(x=>`<span>${x}</span>`).join('');
-    $('owner-action-advice').textContent=a.opportunity
-      ?'El precio aparece bajo nuestra estimación. Si te interesa, puedes intentar mantener esta condición o solicitar una mejora concreta antes de reservar.'
-      :a.diffTpl!=null&&a.diffTpl>=10
-        ?'El precio está sobre nuestra estimación TPL. Puedes presentar una oferta o pedir una mejora que compense la diferencia antes de reservar.'
-        :'Puedes presentar una oferta o pedir una mejora concreta antes de solicitar la reserva.';
-  }
-  function formatInputMoney(input){
-    const n=priceNumber(input.value); input.value=n?n.toLocaleString('es-CL'):'';
-  }
-  function proposalPayload(){
-    return {
-      parcelaId:String(parcel.id||''),parcela:parcel.nombre||type,comuna:parcel.comuna||'',precioPublicado:price,
-      tipo:$('proposal-type').value,montoOferta:priceNumber($('proposal-amount').value),
-      mejoras:[...document.querySelectorAll('input[name="improvement"]:checked')].map(x=>x.value),
-      condicion:$('proposal-condition').value,mensaje:$('proposal-message').value.trim(),
-      cliente:{nombre:$('proposal-name').value.trim(),email:$('proposal-email').value.trim(),telefono:$('proposal-phone').value.trim()},
-      origen:context.method||'ficha',prioridad:context.priority||'',createdAt:new Date().toISOString(),status:'pendiente_propietario'
-    };
-  }
-  async function submitProposal(event){
-    event.preventDefault(); const status=$('proposal-status'),button=event.submitter;
-    const payload=proposalPayload();
-    if(payload.tipo==='oferta'&&!payload.montoOferta){status.textContent='Ingresa el monto que deseas ofrecer.';status.className='proposal-status is-error';return}
-    if(payload.tipo==='mejoras'&&!payload.mejoras.length){status.textContent='Selecciona al menos una mejora.';status.className='proposal-status is-error';return}
-    button.disabled=true;status.textContent='Enviando tu solicitud…';status.className='proposal-status';
-    try{
-      const result=await window.TPLDataService.createPublicOpportunity({
-        tipo: payload.tipo==='oferta'?'compra':'consulta',
-        origen: 'parcela_html',
-        prioridad: payload.tipo==='oferta'?'alta':'media',
-        nombre_contacto: payload.cliente.nombre,
-        email: payload.cliente.email,
-        telefono: payload.cliente.telefono,
-        mensaje: payload.mensaje,
-        presupuesto: payload.montoOferta || null,
-        metadata: {
-          parcela_id: parcel.canonicalId || null,
-          parcela_codigo: parcel.codigo || parcel.id || '',
-          parcela_nombre: parcel.nombre || type,
-          comuna: parcel.comuna || '',
-          precio_publicado: price,
-          mejoras: payload.mejoras,
-          condicion: payload.condicion,
-          contexto: {origen:payload.origen,prioridad:payload.prioridad}
-        }
-      });
-      localStorage.removeItem('tpl_owner_proposals');
-      status.textContent=`Solicitud ${result.codigo||''} enviada. TPL la registró y dará seguimiento.`.trim();
-      status.className='proposal-status is-success';
-      event.target.reset();
-    }catch(error){try{const saved=JSON.parse(localStorage.getItem('tpl_owner_proposals')||'[]');saved.unshift(payload);localStorage.setItem('tpl_owner_proposals',JSON.stringify(saved.slice(0,30)))}catch{} status.textContent=(error.message||'No fue posible enviar la solicitud.')+' Dejamos un respaldo local para reintentar.';status.className='proposal-status is-error'}finally{button.disabled=false}
+    if(technical&&observed){
+      const diff=Math.round(((technical-observed)/observed)*100);
+      marketNote.textContent=`La tasación técnica se ubica ${Math.abs(diff)}% ${diff>=0?'sobre':'bajo'} el mercado observado. El valor sugerido es el promedio entre ambos.`;
+    }else marketNote.textContent='El valor sugerido coincide temporalmente con la tasación técnica hasta contar con mercado comunal validado.';
+    $('investment-explanation').textContent=a.summary;
+    const signals=$('investment-signals');
+    signals.innerHTML=(a.signals||[]).map(x=>`<span>${x}</span>`).join('');
   }
   function setImage(){
     $("main-image").src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";

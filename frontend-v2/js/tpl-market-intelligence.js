@@ -195,8 +195,16 @@
     const market=area>=10000?null:(engine?.marketReference?.(p?.comuna,area) || null);
     const tplM2=tpl?.ideal&&area?Math.round(tpl.ideal/area):0;
     const classification=classify(p,tpl,market);
+    const technicalValue=Number(tpl?.ideal||0);
+    const observedCommunalValue=market?.medianM2&&area?Math.round(market.medianM2*area):0;
+    const suggestedCommunalValue=technicalValue&&observedCommunalValue
+      ? Math.round((technicalValue+observedCommunalValue)/2)
+      : technicalValue||observedCommunalValue||0;
+    const urgencyPct=0.07;
+    const urgencyValue=suggestedCommunalValue?Math.round(suggestedCommunalValue*(1-urgencyPct)):0;
     return {
       area, price, publishedM2, tpl, tplM2, market, marketM2:market?.medianM2 || 0,
+      technicalValue, observedCommunalValue, suggestedCommunalValue, urgencyValue, urgencyPct,
       ...classification,
       hasValidatedMarket:Boolean(market)
     };

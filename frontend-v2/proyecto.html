@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/proyecto.css?v=20260731-project1">
+  <link rel="stylesheet" href="./css/proyecto.css?v=20260803-valores-4-v1">
 </head>
 <body>
 <header class="project-topbar">
@@ -61,6 +61,20 @@
     <div class="investment-layout"><div class="investment-score"><span>NIVEL TPL</span><strong id="investment-level">En análisis</strong><p id="investment-reading"></p></div><div class="budget-breakdown"><article><span>Parcela</span><strong id="budget-parcel">$0</strong></article><article><span>Vivienda</span><strong id="budget-house">$0</strong></article><article class="total"><span>Proyecto estimado</span><strong id="budget-total">$0</strong></article></div></div>
   </section>
 
+
+  <section class="section project-valuation-section" id="valor-tpl-proyecto">
+    <div class="wrap">
+      <header class="section-head"><span>VALOR DE LA PARCELA</span><h2>La tasación y el proyecto son cosas distintas.</h2><p>Estos valores corresponden únicamente a la parcela. La vivienda y las obras se muestran aparte en el presupuesto total del proyecto.</p></header>
+      <div class="project-valuation-grid">
+        <article class="project-value-card technical"><span>TPL Valor Tasación</span><strong id="project-value-technical">—</strong><small>Motor técnico independiente.</small></article>
+        <article class="project-value-card suggested"><span>TPL Valor Comunal Sugerido</span><strong id="project-value-suggested">—</strong><small>Promedio entre tasación y mercado observado.</small></article>
+        <article class="project-value-card observed"><span>Valor Observado Comunal</span><strong id="project-value-observed">—</strong><small id="project-value-market-meta">Referencia estadística validada.</small></article>
+        <article class="project-value-card urgency"><span>Valor por Apuro</span><strong id="project-value-urgency">—</strong><small>7% bajo el valor sugerido.</small></article>
+      </div>
+      <div class="project-value-explanation"><strong id="project-value-reading">Analizando valores…</strong><p id="project-value-explanation">TPL separa el valor técnico, la referencia de mercado y la estrategia de venta.</p></div>
+    </div>
+  </section>
+
   <section class="section improvements-section" id="mejoras">
     <div class="wrap"><header class="section-head"><span>LO QUE PODRÍA HACERLO AÚN MEJOR</span><h2>Convierte pendientes en oportunidades.</h2><p>TPL identifica mejoras posibles a partir de los antecedentes disponibles. Puedes preguntar por una de ellas antes de avanzar.</p></header><div class="improvement-grid" id="improvement-grid"></div></div>
   </section>
@@ -84,5 +98,7 @@
 <script src="./parcelas.js"></script>
 <script src="./casas.js"></script>
 <script src="./js/core/tpl-data-service.js"></script>
-<script defer src="./js/proyecto.js?v=20260731-project1"></script>
+<script src="./plataforma/publicar/tpl-land-engine.js"></script>
+<script src="./js/tpl-market-intelligence.js"></script>
+<script defer src="./js/proyecto.js?v=20260803-valores-4-v1"></script>
 </body></html>

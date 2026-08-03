@@ -105,15 +105,16 @@
         </section>
 
         <section class="clean-section valuation-section" id="valor-tpl">
-          <div class="section-heading"><span>ANÁLISIS DE VALOR TPL</span><h2>Tres referencias para entender mejor el precio</h2></div>
-          <div class="valuation-box valuation-box--three">
-            <div><span>Precio publicado / m²</span><strong id="valuation-published-m2">—</strong><small>Precio solicitado actualmente</small></div>
-            <div><span>Estimación TPL / m²</span><strong id="valuation-tpl-m2">—</strong><small>Ubicación + atributos declarados</small></div>
-            <div><span>Referencia comunal / m²</span><strong id="valuation-market-m2">—</strong><small id="valuation-market-note">Solo con mercado validado</small></div>
+          <div class="section-heading"><span>ANÁLISIS DE VALOR TPL</span><h2>Cuatro valores, cada uno con un propósito distinto</h2></div>
+          <div class="valuation-box valuation-box--four">
+            <div class="valuation-card--technical"><span>TPL Valor Tasación</span><strong id="valuation-technical">—</strong><small>Motor técnico independiente, sin promedio comunal.</small></div>
+            <div class="valuation-card--suggested"><span>TPL Valor Comunal Sugerido</span><strong id="valuation-suggested">—</strong><small>Promedio entre Tasación TPL y mercado observado.</small></div>
+            <div class="valuation-card--observed"><span>Valor Observado Comunal</span><strong id="valuation-observed">—</strong><small id="valuation-market-note">Solo con mercado validado.</small></div>
+            <div class="valuation-card--urgency"><span>Valor por Apuro</span><strong id="valuation-urgency">—</strong><small>Escenario de venta rápida, 7% bajo el sugerido.</small></div>
           </div>
           <div class="valuation-reading" id="valuation-reading">
             <span id="valuation-position">Analizando</span>
-            <p id="valuation-explanation">Estamos comparando el precio publicado con la estimación TPL y, cuando existe, la referencia comunal validada.</p>
+            <p id="valuation-explanation">TPL separa el cálculo técnico, la referencia observada y la estrategia comercial.</p>
           </div>
           <small>Estimación orientativa. No reemplaza una tasación bancaria, peritaje ni estudio de títulos.</small>
         </section>
@@ -126,10 +127,11 @@
               <div><strong id="investment-reading">Calculando referencias…</strong><small id="investment-source">Modelo TPL y mercado comunal validado</small></div>
               <span id="investment-badge" class="investment-badge">En análisis</span>
             </div>
-            <div class="investment-bars investment-bars--three">
-              <article><span>Precio publicado</span><div><i id="bar-published"></i></div><strong id="bar-published-value">—</strong></article>
-              <article><span>Estimación TPL</span><div><i id="bar-tpl"></i></div><strong id="bar-tpl-value">—</strong></article>
-              <article><span>Referencia comunal</span><div><i id="bar-reference"></i></div><strong id="bar-reference-value">—</strong></article>
+            <div class="investment-bars investment-bars--four">
+              <article><span>Valor por Apuro</span><div><i id="bar-urgency"></i></div><strong id="bar-urgency-value">—</strong></article>
+              <article><span>Valor Observado Comunal</span><div><i id="bar-reference"></i></div><strong id="bar-reference-value">—</strong></article>
+              <article><span>TPL Comunal Sugerido</span><div><i id="bar-suggested"></i></div><strong id="bar-suggested-value">—</strong></article>
+              <article><span>TPL Valor Tasación</span><div><i id="bar-tpl"></i></div><strong id="bar-tpl-value">—</strong></article>
             </div>
             <div class="market-comparison-note" id="market-comparison-note"></div>
             <p id="investment-explanation"></p>
@@ -250,7 +252,7 @@
   <script src="./js/core/tpl-data-service.js?v=20260802-parcela-fix-1" defer></script>
   <script src="./plataforma/publicar/tpl-land-engine.js?v=20260731-tpl-v2" defer></script>
   <script src="./js/tpl-market-intelligence.js?v=20260802-badges-v1" defer></script>
-  <script src="./js/parcela.js?v=20260802-parcela-fix-1" defer></script>
+  <script src="./js/parcela.js?v=20260803-valores-4-v1" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Parcelas y campos | Tu Parcela Lista",description:"Conoce cada parcela con informaci\u00f3n clara de ubicaci\u00f3n, superficie, valor, entorno y posibilidades para tomar una decisi\u00f3n mejor informada."}));</script>
 
 <script>
