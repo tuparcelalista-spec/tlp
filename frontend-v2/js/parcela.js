@@ -205,8 +205,19 @@
     signals.innerHTML=(a.signals||[]).map(x=>`<span>${x}</span>`).join('');
   }
   function setImage(){
-    $("main-image").src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";
-    $("main-image").alt=`${parcel.nombre||type} · fotografía ${imageIndex+1}`;
+    const mainImage = $("main-image");
+    mainImage.src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";
+    mainImage.alt=`${parcel.nombre||type} · fotografía ${imageIndex+1}`;
+    mainImage.onerror=()=>{
+      mainImage.onerror=null;
+      if(images.length>1){
+        images.splice(imageIndex,1);
+        imageIndex=Math.min(imageIndex,images.length-1);
+        setImage();
+        return;
+      }
+      mainImage.src="./assets/logo-tu-parcela-lista.png";
+    };
     $("gallery-count").textContent=images.length?`${imageIndex+1} / ${images.length}`:"";
     $("gallery-prev").hidden=images.length<2; $("gallery-next").hidden=images.length<2;
     const hero=$("parcel-emotional-hero");

@@ -184,16 +184,70 @@
     return data;
   }
 
+  function resolvePropertyMedia(client, item) {
+    if (!item) return '';
+    const directUrl = String(item.url || '').trim();
+    if (directUrl) return directUrl;
+
+    const storagePath = String(item.storage_path || '').trim();
+    if (!storagePath) return '';
+    if (/^https?:\/\//i.test(storagePath)) return storagePath;
+
+    const bucket = String(item.metadata?.bucket || 'tpl-propiedades').trim();
+    return client.storage.from(bucket).getPublicUrl(storagePath).data?.publicUrl || storagePath;
+  }
+
+  function metadataImagesOf(row) {
+    const metadata = row?.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+    const gallery = Array.isArray(metadata.imagenes) ? metadata.imagenes : [];
+    const cover = String(metadata.imagen_principal || '').trim();
+    return [...new Set([cover, ...gallery].filter(Boolean))];
+  }
+
   async function listPublishedProperties() {
     const client = await getClient();
     const { data, error } = await client
       .from('tpl_propiedades')
-      .select('id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,lat,lng,superficie_m2,precio_publicado,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,atributos_naturales,casa_datos,diagnostico,destacada,oportunidad_tpl,publicada_at,updated_at')
-      .in('estado', ['publicada', 'activa', 'disponible'])
+      .select('id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,direccion_referencia,lat,lng,superficie_m2,precio_publicado,moneda,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,distancia_ruta_principal_km,atributos_naturales,cercanias,casa_datos,diagnostico,destacada,oportunidad_tpl,metadata,publicada_at,updated_at')
+      .eq('estado', 'publicada')
       .order('publicada_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    const rows = data || [];
+    if (!rows.length) return [];
+
+    const ids = rows.map((row) => row.id).filter(Boolean);
+    const mediaByProperty = new Map();
+    const mediaResponse = await client
+      .from('tpl_propiedad_imagenes')
+      .select('propiedad_id,url,storage_path,tipo,orden,es_portada,alt,metadata')
+      .in('propiedad_id', ids)
+      .in('tipo', ['foto', 'plano', 'video_thumb'])
+      .order('es_portada', { ascending: false })
+      .order('orden', { ascending: true });
+
+    if (mediaResponse.error) {
+      console.warn('TPL Data Service: catálogo cargado sin tabla de imágenes; se usará metadata.', mediaResponse.error);
+    } else {
+      (mediaResponse.data || []).forEach((item) => {
+        const resolved = resolvePropertyMedia(client, item);
+        if (!resolved) return;
+        const list = mediaByProperty.get(item.propiedad_id) || [];
+        list.push(resolved);
+        mediaByProperty.set(item.propiedad_id, list);
+      });
+    }
+
+    return rows.map((row) => {
+      const media = mediaByProperty.get(row.id) || [];
+      const metadataImages = metadataImagesOf(row);
+      const imagenes = [...new Set([...media, ...metadataImages].filter(Boolean))];
+      return {
+        ...row,
+        imagenes,
+        imagen: imagenes[0] || ''
+      };
+    });
   }
 
 
@@ -202,7 +256,7 @@
     if (!value) return null;
     const client = await getClient();
     const fields = 'id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,direccion_referencia,lat,lng,superficie_m2,precio_publicado,moneda,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,distancia_ruta_principal_km,atributos_naturales,cercanias,casa_datos,diagnostico,destacada,oportunidad_tpl,metadata,publicada_at,updated_at';
-    const publicStates = ['publicada', 'activa', 'disponible'];
+    const publicStates = ['publicada'];
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 
     let query = client.from('tpl_propiedades').select(fields).in('estado', publicStates);
@@ -235,20 +289,13 @@
       console.warn('TPL Data Service: no fue posible cargar medios de la propiedad.', media.error);
     }
 
-    const metadataImages = Array.isArray(row.metadata?.imagenes) ? row.metadata.imagenes : [];
-    const resolveMedia = (item) => {
-      if (item?.url) return item.url;
-      const path = String(item?.storage_path || '').trim();
-      if (!path) return '';
-      if (/^https?:\/\//i.test(path)) return path;
-      const bucket = item?.tipo === 'documento' ? 'tpl-documentos' : 'tpl-propiedades';
-      return client.storage.from(bucket).getPublicUrl(path).data?.publicUrl || path;
-    };
-    const remoteImages = (media.data || []).map(resolveMedia).filter(Boolean);
+    const metadataImages = metadataImagesOf(row);
+    const remoteImages = (media.data || []).map((item) => resolvePropertyMedia(client, item)).filter(Boolean);
+    const imagenes = [...new Set([...remoteImages, ...metadataImages].filter(Boolean))];
     return {
       ...row,
-      imagenes: [...new Set([...remoteImages, ...metadataImages].filter(Boolean))],
-      imagen: remoteImages[0] || metadataImages[0] || row.metadata?.imagen_principal || ''
+      imagenes,
+      imagen: imagenes[0] || ''
     };
   }
 

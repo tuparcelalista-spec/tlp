@@ -28,7 +28,19 @@
     } catch { return remoteCatalog; }
   };
   function mapRemoteProperty(row){
+    const local = (() => {
+      try {
+        return (Array.isArray(parcelas) ? parcelas : []).find((item) =>
+          [item.id, item.codigo, item.slug, item.source_legacy_id]
+            .some((value) => normalize(value) === normalize(row.codigo || row.id))
+        ) || {};
+      } catch { return {}; }
+    })();
+    const remoteImages = Array.isArray(row.imagenes) ? row.imagenes.filter(Boolean) : [];
+    const localImages = Array.isArray(local.imagenes) ? local.imagenes.filter(Boolean) : [];
+    const imagenes = [...new Set([...remoteImages, row.imagen, ...localImages, local.imagen].filter(Boolean))];
     return {
+      ...local,
       id: row.codigo || row.id,
       canonicalId: row.id,
       codigo: row.codigo || '',
@@ -40,7 +52,10 @@
       topografia: row.topografia, suelo: row.suelo, exposicion: row.exposicion, vista_principal: row.vista_principal,
       vegetacion: row.vegetacion, cierre_perimetral: row.cierre_perimetral, porton: row.porton, condominio: row.condominio,
       atributos_naturales: row.atributos_naturales, casa_datos: row.casa_datos, diagnostico: row.diagnostico,
-      destacada: row.destacada, oportunidad_tpl: row.oportunidad_tpl, fuenteDatos: 'supabase'
+      destacada: row.destacada, oportunidad_tpl: row.oportunidad_tpl,
+      imagenes,
+      imagen: imagenes[0] || '',
+      fuenteDatos: 'supabase'
     };
   }
   async function hydrateRemoteCatalog(){
@@ -68,9 +83,11 @@
   const textOf = (p) => normalize([p.nombre, p.comuna, p.sector, p.descripcion, p.detalle, p.entorno, p.servicios].join(" "));
   const imageOf = (p) => p.imagen || p.foto || (Array.isArray(p.imagenes) ? p.imagenes[0] : "") || "./assets/logo-tu-parcela-lista.png";
   const absoluteAsset = (path) => {
-    const value = String(path || "");
-    if (/^(https?:)?\/\//i.test(value) || value.startsWith("data:")) return value;
-    return `../${value.replace(/^\.?\//, "")}`;
+    const value = String(path || '').trim();
+    if (!value) return './assets/logo-tu-parcela-lista.png';
+    if (/^(https?:)?\/\//i.test(value) || value.startsWith('data:') || value.startsWith('blob:')) return value;
+    try { return new URL(value.replace(/^\.\//, ''), document.baseURI).href; }
+    catch { return value; }
   };
   const hasPayment = (p) => positive(p.facilidadPago) || positive(p.facilidad_pago) || positive(p.facilidad) || positive(p.pagoCuotas) || /cuotas|facilidad de pago|pie/i.test(textOf(p));
   const hasNature = (p) => positive(p.naturaleza) || /bosque|nativo|araucaria|naturaleza|rio|río|estero|laguna|lago|campo/i.test(textOf(p));
