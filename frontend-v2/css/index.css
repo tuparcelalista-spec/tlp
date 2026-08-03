@@ -86,3 +86,10 @@
 .priority-inline-status{display:block;margin:8px 0 0;color:#567085;font-size:.84rem}
 @media(max-width:980px){.commune-ribbon{top:82px}.commune-ribbon__intro{display:none}.commune-ribbon__shell{padding:9px 18px}.discovery-section{grid-template-columns:1fr;gap:30px;padding-top:54px}.discovery-step{font-size:4.6rem}.combo-budget-section{grid-template-columns:1fr!important}}
 @media(max-width:700px){.commune-ribbon{position:relative;top:auto}.commune-ribbon__shell{padding:8px 14px}.commune-region strong{font-size:.58rem}.commune-chip{font-size:.76rem;padding:6px}.discovery-section{padding:46px 18px 42px}.discovery-section__intro h1,.combo-budget-copy h2{font-size:clamp(2.25rem,11vw,3.35rem)}.discovery-step{top:-18px;font-size:3.9rem}.search-methods{grid-template-columns:1fr}.search-method{min-height:auto}.combo-budget-section--premium{padding-left:18px!important;padding-right:18px!important}}
+
+
+/* Jerarquía comercial TPL */
+.tpl-commercial-badge{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:7px 10px;border-radius:999px;font-size:.72rem;font-weight:900;line-height:1.1;box-shadow:0 5px 16px rgba(15,38,55,.16)}
+.tpl-commercial-badge small{font-size:.62rem;font-weight:750;opacity:.9}.tpl-commercial-badge-image{position:absolute;z-index:12;left:12px;top:12px}.tpl-commercial-badge-card{margin:0 0 9px;box-shadow:none}
+.tpl-commercial-badge-featured{background:#eaf2ff;color:#123f73;border:1px solid #b8d2f3}.tpl-commercial-badge-opportunity{background:#e7f7ed;color:#17653c;border:1px solid #9bd4b1}.tpl-commercial-badge-great-opportunity{background:#fff0dd;color:#9a4500;border:1px solid #f0b875}.tpl-commercial-badge-selection{background:#231b45;color:#fff;border:1px solid #6e60a8}
+@media(max-width:640px){.tpl-commercial-badge-image{top:9px;left:9px}.tpl-commercial-badge{font-size:.66rem}.tpl-commercial-badge small{display:none}}

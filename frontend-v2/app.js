@@ -732,6 +732,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return '';
   }
 
+  function renderTplCommercialBadge(p, placement = 'card') {
+    const analysis = window.TPLMarketIntelligence?.analyze?.(p);
+    const tier = window.TPLMarketIntelligence?.commercialTier?.(p, analysis);
+    if (!tier || tier.key === 'none') return '';
+    const icon = tier.key === 'selection' ? '◆' : tier.key === 'great-opportunity' ? '🔥' : tier.key === 'opportunity' ? '●' : '★';
+    const saving = tier.discountPct > 0 ? `<small>${tier.discountPct}% bajo Valor TPL</small>` : '<small>Precio validado por TPL</small>';
+    return `<div class="tpl-commercial-badge tpl-commercial-badge-${tier.key} tpl-commercial-badge-${placement}" title="${tier.description}"><span>${icon}</span><strong>${tier.label}</strong>${saving}</div>`;
+  }
+
   function getDistanceBadge(p) {
     if (!state.activeFilters.gps || !state.userCoords || !p.lat || !p.lng) return "";
     const km = distanceKm(state.userCoords.lat, state.userCoords.lng, Number(p.lat), Number(p.lng));
@@ -753,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const habitaciones = Number(p.habitaciones || p.datos_formulario?.habitaciones || 0);
       return `<article class="parcela-card parcela-con-casa-card">
         <a class="card-image card-image-link" href="${href}"><img src="${img}" alt="${p.nombre}" loading="lazy" decoding="async" width="800" height="600"><span class="tpl-land-house-badge">Parcela con casa</span></a>
-        <div class="card-body"><h3 class="card-title">${p.nombre}</h3><div class="card-meta"><i class="tpl-icon tpl-icon-area"></i> ${Number(p.tamano||0).toLocaleString('es-CL')} m² de terreno${construida?` · <i class="tpl-icon tpl-icon-home"></i> ${construida.toLocaleString('es-CL')} m² construidos`:''}${habitaciones?` · ${habitaciones} dorm.`:''}</div><div class="card-price card-price-clean">${p.precio}</div><div class="card-actions"><a class="btn-card btn-details" href="${href}">Ver propiedad</a></div></div>
+        <div class="card-body">${renderTplCommercialBadge(p, 'card')}<h3 class="card-title">${p.nombre}</h3><div class="card-meta"><i class="tpl-icon tpl-icon-area"></i> ${Number(p.tamano||0).toLocaleString('es-CL')} m² de terreno${construida?` · <i class="tpl-icon tpl-icon-home"></i> ${construida.toLocaleString('es-CL')} m² construidos`:''}${habitaciones?` · ${habitaciones} dorm.`:''}</div><div class="card-price card-price-clean">${p.precio}</div><div class="card-actions"><a class="btn-card btn-details" href="${href}">Ver propiedad</a></div></div>
       </article>`;
     }).join('');
   }
@@ -800,7 +809,7 @@ document.addEventListener("DOMContentLoaded", () => {
       card.innerHTML = `
         <div class="card-image-wrapper" style="position:relative;">
         <a class="card-image card-image-link" href="${detailHref}" aria-label="Ver detalles de ${p.nombre}">
-          ${window.TasadorInteligente && window.TasadorInteligente.isOpportunity(getAllParcelas(), p) ? `<div class="badge-opportunity" style="position:absolute; top:12px; left:12px; background:linear-gradient(135deg, #f59e0b, #d97706); color:white; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:800; z-index:10; box-shadow:0 4px 12px rgba(245,158,11,0.4);"><i data-lucide="flame" style="width:12px;height:12px;margin-right:4px;vertical-align:-2px;"></i> Oportunidad de Inversión</div>` : ''}
+          ${renderTplCommercialBadge(p, 'image')}
           
           <div class="card-top-icons" style="position:absolute; top:12px; right:12px; display:flex; gap:8px; z-index:10;"></div>
           <img src="${img}" alt="${p.nombre}" loading="${state.recommendationActive ? "eager" : "lazy"}" fetchpriority="${state.recommendationActive ? "high" : "auto"}" decoding="async" width="800" height="600">
@@ -811,6 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <h3 class="card-title">${p.nombre}</h3>
           <div class="card-meta"><i class="tpl-icon tpl-icon-area"></i> ${Number(p.tamano || 0).toLocaleString("es-CL")} m²</div>
           <div class="card-price card-price-clean">${p.precio}</div>
+          ${renderTplCommercialBadge(p, 'card')}
           ${renderPromotionBadge(p)}
           ${renderTplBackedValueBadge(p, "card")}
           ${renderParcelaFeatureChips(p, "desktop")}

@@ -129,3 +129,5 @@
   .valuation-box>div{min-height:auto}
   .map-box{min-height:230px;aspect-ratio:4/3}
 }
+
+.investment-badge.is-featured{background:#eaf2ff;color:#123f73}.investment-badge.is-opportunity{background:#e7f7ed;color:#17653c}.investment-badge.is-great-opportunity{background:#fff0dd;color:#9a4500}.investment-badge.is-selection{background:#231b45;color:#fff}

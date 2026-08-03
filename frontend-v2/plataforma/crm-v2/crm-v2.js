@@ -561,6 +561,23 @@
         <article class="card span6"><h3>Desde proyectos</h3><p class="muted">Crea el informe completo parcela + casa + presupuesto desde una operación activa.</p><button class="primary" data-view="operaciones">Ver proyectos</button></article>
       </div>`;
   }
+  function crmCommercialTier(r) {
+    const price=Number(r?.precio_publicado||0);
+    const tplM2=Number(r?.valor_tpl_m2||0);
+    const area=Number(r?.superficie_m2||0);
+    const tplValue=tplM2&&area?tplM2*area:0;
+    if(!price||!tplValue) return null;
+    const ratio=price/tplValue;
+    const manual=Boolean(r?.seleccion_tpl===true||r?.metadata?.seleccion_tpl===true);
+    const discount=Math.max(0,Math.round((1-ratio)*100));
+    if(manual&&ratio<=1.005)return {key:'selection',label:'Selección TPL'};
+    if(ratio<=.85)return {key:'great-opportunity',label:`Gran Oportunidad · ${discount}% bajo TPL`};
+    if(ratio<=.95)return {key:'opportunity',label:`Oportunidad · ${discount}% bajo TPL`};
+    if(ratio<=1.005)return {key:'featured',label:'Destacada TPL'};
+    return null;
+  }
+  function crmCommercialBadge(r){const t=crmCommercialTier(r);return t?`<span class="crm-commercial-badge is-${t.key}">${esc(t.label)}</span>`:'';}
+
   function parcelsView() {
     const rows = arr('parcelas');
     const published = rows.filter((x) => x.estado === 'publicada').length;
@@ -570,14 +587,14 @@
         <div><h2>Parcelas y campos</h2><p class="muted">Vista completa del inventario canónico. Incluye publicaciones nuevas y el catálogo histórico migrado.</p></div>
         <div class="catalog-toolbar-actions"><input id="search" placeholder="Buscar nombre, comuna, código…"><button class="primary" data-action="refresh">Actualizar</button></div>
       </div>
-      <div class="metric-grid">${metric('Inventario', rows.length, 'propiedades en Supabase')}${metric('Publicadas', published, 'visibles o listas para revisión')}${metric('Sin fotografía', withoutImage, 'requieren completar ficha')}${metric('Oportunidades', rows.filter(x=>x.es_oportunidad).length, 'detectadas por TPL')}</div>
+      <div class="metric-grid">${metric('Inventario', rows.length, 'propiedades en Supabase')}${metric('Publicadas', published, 'visibles o listas para revisión')}${metric('Sin fotografía', withoutImage, 'requieren completar ficha')}${metric('Oportunidades', rows.filter(x=>['opportunity','great-opportunity','selection'].includes(crmCommercialTier(x)?.key)).length, 'detectadas por TPL')}</div>
       <div class="catalog-grid">
         ${rows.map((r) => `
           <article class="catalog-card" data-search-row="${esc(JSON.stringify(r).toLowerCase())}">
             <div class="catalog-card-media">${previewImage(r, 'parcela')}<span class="catalog-state">${esc(r.estado || 'sin estado')}</span><span class="catalog-count">${Number(r.total_imagenes || 0)} fotos</span></div>
             <div class="catalog-card-body">
               <small>${esc(r.codigo || r.id || '')}</small>
-              <h3>${esc(r.titulo || 'Parcela sin título')}</h3>
+              ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(r.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(r.precio_publicado)}</b></div>
               <div class="catalog-actions">

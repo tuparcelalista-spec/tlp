@@ -153,8 +153,9 @@
     $('bar-tpl-value').textContent=a.tplM2?`${formatMoney(a.tplM2)} / m²`:'Sin cálculo';
     $('bar-reference-value').textContent=a.marketM2?`${formatMoney(a.marketM2)} / m²`:'En construcción';
     $('investment-reading').textContent=a.label;
-    $('investment-badge').textContent=a.label;
-    $('investment-badge').className=`investment-badge is-${a.tone}`;
+    const tier=window.TPLMarketIntelligence?.commercialTier?.(parcel,a);
+    $('investment-badge').textContent=tier?.key&&tier.key!=='none'?tier.label:a.label;
+    $('investment-badge').className=`investment-badge is-${tier?.key&&tier.key!=='none'?tier.key:a.tone}`;
     $('investment-source').textContent=a.market?`Modelo TPL + referencia validada de ${parcel.comuna}`:'Modelo TPL · referencia comunal aún no validada';
     $('investment-explanation').textContent=a.summary;
     const marketNote=$('market-comparison-note');

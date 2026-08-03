@@ -162,6 +162,31 @@
     return {opportunity,label,tone,summary,diffTpl,diffMarket,signals};
   }
 
+  function commercialTier(p, analysis){
+    const a=analysis || analyze(p);
+    const price=Number(a?.price||0), tplValue=Number(a?.tpl?.ideal||0);
+    const manualSelection=Boolean(
+      p?.seleccion_tpl===true || p?.metadata?.seleccion_tpl===true ||
+      p?.distintivos?.seleccionTpl===true
+    );
+    if(!price || !tplValue) return {key:'none',label:'',description:'',discountPct:null};
+    const ratio=price/tplValue;
+    const discountPct=Math.max(0,Math.round((1-ratio)*100));
+    if(manualSelection && ratio<=1.005){
+      return {key:'selection',label:'Selección TPL',description:'Calidad integral validada por Tu Parcela Lista.',discountPct};
+    }
+    if(ratio<=0.85){
+      return {key:'great-opportunity',label:'Gran Oportunidad TPL',description:`Precio ${discountPct}% bajo el Valor TPL.`,discountPct};
+    }
+    if(ratio<=0.95){
+      return {key:'opportunity',label:'Oportunidad TPL',description:`Precio ${discountPct}% bajo el Valor TPL.`,discountPct};
+    }
+    if(ratio<=1.005){
+      return {key:'featured',label:'Destacada TPL',description:'Precio igual o inferior a la recomendación TPL.',discountPct};
+    }
+    return {key:'none',label:'',description:'',discountPct};
+  }
+
   function analyze(p){
     const area=areaOf(p), price=priceOf(p), publishedM2=area&&price?Math.round(price/area):0;
     const tpl=calculateTpl(p);
@@ -177,5 +202,5 @@
     };
   }
 
-  global.TPLMarketIntelligence=Object.freeze({ analyze, areaOf, priceOf, qualitySignals, REFERENCE_POINTS });
+  global.TPLMarketIntelligence=Object.freeze({ analyze, commercialTier, areaOf, priceOf, qualitySignals, REFERENCE_POINTS });
 })(typeof window!=='undefined'?window:globalThis);
