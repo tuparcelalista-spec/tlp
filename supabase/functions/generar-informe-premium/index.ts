@@ -54,7 +54,8 @@ Deno.serve(async (req) => {
     const quickValue = Number(result.quick || result.agile || result.valorMinimo || (tplValue * .93));
     const patientValue = Number(result.patient || result.technicalPotential || result.valorMaximo || tplValue);
     const askingValue = Number(input.asking || input.precio_publicado || 0);
-    const marketValue = Number(result.marketReference?.medianValue || result.marketReference?.median_value || result.observedComparables?.mediana_total || 0);
+    const communalValue = Number(result.marketReference?.medianValue || result.marketReference?.median_value || result.referencia_comunal_total || 0);
+    const observedValue = Number(result.observedComparables?.mediana_total || 0);
     const communalM2 = Number(result.marketReference?.medianM2 || result.referencia_comunal_m2 || 0);
 
     const has = (v: unknown) => v !== undefined && v !== null && String(v).trim() !== '' && String(v).toLowerCase() !== 'no informado';
@@ -117,12 +118,12 @@ Deno.serve(async (req) => {
     page1.drawText('VALOR TÉCNICO TPL',{x:52,y:656,size:10,font:bold,color:blue});
     page1.drawText(money(tplValue),{x:52,y:620,size:25,font:bold,color:blue});
     page1.drawText(`Confianza informativa: ${quality}/1.000 · ${qualityLabel}`,{x:52,y:600,size:10,font:regular,color:gray});
-    const minV=Math.min(quickValue||tplValue,tplValue,patientValue||tplValue,askingValue||tplValue,marketValue||tplValue); const maxV=Math.max(quickValue||tplValue,tplValue,patientValue||tplValue,askingValue||tplValue,marketValue||tplValue); const span=Math.max(1,maxV-minV); const sx=(v:number)=>55+((v-minV)/span)*480;
+    const minV=Math.min(quickValue||tplValue,tplValue,patientValue||tplValue,askingValue||tplValue,communalValue||tplValue); const maxV=Math.max(quickValue||tplValue,tplValue,patientValue||tplValue,askingValue||tplValue,communalValue||tplValue); const span=Math.max(1,maxV-minV); const sx=(v:number)=>55+((v-minV)/span)*480;
     page1.drawText('ESTRATEGIA COMERCIAL',{x:40,y:550,size:12,font:bold,color:blue}); page1.drawLine({start:{x:55,y:500},end:{x:535,y:500},thickness:5,color:rgb(.82,.86,.89)});
     const mark=(v:number,label:string,color:any,dy:number)=>{if(!v)return;const x=sx(v);page1.drawCircle({x,y:500,size:6,color});page1.drawText(label,{x:Math.max(38,Math.min(500,x-25)),y:dy,size:8,font:bold,color});page1.drawText(money(v),{x:Math.max(38,Math.min(490,x-28)),y:dy-12,size:8,font:regular,color:gray});};
-    mark(quickValue,'CON APURO',orange,475); mark(tplValue,'VALOR TPL',blue,525); mark(patientValue,'SIN APURO',green,475); if(askingValue)mark(askingValue,'PROPIETARIO',rgb(.42,.18,.62),545); if(marketValue)mark(marketValue,'MERCADO',rgb(.65,.48,.04),455);
+    mark(quickValue,'CON APURO',orange,475); mark(tplValue,'VALOR TPL',blue,525); mark(patientValue,'SIN APURO',green,475); if(askingValue)mark(askingValue,'PROPIETARIO',rgb(.42,.18,.62),545); if(communalValue)mark(communalValue,'VALOR COMUNAL',rgb(.65,.48,.04),455);
     page1.drawRectangle({x:36,y:270,width:523,height:145,color:rgb(.98,.98,.97)}); page1.drawText('RESUMEN EJECUTIVO',{x:52,y:388,size:12,font:bold,color:blue});
-    let yy=365; yy=wrap(page1,`El Valor TPL recomendado es ${money(tplValue)}. El escenario con apuro se ubica en ${money(quickValue)} y el escenario sin apuro en ${money(patientValue)}. ${communalM2?`La referencia comunal observada equivale aproximadamente a ${money(communalM2)}/m² y forma parte del respaldo de mercado cuando la muestra es aplicable.`:'La referencia comunal disponible no fue suficiente para este segmento y el análisis se apoya principalmente en antecedentes técnicos.'}`,52,yy,490,10,regular,15);
+    let yy=365; const communalDelta=communalValue?Math.round(((tplValue-communalValue)/communalValue)*100):null; yy=wrap(page1,`El Valor Técnico TPL recomendado es ${money(tplValue)} y fue calculado de forma independiente con los antecedentes particulares de la propiedad. El escenario con apuro deriva de ese valor y se ubica en ${money(quickValue)}; el escenario sin apuro se sitúa en ${money(patientValue)}. ${communalValue?`El Valor Comunal TPL es ${money(communalValue)} (${money(communalM2)}/m²) y se presenta únicamente como referencia estadística. La diferencia es ${communalDelta>=0?'+':''}${communalDelta}%.`:'No existe una referencia comunal validada suficiente para este segmento.'}`,52,yy,490,10,regular,15);
     page1.drawText('ÍNDICE DE CALIDAD TPL',{x:40,y:220,size:12,font:bold,color:blue}); page1.drawRectangle({x:40,y:185,width:515,height:18,color:rgb(.87,.90,.92)}); page1.drawRectangle({x:40,y:185,width:515*(quality/1000),height:18,color:quality>=800?green:quality>=500?yellow:orange}); page1.drawText(`${quality} / 1.000 · ${qualityLabel}`,{x:40,y:160,size:13,font:bold,color:blue}); page1.drawText(`Proyección al completar mejoras prioritarias: ${projectedQuality}/1.000`,{x:40,y:140,size:10,font:regular,color:gray});
     page1.drawText('Informe comercial orientativo. No reemplaza peritaje presencial, tasación bancaria ni revisión legal.',{x:40,y:38,size:8,font:regular,color:gray});
 
@@ -151,7 +152,7 @@ Deno.serve(async (req) => {
     await supabase.storage.createBucket('informes-tasacion', { public: false }).catch(() => null);
     const { error: uploadError } = await supabase.storage.from('informes-tasacion').upload(path, bytes, { contentType: 'application/pdf', upsert: true });
     if (uploadError) throw uploadError;
-    await supabase.from('tpl_informes_tasacion').upsert({ orden_id: order.id, tasacion_id: order.tasacion_id, propiedad_id: order.propiedad_id, version_plantilla: 'tpl-premium-inteligente-v4', storage_bucket: 'informes-tasacion', storage_path: path, estado: 'disponible', generado_at: new Date().toISOString(), generado_por: userId, metadata: { engine_version: order.version_motor, analisis_territorial_id: territorial?.id || null, source: 'crm', asset_type: assetType, quality_score: quality, projected_quality_score: projectedQuality, improvements: improvements.slice(0,7) } }, { onConflict: 'orden_id' });
+    await supabase.from('tpl_informes_tasacion').upsert({ orden_id: order.id, tasacion_id: order.tasacion_id, propiedad_id: order.propiedad_id, version_plantilla: 'tpl-premium-independiente-v5', storage_bucket: 'informes-tasacion', storage_path: path, estado: 'disponible', generado_at: new Date().toISOString(), generado_por: userId, metadata: { engine_version: order.version_motor, analisis_territorial_id: territorial?.id || null, source: 'crm', asset_type: assetType, quality_score: quality, projected_quality_score: projectedQuality, improvements: improvements.slice(0,7) } }, { onConflict: 'orden_id' });
     await supabase.from('tpl_ordenes_informe').update({ estado: 'disponible', disponible_at: new Date().toISOString() }).eq('id', order.id);
 
     const { data: signed } = await supabase.storage.from('informes-tasacion').createSignedUrl(path, 60 * 60 * 24 * 7);

@@ -31,6 +31,7 @@
     majorCityWeight: 0.70,
     communeWeight: 0.30,
     agileFactor: 0.93,
+    patientFactor: 1.07,
     ruralImmediateClosingM2: 1650,
     routePenaltyPerKm: 0.01,
     routePenaltyMax: 0.50,
@@ -244,13 +245,11 @@
 
     const market=marketReference(input.comuna,area);
     const routeKm=Math.max(0,Number(input.routeDistanceKm)||0);
-    let technicalWeight=.5,marketWeight=.5;
-    if(normalize(input.tourism)==='nacional'){technicalWeight=.90;marketWeight=.10;}
-    else if(routeKm>RULES.communalIsolationThresholdKm){technicalWeight=RULES.isolatedTechnicalWeight;marketWeight=RULES.isolatedMarketWeight;}
-    const recommended=market
-      ? roundPrice((technicalPotential*technicalWeight)+(market.medianValue*marketWeight))
-      : technicalPotential;
+    // Regla canónica TPL: el valor técnico es independiente del mercado comunal.
+    // La referencia comunal se conserva únicamente como contraste estadístico.
+    const recommended=technicalPotential;
     const agile=roundPrice(recommended*RULES.agileFactor);
+    const patient=roundPrice(recommended*RULES.patientFactor);
     const immediateBase=roundPrice(area*RULES.ruralImmediateClosingM2);
     const immediateReference=normalize(input.tourism)==='nacional'?null:roundPrice(((recommended*.90)+immediateBase)/2);
 
@@ -261,20 +260,20 @@
     const classification=priceVsTplPct===null?'Sin precio publicado':priceVsTplPct<=-20?'Oportunidad destacada':priceVsTplPct<=-10?'Precio atractivo':priceVsTplPct<=10?'Precio competitivo':priceVsTplPct<=20?'Sobre estimación':'Precio elevado';
 
     return {
-      quick:agile, ideal:recommended, patient:technicalPotential,
-      agile, recommended, technicalPotential, immediateReference,
+      quick:agile, ideal:recommended, patient,
+      agile, recommended, technicalPotential, patientPotential:patient, immediateReference,
       reference:recommended, low:agile, high:technicalPotential,
       asking, area, location:input.location||'',region:input.region||'',comuna:input.comuna||'',
       base:surfacePricing.base,surfacePricing,territorialBase,commercialBase:territorialBase,
       territorialBlend,cityDistance:territorialBlend.major,distanceMultiplier:territorialBlend.multiplier,
       nearestCity:input.nearestCity?{name:input.nearestCity.name,category:input.nearestCity.category||'',distanceKm:Number(majorKm.toFixed(1))}:null,
       communeDistanceKm:Number.isFinite(Number(input.communeDistanceKm))?Number(input.communeDistanceKm):null,
-      marketReference:market,marketBlend:{technicalWeight,marketWeight,isolationApplied:routeKm>RULES.communalIsolationThresholdKm},
+      marketReference:market,marketBlend:{technicalWeight:1,marketWeight:0,independent:true,isolationApplied:false},
       propertyIndex,territorialIndex,nearbyContext:input.nearbyContext||null,
       priceAnalysis:{publishedM2,tplM2,marketM2,priceVsTplPct,classification,opportunity:priceVsTplPct!==null&&priceVsTplPct<=-15},
       adjustments:adjustments.map(x=>({...x,amount:Math.round(territorialBase*x.pct)})),totalPct,adjustmentFactor,
       score:Math.round(propertyIndex.score*.55+territorialIndex.score*.45),coverage:'motor_tpl_v2',source:'tpl_land_engine_local',persisted:false,method:ENGINE_VERSION,engineVersion:ENGINE_VERSION,
-      cautions:[...(area>=10000&&!market?['La referencia comunal no se mezcla porque falta una muestra validada del mismo rango de superficie.']:[]),...(immediateReference===null?['La referencia de venta inmediata rural no se muestra para turismo nacional.']:[])]
+      cautions:[...(area>=10000&&!market?['No existe una referencia comunal validada del mismo rango de superficie; el Valor TPL sigue siendo técnico e independiente.']:[]),...(immediateReference===null?['La referencia de venta inmediata rural no se muestra para turismo nacional.']:[])]
     };
   }
 

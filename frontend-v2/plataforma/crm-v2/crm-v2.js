@@ -533,13 +533,14 @@
       valuation,
       ideal: Number(result.ideal ?? result.recommended ?? result.market ?? 0),
       quick: Number(result.quick ?? result.agile ?? 0),
-      patient: Number(result.patient ?? result.technicalPotential ?? 0)
+      patient: Number(result.patient ?? result.patientPotential ?? (Number(result.ideal ?? result.recommended ?? 0)*1.07) ?? 0),
+      communal: Number(result.marketReference?.medianValue ?? result.referencia_comunal_total ?? result.observedComparables?.mediana_total ?? 0)
     };
   }
 
 
   function valuationExplanation(record) {
-    const { valuation, ideal } = valuationValues(record);
+    const { valuation, ideal, communal } = valuationValues(record);
     const result = valuation?.resultado || valuation?.result || {};
     const input = valuation?.entrada || valuation?.input || {};
     if (!ideal) return '';
@@ -738,7 +739,7 @@
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(hydratedProperty(r).superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(hydratedProperty(r).precio_publicado)}</b></div>
-              ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor TPL</small><b>${fmtMoney(v.ideal)}</b></span><span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
+              ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor Técnico TPL</small><b>${fmtMoney(v.ideal)}</b></span>${v.communal?`<span><small>Valor Comunal TPL</small><b>${fmtMoney(v.communal)}</b></span>`:''}<span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
               ${valuationExplanation(r)}
               <div class="catalog-actions catalog-actions--primary">
                 <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver propiedad</a>
