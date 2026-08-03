@@ -4,19 +4,7 @@
   const params = new URLSearchParams(location.search);
   const normalize = (v) => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const priceNumber = (v) => Number(String(v || "").replace(/[^0-9]/g, "")) || 0;
-  const isInformed = (v) => {
-    if (v === true || (typeof v === "number" && Number.isFinite(v))) return true;
-    if (Array.isArray(v)) return v.some(isInformed);
-    if (v && typeof v === "object") return Object.values(v).some(isInformed);
-    const text = normalize(v).trim();
-    if (!text || ["no","false","0","null","undefined","sin informacion","sin información","por confirmar","no informado","no informada","ninguno","ninguna"].includes(text)) return false;
-    return true;
-  };
-  const positive = (v) => {
-    if (v === true || Number(v) === 1) return true;
-    const text = normalize(v).trim();
-    return ["si","true","disponible","incluido","incluida","con","instalado","instalada","propio","propia","factible","factibilidad"].some(x => text === x || text.startsWith(`${x} `));
-  };
+  const positive = (v) => ["si","sí","true","1","disponible","incluido","con"].some(x => normalize(v) === normalize(x));
   const formatMoney = (n) => n ? new Intl.NumberFormat("es-CL",{style:"currency",currency:"CLP",maximumFractionDigits:0}).format(n) : "Consultar";
   const sizeOf = (p) => Number(p.tamano || p.metros || p.superficie || 0);
   const soilOf = (p) => p.tipoSuelo || p.tipo_suelo || p.suelo || p.topografia || p.terreno || inferSoil(p);
@@ -44,27 +32,22 @@
   }
   function mapCanonical(row, fallback={}){
     if(!row) return fallback;
-    const metadata=row.metadata&&typeof row.metadata==='object'?row.metadata:{};
     return {
       ...fallback,
       id: row.codigo || row.id || fallback.id,
       canonicalId: row.id || null,
       codigo: row.codigo || fallback.codigo || '',
-      tipo: row.tipo || fallback.tipo || '',
-      estado: row.estado || fallback.estado || '',
       nombre: row.titulo || fallback.nombre,
       descripcion: row.descripcion || fallback.descripcion,
       region: row.region || fallback.region,
       comuna: row.comuna || fallback.comuna,
       sector: row.sector || fallback.sector,
-      direccion_referencia: row.direccion_referencia || fallback.direccion_referencia || metadata.direccion_referencia,
       lat: row.lat ?? fallback.lat,
       lng: row.lng ?? fallback.lng,
       tamano: row.superficie_m2 ?? fallback.tamano,
       superficie: row.superficie_m2 ?? fallback.superficie,
       precio: row.precio_publicado ? formatMoney(row.precio_publicado) : fallback.precio,
       precioNumero: row.precio_publicado || fallback.precioNumero,
-      moneda: row.moneda || fallback.moneda || 'CLP',
       rol: row.rol_situacion || fallback.rol,
       electricidad: row.electricidad ?? fallback.electricidad,
       luz: row.electricidad ?? fallback.luz,
@@ -72,24 +55,13 @@
       acceso: row.acceso || fallback.acceso,
       topografia: row.topografia || fallback.topografia,
       suelo: row.suelo || fallback.suelo,
-      exposicion: row.exposicion || fallback.exposicion,
-      vista_principal: row.vista_principal || fallback.vista_principal,
-      vegetacion: row.vegetacion || fallback.vegetacion,
       cierre_perimetral: row.cierre_perimetral ?? fallback.cierre_perimetral,
       porton: row.porton ?? fallback.porton,
-      condominio: row.condominio ?? fallback.condominio,
-      distancia_ruta_principal_km: row.distancia_ruta_principal_km ?? fallback.distancia_ruta_principal_km,
       atributos_naturales: row.atributos_naturales || fallback.atributos_naturales,
-      cercanias: row.cercanias || fallback.cercanias,
-      casa_datos: row.casa_datos || fallback.casa_datos,
       diagnostico: row.diagnostico || fallback.diagnostico,
-      destacada: row.destacada ?? fallback.destacada,
-      oportunidad_tpl: row.oportunidad_tpl ?? fallback.oportunidad_tpl,
-      publicada_at: row.publicada_at || fallback.publicada_at,
-      updated_at: row.updated_at || fallback.updated_at,
       imagenes: Array.isArray(row.imagenes) ? row.imagenes : fallback.imagenes,
       imagen: row.imagen || (Array.isArray(row.imagenes) ? row.imagenes[0] : '') || fallback.imagen,
-      metadata,
+      metadata: row.metadata || fallback.metadata,
       fuenteDatos: 'supabase'
     };
   }
@@ -106,6 +78,63 @@
     return Object.keys(fallback).length ? {...fallback,fuenteDatos:'respaldo-local'} : null;
   }
 
+  function formatInputMoney(input){
+    if(!input) return;
+    const value=priceNumber(input.value);
+    input.value=value?formatMoney(value):"";
+  }
+
+  async function submitProposal(event){
+    event.preventDefault();
+    const form=event.currentTarget;
+    const statusNode=$("proposal-status");
+    const submitButton=form?.querySelector('[type="submit"]');
+    const proposalType=$("proposal-type")?.value||"oferta";
+    const payload={
+      tipo:proposalType,
+      propiedad_id:null,
+      propiedad_codigo:"",
+      propiedad_nombre:"",
+      nombre_contacto:$("proposal-name")?.value?.trim()||"",
+      email:$("proposal-email")?.value?.trim()||"",
+      telefono:$("proposal-phone")?.value?.trim()||"",
+      monto_oferta:proposalType==="oferta"?priceNumber($("proposal-amount")?.value):null,
+      condicion:$("proposal-condition")?.value?.trim()||"",
+      mensaje:$("proposal-message")?.value?.trim()||"",
+      origen:"parcela.html"
+    };
+    if(!payload.nombre_contacto||!payload.email){
+      if(statusNode) statusNode.textContent="Completa tu nombre y correo.";
+      return;
+    }
+    payload.propiedad_id=currentParcel?.canonicalId||null;
+    payload.propiedad_codigo=currentParcel?.codigo||currentParcel?.id||"";
+    payload.propiedad_nombre=currentParcel?.nombre||"Parcela";
+    try{
+      if(submitButton) submitButton.disabled=true;
+      if(statusNode) statusNode.textContent="Enviando solicitud...";
+      if(window.TPLDataService?.createPublicOpportunity){
+        await window.TPLDataService.createPublicOpportunity(payload);
+      }else{
+        const backup=JSON.parse(localStorage.getItem("tpl_public_opportunities")||"[]");
+        backup.push({...payload,created_at:new Date().toISOString()});
+        localStorage.setItem("tpl_public_opportunities",JSON.stringify(backup));
+      }
+      form.reset();
+      if($("proposal-type")) $("proposal-type").value="oferta";
+      if($("offer-amount-field")) $("offer-amount-field").hidden=false;
+      if($("improvement-field")) $("improvement-field").hidden=true;
+      if(statusNode) statusNode.textContent="Solicitud enviada correctamente.";
+    }catch(error){
+      console.error("TPL Parcela: no fue posible enviar la solicitud.",error);
+      if(statusNode) statusNode.textContent="No fue posible enviar ahora. Intenta nuevamente.";
+    }finally{
+      if(submitButton) submitButton.disabled=false;
+    }
+  }
+
+  let currentParcel=null;
+
   async function init(){
     const id=params.get("id") || params.get("codigo") || params.get("parcela");
     if(!id){
@@ -115,6 +144,7 @@
     }
     const parcel=await loadParcel(id);
     if(!parcel){ $("not-found").hidden=false; return; }
+    currentParcel=parcel;
     const context=getContext();
   const images=(Array.isArray(parcel.imagenes)&&parcel.imagenes.length?parcel.imagenes:[parcel.imagen]).filter(Boolean).map(absoluteAsset);
   let imageIndex=0;
@@ -144,10 +174,10 @@
     if(positive(parcel.luz)||positive(parcel.electricidad)) included.push("Electricidad o factibilidad informada"); else pending.push("Confirmar solución eléctrica o paneles solares");
     if(positive(parcel.agua)) included.push("Disponibilidad de agua informada"); else pending.push("Definir puntera, pozo u otra solución de agua");
     const text=normalize([parcel.descripcion,parcel.detalle].join(" "));
-    if(isInformed(parcel.cierre_perimetral)||/cercad|cerco|cierre perimetral/.test(text)) included.push("Cerco o cierre informado"); else pending.push("Evaluar cerco perimetral");
-    if(isInformed(parcel.porton)||/porton|portón/.test(text)) included.push("Portón informado"); else pending.push("Evaluar portón de acceso");
-    if(isInformed(parcel.solucion_sanitaria)||/fosa|alcantarillado/.test(text)) included.push("Solución sanitaria informada"); else pending.push("Definir fosa o solución sanitaria");
-    if(isInformed(parcel.acceso)||/acceso|camino/.test(text)) included.push("Acceso o camino mencionado"); else pending.push("Confirmar estado del acceso");
+    if(/cercad|cerco|cierre perimetral/.test(text)) included.push("Cerco o cierre informado"); else pending.push("Evaluar cerco perimetral");
+    if(/porton|portón/.test(text)) included.push("Portón informado"); else pending.push("Evaluar portón de acceso");
+    if(/fosa|alcantarillado/.test(text)) included.push("Solución sanitaria informada"); else pending.push("Definir fosa o solución sanitaria");
+    if(/acceso|camino/.test(text)) included.push("Acceso o camino mencionado"); else pending.push("Confirmar estado del acceso");
     return {included,pending};
   }
   function marketAnalysis(){
@@ -205,19 +235,8 @@
     signals.innerHTML=(a.signals||[]).map(x=>`<span>${x}</span>`).join('');
   }
   function setImage(){
-    const mainImage = $("main-image");
-    mainImage.src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";
-    mainImage.alt=`${parcel.nombre||type} · fotografía ${imageIndex+1}`;
-    mainImage.onerror=()=>{
-      mainImage.onerror=null;
-      if(images.length>1){
-        images.splice(imageIndex,1);
-        imageIndex=Math.min(imageIndex,images.length-1);
-        setImage();
-        return;
-      }
-      mainImage.src="./assets/logo-tu-parcela-lista.png";
-    };
+    $("main-image").src=images[imageIndex]||"./assets/logo-tu-parcela-lista.png";
+    $("main-image").alt=`${parcel.nombre||type} · fotografía ${imageIndex+1}`;
     $("gallery-count").textContent=images.length?`${imageIndex+1} / ${images.length}`:"";
     $("gallery-prev").hidden=images.length<2; $("gallery-next").hidden=images.length<2;
     const hero=$("parcel-emotional-hero");
@@ -261,34 +280,6 @@
     }catch(error){console.warn('TPL Parcela: perfil territorial no disponible.',error)}
   }
 
-
-  function readable(value){
-    if(value===true)return 'Sí';
-    if(value===false)return 'No';
-    if(Array.isArray(value))return value.filter(isInformed).join(' · ');
-    if(value&&typeof value==='object')return Object.entries(value).filter(([,v])=>isInformed(v)).map(([k,v])=>`${k.replace(/_/g,' ')}: ${readable(v)}`).join(' · ');
-    return String(value??'').trim();
-  }
-  function renderAttributeDetails(){
-    const grid=$("property-attributes-grid");
-    const section=$("property-attributes-section");
-    if(!grid||!section)return;
-    const details=[
-      ['Tipo de propiedad',parcel.tipo||type],['Estado',parcel.estado],['Región',parcel.region],['Comuna',parcel.comuna],['Sector',parcel.sector],['Referencia de ubicación',parcel.direccion_referencia],
-      ['Superficie',size?`${size.toLocaleString('es-CL')} m²`:null],['Acceso',parcel.acceso],['Distancia a ruta principal',isInformed(parcel.distancia_ruta_principal_km)?`${Number(parcel.distancia_ruta_principal_km).toLocaleString('es-CL')} km`:null],
-      ['Topografía',parcel.topografia],['Tipo de suelo',parcel.suelo],['Exposición',parcel.exposicion],['Vista principal',parcel.vista_principal],['Vegetación',parcel.vegetacion],
-      ['Rol',parcel.rol],['Agua',parcel.agua],['Electricidad',parcel.electricidad||parcel.luz],['Cierre perimetral',parcel.cierre_perimetral],['Portón',parcel.porton],['Condominio',parcel.condominio],
-      ['Atributos naturales',parcel.atributos_naturales],['Cercanías',parcel.cercanias],['Casa existente',parcel.casa_datos],['Oportunidad TPL',parcel.oportunidad_tpl],['Destacada',parcel.destacada]
-    ].filter(([,v])=>isInformed(v));
-    grid.innerHTML='';
-    details.forEach(([label,value])=>{
-      const article=document.createElement('article');
-      const span=document.createElement('span');span.textContent=label;
-      const strong=document.createElement('strong');strong.textContent=readable(value);
-      article.append(span,strong);grid.appendChild(article);
-    });
-    section.hidden=!details.length;
-  }
   function render(){
     document.title=`${parcel.nombre||type} | Tu Parcela Lista`;
     $("search-memory").textContent=`${contextLabel()}${parcel.fuenteDatos==='respaldo-local'?' · Datos de respaldo':''}`;
@@ -300,8 +291,7 @@
     $("fact-soil").textContent=soilOf(parcel);
     $("primary-tags").innerHTML=tags().map(x=>`<span>${x}</span>`).join("");
     $("parcel-description").textContent=parcel.descripcion||"Información descriptiva pendiente de confirmar.";
-    $("confirmed-grid").innerHTML=status("Rol",parcel.rol,"Informado")+status("Electricidad",parcel.luz||parcel.electricidad,"Informada")+status("Agua",parcel.agua,"Informada")+status("Acceso",parcel.acceso,"Informado");
-    renderAttributeDetails();
+    $("confirmed-grid").innerHTML=status("Rol",parcel.rol,"Informado")+status("Electricidad",parcel.luz||parcel.electricidad,"Informada")+status("Agua",parcel.agua,"Informada")+status("Servicios cerca",parcel.servicios||parcel.servicios_cerca,"Informados");
     const d=diagnosis();
     $("included-list").innerHTML=d.included.map(x=>`<li>${x}</li>`).join("")||"<li>Sin antecedentes confirmados suficientes</li>";
     $("pending-list").innerHTML=d.pending.map(x=>`<li>${x}</li>`).join("")||"<li>No se detectaron pendientes principales</li>";
@@ -330,8 +320,8 @@
     document.querySelectorAll(".owner-option").forEach(x=>x.classList.toggle("is-active",x===button));
     const type=button.dataset.ownerAction;$('proposal-type').value=type;$('offer-amount-field').hidden=type!=="oferta";$('improvement-field').hidden=type!=="mejoras";
   }));
-  $('proposal-amount').addEventListener('blur',()=>formatInputMoney($('proposal-amount')));
-  $('owner-proposal-form').addEventListener('submit',submitProposal);
+  $('proposal-amount')?.addEventListener('blur',()=>formatInputMoney($('proposal-amount')));
+  $('owner-proposal-form')?.addEventListener('submit',submitProposal);
   $("load-map").addEventListener("click",showMap);
   $("menu-toggle").addEventListener("click",()=>{const m=$("mobile-menu"),open=m.hidden;m.hidden=!open;$("menu-toggle").setAttribute("aria-expanded",String(open))});
   render();
