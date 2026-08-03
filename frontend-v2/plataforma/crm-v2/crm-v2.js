@@ -521,47 +521,57 @@
 
   function tasadorUrlFor(record, options = {}) {
     const q = new URLSearchParams();
+    const metadata = record.metadata || {};
+    const pick = (...values) => values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+    const put = (key, ...values) => {
+      const value = pick(...values);
+      if (value !== undefined) q.set(key, String(value));
+    };
+
     q.set('embed', 'crm');
     if (options.auto) q.set('auto', '1');
     if (options.openReport) q.set('open_report', '1');
     if (options.full) q.set('full', '1');
     if (options.mode) q.set('modo', options.mode);
-    q.set('propiedad_id', record.id || '');
-    if (record.codigo) q.set('propiedad_codigo', record.codigo);
-    if (record.region) q.set('region', record.region);
-    if (record.comuna) q.set('comuna', record.comuna);
-    if (record.superficie_m2) q.set('superficie', record.superficie_m2);
-    if (record.precio_publicado) q.set('asking', record.precio_publicado);
-    if (record.lat) q.set('lat', record.lat);
-    if (record.lng) q.set('lng', record.lng);
-    if (record.rol_situacion) q.set('rol', record.rol_situacion);
-    if (record.electricidad) q.set('electricity', record.electricidad);
-    if (record.agua) q.set('water', record.agua);
-    if (record.acceso) q.set('access', record.acceso);
-    if (record.topografia) q.set('topography', record.topografia);
-    if (record.suelo) q.set('soil', record.suelo);
-    if (record.exposicion) q.set('exposure', record.exposicion);
-    if (record.vista_principal) q.set('view', record.vista_principal);
-    if (record.vegetacion) q.set('vegetation', record.vegetacion);
-    if (record.cierre_perimetral) q.set('fencing', record.cierre_perimetral);
-    if (record.porton) q.set('gate', record.porton);
-    if (record.condominio !== undefined && record.condominio !== null) q.set('condominium', record.condominio ? 'si' : 'no');
-    if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance', record.distancia_ruta_principal_km);
-    const metadata = record.metadata || {};
-    const house = record.casa_datos || metadata.casa_datos || {};
-    const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
+    put('propiedad_id', record.id);
+    put('propiedad_codigo', record.codigo, metadata.codigo);
+    put('region', record.region, metadata.region, metadata.ubicacion?.region);
+    put('comuna', record.comuna, metadata.comuna, metadata.ubicacion?.comuna);
+    put('superficie', record.superficie_m2, metadata.superficie_m2, metadata.superficie);
+    put('asking', record.precio_publicado, metadata.precio_publicado, metadata.precio);
+    put('lat', record.lat, metadata.lat, metadata.ubicacion?.lat);
+    put('lng', record.lng, metadata.lng, metadata.ubicacion?.lng);
+    put('rol', record.rol_situacion, metadata.rol_situacion, metadata.rol);
+    put('electricity', record.electricidad, metadata.electricidad);
+    put('water', record.agua, metadata.agua);
+    put('access', record.acceso, metadata.acceso);
+    put('topography', record.topografia, metadata.topografia);
+    put('soil', record.suelo, metadata.suelo);
+    put('exposure', record.exposicion, metadata.exposicion);
+    put('view', record.vista_principal, metadata.vista_principal, metadata.vista);
+    put('vegetation', record.vegetacion, metadata.vegetacion);
+    put('fencing', record.cierre_perimetral, metadata.cierre_perimetral);
+    put('gate', record.porton, metadata.porton);
+    const condominium = pick(record.condominio, metadata.condominio);
+    if (condominium !== undefined) q.set('condominium', condominium === true || String(condominium).toLowerCase() === 'si' ? 'si' : 'no');
+    put('route_distance', record.distancia_ruta_principal_km, metadata.distancia_ruta_principal_km);
+
+    const house = record.casa_datos || metadata.casa_datos || metadata.casa || {};
+    const assetType = record.tipo === 'casa' || metadata.solo_vivienda
+      ? 'casa'
+      : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
     q.set('tipo_activo', assetType);
-    const communeDistance = record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm;
-    if (communeDistance !== undefined && communeDistance !== null && communeDistance !== '') q.set('commune_distance', communeDistance);
-    else if (!record.lat || !record.lng) q.set('commune_distance', '0');
+    put('commune_distance', record.distancia_centro_comuna_km, metadata.distancia_centro_comuna_km, metadata.communeDistanceKm);
     if (house && Object.keys(house).length) {
       q.set('incluye_vivienda', '1');
-      if (house.superficie_m2 || house.m2) q.set('area_casa', house.superficie_m2 || house.m2);
-      if (house.material || house.materialidad) q.set('material_casa', house.material || house.materialidad);
-      if (house.dormitorios) q.set('dormitorios', house.dormitorios);
-      if (house.banos || house.baños) q.set('banos', house.banos || house.baños);
-      if (house.anio_construccion) q.set('anio_construccion', house.anio_construccion);
-      if (house.estado) q.set('estado_casa', house.estado);
+      put('area_casa', house.superficie_m2, house.m2);
+      put('material_casa', house.material, house.materialidad);
+      put('dormitorios', house.dormitorios);
+      put('banos', house.banos, house.baños);
+      put('pisos', house.pisos);
+      put('anio_construccion', house.anio_construccion);
+      put('anio_remodelacion', house.anio_remodelacion);
+      put('estado_casa', house.estado);
     }
     return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
   }
@@ -991,7 +1001,7 @@
     render('parcelas');
     const propertyId = event.data.propiedad_id;
     const record = detailFor('parcelas', propertyId);
-    if (record) await openPremiumReport(record);
+    if (record && event.data.open_report) await openPremiumReport(record);
   });
 
   async function bootstrap() {
