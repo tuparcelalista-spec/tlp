@@ -18,10 +18,38 @@
     if (typeof value === "number") return value;
     return Number(String(value || "").replace(/[^0-9]/g, "")) || 0;
   };
+  let remoteCatalog = [];
   const catalog = () => {
-    try { return Array.isArray(parcelas) ? parcelas.filter(Boolean) : []; }
-    catch { return []; }
+    try {
+      const local = Array.isArray(parcelas) ? parcelas.filter(Boolean) : [];
+      if (!remoteCatalog.length) return local;
+      const seen = new Set(remoteCatalog.map((item) => normalize(item.id || item.codigo)));
+      return [...remoteCatalog, ...local.filter((item) => !seen.has(normalize(item.id || item.codigo)))];
+    } catch { return remoteCatalog; }
   };
+  function mapRemoteProperty(row){
+    return {
+      id: row.codigo || row.id,
+      canonicalId: row.id,
+      codigo: row.codigo || '',
+      nombre: row.titulo || `${Number(row.superficie_m2)>=10000?'Campo':'Parcela'} en ${row.comuna||'Chile'}`,
+      descripcion: row.descripcion || '', region: row.region || '', comuna: row.comuna || '', sector: row.sector || '',
+      lat: row.lat, lng: row.lng, tamano: row.superficie_m2, superficie: row.superficie_m2,
+      precio: row.precio_publicado ? CLP.format(Number(row.precio_publicado)) : 'Consultar', precioNumero: Number(row.precio_publicado)||0,
+      rol: row.rol_situacion, electricidad: row.electricidad, luz: row.electricidad, agua: row.agua, acceso: row.acceso,
+      topografia: row.topografia, suelo: row.suelo, exposicion: row.exposicion, vista_principal: row.vista_principal,
+      vegetacion: row.vegetacion, cierre_perimetral: row.cierre_perimetral, porton: row.porton, condominio: row.condominio,
+      atributos_naturales: row.atributos_naturales, casa_datos: row.casa_datos, diagnostico: row.diagnostico,
+      destacada: row.destacada, oportunidad_tpl: row.oportunidad_tpl, fuenteDatos: 'supabase'
+    };
+  }
+  async function hydrateRemoteCatalog(){
+    if(!window.TPLDataService?.listPublishedProperties)return;
+    try{
+      const rows=await window.TPLDataService.listPublishedProperties();
+      remoteCatalog=(rows||[]).map(mapRemoteProperty).filter((item)=>item.id);
+    }catch(error){console.warn('TPL Index: catálogo remoto no disponible; se mantiene respaldo local.',error)}
+  }
   const houseCatalog = () => {
     try { return Array.isArray(casas) ? casas.filter(Boolean) : []; }
     catch { return []; }
@@ -482,7 +510,8 @@ function comboCandidates(budget) {
     renderComboResults(budget);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    await hydrateRemoteCatalog();
     populateCommunes();
     render();
 

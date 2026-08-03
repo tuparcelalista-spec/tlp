@@ -189,7 +189,7 @@
     const { data, error } = await client
       .from('tpl_propiedades')
       .select('id,codigo,tipo,estado,titulo,descripcion,region,comuna,sector,lat,lng,superficie_m2,precio_publicado,rol_situacion,electricidad,agua,acceso,topografia,suelo,exposicion,vista_principal,vegetacion,cierre_perimetral,porton,condominio,atributos_naturales,casa_datos,diagnostico,destacada,oportunidad_tpl,publicada_at,updated_at')
-      .eq('estado', 'publicada')
+      .in('estado', ['publicada', 'activa', 'disponible'])
       .order('publicada_at', { ascending: false });
 
     if (error) throw error;
@@ -236,10 +236,18 @@
     }
 
     const metadataImages = Array.isArray(row.metadata?.imagenes) ? row.metadata.imagenes : [];
-    const remoteImages = (media.data || []).map((item) => item.url || item.storage_path).filter(Boolean);
+    const resolveMedia = (item) => {
+      if (item?.url) return item.url;
+      const path = String(item?.storage_path || '').trim();
+      if (!path) return '';
+      if (/^https?:\/\//i.test(path)) return path;
+      const bucket = item?.tipo === 'documento' ? 'tpl-documentos' : 'tpl-propiedades';
+      return client.storage.from(bucket).getPublicUrl(path).data?.publicUrl || path;
+    };
+    const remoteImages = (media.data || []).map(resolveMedia).filter(Boolean);
     return {
       ...row,
-      imagenes: [...new Set([...remoteImages, ...metadataImages])],
+      imagenes: [...new Set([...remoteImages, ...metadataImages].filter(Boolean))],
       imagen: remoteImages[0] || metadataImages[0] || row.metadata?.imagen_principal || ''
     };
   }
