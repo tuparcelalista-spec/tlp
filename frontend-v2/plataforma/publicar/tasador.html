@@ -7,19 +7,24 @@
 <meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynWdq4bV8hN3J1uVSc8VxjD60W0A=" crossorigin="">
-<link rel="stylesheet" href="tasador-publico.css?v=20260802-crm1?v=20260731-tpl-v2">
+<link rel="stylesheet" href="tasador-publico.css?v=20260802-tresmotores1">
 <script src="../../js/core/tpl-data-service.js?v=20260731-tasador-db"></script>
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script defer src="tasador-publico.js?v=20260802-crm1"></script>
+<script defer src="tasador-publico.js?v=20260802-tresmotores1"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
 <main class="shell">
 <section class="hero"><span class="eyebrow">Tasador Integral TPL</span><h1>Elige cuánto detalle quieres entregar</h1><p>La tasación rápida entrega una referencia en pocos pasos. La tasación precisa incorpora más antecedentes del terreno, ubicación y vivienda para mejorar el análisis y enriquecer el Informe Premium TPL.</p></section>
+<section class="asset-picker" aria-label="Activo a tasar">
+  <button type="button" class="asset-card is-active" data-asset-type="parcela"><span>Parcela</span><strong>Solo terreno</strong><small>Valora superficie, ubicación, servicios, atributos y mercado comunal.</small></button>
+  <button type="button" class="asset-card" data-asset-type="parcela_casa"><span>Parcela + casa</span><strong>Terreno y vivienda</strong><small>Separa el valor del terreno, construcción, piscina y demás mejoras.</small></button>
+  <button type="button" class="asset-card" data-asset-type="casa"><span>Casa</span><strong>Solo vivienda y obras</strong><small>Valora la construcción sin sumar el terreno.</small></button>
+</section>
 
 <section class="mode-picker" aria-label="Tipo de tasación">
 <button type="button" class="mode-card is-active" data-mode="rapida"><span>Rápida</span><strong>Quiero una referencia ahora</strong><small>Ubicación, superficie y factores esenciales.</small></button>
@@ -85,7 +90,7 @@
 </div>
 </section>
 
-<div class="house-toggle"><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Activa los antecedentes de casa y construcción.</small></label></div>
+<div class="house-toggle" hidden><input id="incluyeVivienda" type="checkbox"><label for="incluyeVivienda"><strong>La propiedad incluye vivienda</strong><small>Se controla desde el tipo de activo seleccionado.</small></label></div>
 <section id="houseFields" hidden>
 <div class="section-heading"><span class="step-pill">3</span><div><h2>Vivienda</h2><p>Separa el valor de construcción del terreno.</p></div></div>
 <div class="grid">

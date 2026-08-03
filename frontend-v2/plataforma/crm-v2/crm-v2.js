@@ -519,9 +519,11 @@
     return arr('tasaciones').some((t) => String(t.propiedad_id || '') === String(record.id || ''));
   }
 
-  function tasadorUrlFor(record) {
+  function tasadorUrlFor(record, options = {}) {
     const q = new URLSearchParams();
     q.set('embed', 'crm');
+    if (options.auto) q.set('auto', '1');
+    if (options.openReport) q.set('open_report', '1');
     q.set('propiedad_id', record.id || '');
     if (record.codigo) q.set('propiedad_codigo', record.codigo);
     if (record.region) q.set('region', record.region);
@@ -536,22 +538,38 @@
     if (record.acceso) q.set('access', record.acceso);
     if (record.topografia) q.set('topography', record.topografia);
     if (record.suelo) q.set('soil', record.suelo);
+    const metadata = record.metadata || {};
+    const house = record.casa_datos || metadata.casa_datos || {};
+    const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
+    q.set('tipo_activo', assetType);
+    const communeDistance = record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm;
+    if (communeDistance !== undefined && communeDistance !== null && communeDistance !== '') q.set('commune_distance', communeDistance);
+    else if (!record.lat || !record.lng) q.set('commune_distance', '0');
+    if (house && Object.keys(house).length) {
+      q.set('incluye_vivienda', '1');
+      if (house.superficie_m2 || house.m2) q.set('area_casa', house.superficie_m2 || house.m2);
+      if (house.material || house.materialidad) q.set('material_casa', house.material || house.materialidad);
+      if (house.dormitorios) q.set('dormitorios', house.dormitorios);
+      if (house.banos || house.baños) q.set('banos', house.banos || house.baños);
+      if (house.anio_construccion) q.set('anio_construccion', house.anio_construccion);
+      if (house.estado) q.set('estado_casa', house.estado);
+    }
     return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
   }
 
-  function openCrmTasador(record) {
+  function openCrmTasador(record, options = {}) {
     const dialog = document.querySelector('#crmTasadorDialog');
     const frame = document.querySelector('#crmTasadorFrame');
     const title = document.querySelector('#crmTasadorTitle');
-    if (!dialog || !frame) return window.open(tasadorUrlFor(record), '_blank', 'noopener,noreferrer');
+    if (!dialog || !frame) return window.open(tasadorUrlFor(record, options), '_blank', 'noopener,noreferrer');
     if (title) title.textContent = `Tasar · ${record.titulo || record.codigo || 'Propiedad'}`;
-    frame.src = tasadorUrlFor(record);
+    frame.src = tasadorUrlFor(record, options);
     dialog.showModal();
   }
 
   async function openPremiumReport(record) {
     if (!propertyHasValuation(record)) {
-      openCrmTasador(record);
+      openCrmTasador(record, { auto: true, openReport: true });
       return;
     }
     document.querySelector('#premiumReportDialog')?.remove();
@@ -881,7 +899,7 @@
     if (tasar) {
       const record = detailFor('parcelas', tasar.dataset.crmTasar);
       if (!record) return alert('No pudimos recuperar la parcela.');
-      openCrmTasador(record);
+      openCrmTasador(record, { auto: true, openReport: true });
       return;
     }
 

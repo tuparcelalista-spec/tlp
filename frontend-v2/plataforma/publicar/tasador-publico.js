@@ -2,7 +2,7 @@ const $=s=>document.querySelector(s);
 const money=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(Number(n||0));
 const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const works={quincho_abierto:'Quincho abierto (m²)',quincho_cerrado:'Quincho cerrado (m²)',terraza_sin_techo:'Terraza sin techo (m²)',terraza_techada:'Terraza techada (m²)',bodega_madera:'Bodega madera (m²)',bodega_solida:'Bodega sólida (m²)',galpon:'Galpón (m²)',cobertizo:'Cobertizo (m²)',estacionamiento_techado:'Estacionamiento techado (m²)',piscina_fibra:'Piscina fibra (m²)',piscina_hormigon:'Piscina hormigón (m²)',tinaja_simple:'Tinaja simple (un.)',tinaja_equipada:'Tinaja equipada (un.)',porton_automatico:'Portón automático (un.)'};
-let mode='rapida',lastResult=null,lastInput=null,catalog=null,tasadorContext=null,locationMap=null,locationMarker=null;
+let mode='rapida',assetType='parcela',lastResult=null,lastInput=null,catalog=null,tasadorContext=null,locationMap=null,locationMarker=null;
 const launchParams=new URLSearchParams(location.search);
 const linkedPropertyId=launchParams.get('propiedad_id')||'';
 const linkedPropertyCode=launchParams.get('propiedad_codigo')||'';
@@ -28,6 +28,18 @@ function fillCommunes(regionName){
  c.innerHTML='<option value="">Selecciona comuna</option>'+list.map(x=>`<option value="${x.name}">${x.name}</option>`).join('');
  c.disabled=!regionName;
 }
+function setAssetType(next){
+ assetType=next||'parcela';
+ document.querySelectorAll('[data-asset-type]').forEach(b=>b.classList.toggle('is-active',b.dataset.assetType===assetType));
+ const withHouse=assetType!=='parcela';
+ const house=$('#incluyeVivienda'); if(house) house.checked=withHouse;
+ const fields=$('#houseFields'); if(fields) fields.hidden=!withHouse;
+ document.body.classList.toggle('is-house-only',assetType==='casa');
+ const area=$('#superficie');
+ if(area){ area.required=assetType!=='casa'; if(assetType==='casa'&&!Number(area.value)) area.value='1'; }
+ const status=$('#status'); if(status) status.textContent=assetType==='parcela'?'Tasación de terreno seleccionada.':assetType==='parcela_casa'?'Tasación integrada de terreno y vivienda seleccionada.':'Tasación exclusiva de vivienda seleccionada; el terreno no se suma.';
+}
+
 function setMode(next){
  mode=next;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('is-active',b.dataset.mode===next));
  $('#preciseFields').hidden=next!=='precisa';document.body.dataset.valuationMode=next;
@@ -73,8 +85,8 @@ function setLocationMethod(method){
 
 function inputs(){
  const obras={};document.querySelectorAll('[data-work]').forEach(el=>{const n=Number(el.value||0);if(n>0)obras[el.dataset.work]=n});
- const withHouse=$('#incluyeVivienda').checked;const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
- const base={propiedadId:linkedPropertyId||null,propiedadCodigo:linkedPropertyCode||null,origen:launchParams.get('embed')==='crm'?'crm_tasador':'tasador_publico',area:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
+ const withHouse=assetType!=='parcela';const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
+ const base={tipoActivo:assetType,soloVivienda:assetType==='casa',propiedadId:linkedPropertyId||null,propiedadCodigo:linkedPropertyCode||null,origen:launchParams.get('embed')==='crm'?'crm_tasador':'tasador_publico',area:assetType==='casa'?1:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
  if(mode==='precisa')Object.assign(base,{access:$('#access').value,routeDistanceKm:Number($('#routeDistanceKm').value||0),soil:$('#soil').value,exposure:$('#exposure').value,view:$('#view').value,vegetation:$('#vegetation').value,fencing:$('#fencing').value,gate:$('#gate').value,condominium:$('#condominium').value,asking:parseMoney($('#asking').value),nature,lat:Number($('#lat').value),lng:Number($('#lng').value)});
  return {...base,incluyeVivienda:withHouse,areaCasa:withHouse?Number($('#areaCasa').value||0):0,materialCasa:$('#materialCasa').value,anioConstruccion:Number($('#anioConstruccion').value||0),estadoCasa:$('#estadoCasa').value,tipoFundacion:'sin_fundacion',anioRemodelacion:Number($('#anioRemodelacion').value||0),remodelacionIntegral:Number($('#anioRemodelacion').value||0)>0,dormitorios:Number($('#dormitorios').value||0),banos:Number($('#banos').value||0),pisos:Number($('#pisos').value||1),obrasAdicionales:obras,caracteristicaDiferenciadora:$('#caracteristicaDiferenciadora').value};
 }
@@ -141,7 +153,13 @@ async function calculate(ev){
   const displayResult=lastResult;
   $('#status').textContent=mode==='precisa'?'Tasación precisa calculada con Índice Territorial TPL y atributos de la propiedad.':'Tasación rápida calculada. La versión precisa agrega coordenadas y cercanías reales.';
   $('#result').hidden=false;$('#ideal').textContent=money(displayResult.ideal);$('#quick').textContent=money(displayResult.quick);$('#patient').textContent=money(displayResult.patient);const ufEl=$('#idealUf');if(ufEl){ufEl.textContent=displayResult.recommendedUf?`Equivalente referencial: ${Number(displayResult.recommendedUf).toLocaleString('es-CL',{maximumFractionDigits:1})} UF · UF ${money(displayResult.ufClpUsed)}`:'Equivalente UF no disponible';}
-  window.TPLTasadorSupabase?.register?.(x,res,tasadorContext).catch(error=>console.warn('Tasación calculada; registro Supabase pendiente.',error));
+  let persisted=null;
+  try{
+    persisted=await window.TPLTasadorSupabase?.register?.(x,res,tasadorContext);
+    if(launchParams.get('embed')==='crm'&&linkedPropertyId&&window.parent!==window){
+      window.parent.postMessage({type:'TPL_TASACION_GUARDADA',propiedad_id:linkedPropertyId,tasacion_id:persisted?.registration?.tasacion_id||null,open_report:launchParams.get('open_report')==='1'},window.location.origin);
+    }
+  }catch(error){console.warn('Tasación calculada; registro Supabase pendiente.',error)}
   const immediateBtn=$('#immediateValueBtn');if(immediateBtn){immediateBtn.hidden=!Number(displayResult.immediateReference);immediateBtn.dataset.value=String(displayResult.immediateReference||'');}
   scoreCard('#territorialScore',displayResult.territorialIndex||displayResult.landResult?.territorialIndex);
   scoreCard('#propertyScore',displayResult.propertyIndex||displayResult.landResult?.propertyIndex);
@@ -173,7 +191,7 @@ async function calculate(ev){
     box.hidden=false;
     box.innerHTML += `<hr><small>Mercado observado comparable</small><strong>${observed.cantidad} avisos similares</strong><span>${x.incluyeVivienda?`Casas de ${Math.max(20,x.areaCasa-20)}–${x.areaCasa+20} m² · ${x.dormitorios||'sin filtro'} dormitorios · `:''}confianza ${observed.confianza}. ${Number(observed.peso_sugerido)>0?'Aporte moderado al Valor TPL.':'Solo referencia informativa.'}</span>`;
   }
-  const q=new URLSearchParams({region:x.region,comuna:x.comuna,superficie:x.area,tasacion:String(Math.round(displayResult.ideal)),tipo:x.incluyeVivienda?'casa':'parcela'});$('#publishLink').href=`index.html?${q.toString()}`;
+  const q=new URLSearchParams({region:x.region,comuna:x.comuna,superficie:x.soloVivienda?'':x.area,tasacion:String(Math.round(displayResult.ideal)),tipo:x.tipoActivo||'parcela'});$('#publishLink').href=`index.html?${q.toString()}`;
  }catch(e){
   console.error(e);$('#status').textContent='No pudimos completar el análisis. Puedes intentarlo nuevamente.';$('#result').hidden=true;
  }finally{if(submit)submit.disabled=false}
@@ -206,7 +224,7 @@ async function openPremium(){
  const x=lastInput,r=lastResult,mr=r.marketReference||r.landResult?.marketReference||null,c=$('#premiumContent');
  const territorial=r.territorialIndex||r.landResult?.territorialIndex,property=r.propertyIndex||r.landResult?.propertyIndex,pa=r.priceAnalysis||r.landResult?.priceAnalysis;
  $('#premiumDialog').showModal();
- c.innerHTML=`<section><h2>${x.incluyeVivienda?'Propiedad rural con vivienda':'Parcela / campo'} en ${x.comuna}</h2><p class="muted">Informe construido con Motor TPL v1 y antecedentes ingresados en modo ${x.mode==='precisa'?'preciso':'rápido'}.</p></section>
+ c.innerHTML=`<section><h2>${x.tipoActivo==='casa'?'Vivienda':x.tipoActivo==='parcela_casa'?'Parcela + vivienda':'Parcela / campo'} en ${x.comuna}</h2><p class="muted">Informe construido con Motor TPL v1 y antecedentes ingresados en modo ${x.mode==='precisa'?'preciso':'rápido'}.</p></section>
  <section class="premium-value"><small>Valor TPL Recomendado</small><strong>${money(r.ideal)}</strong><span>Venta Ágil ${money(r.quick)} · Valor de Mercado Potencial ${money(r.patient)}</span></section>
  <section><h3>Índices TPL</h3><div class="premium-score-grid"><article><small>Índice territorial</small><strong>${territorial?.score??'—'}/100</strong><span>${territorial?.label||'Sin datos'}</span></article><article><small>Índice de propiedad</small><strong>${property?.score??'—'}/100</strong><span>${property?.label||'Sin datos'}</span></article></div>${territorial?indexDetails(territorial):''}${property?indexDetails(property):''}</section>
  ${mr?`<section><h3>Referencia comunal</h3><p>Mediana observada: <strong>${money(mr.medianM2)}/m²</strong>. Rango central: ${money(mr.p25M2)}–${money(mr.p75M2)}/m². Confianza ${String(mr.confidence||'referencial').replace('-',' ')}.</p></section>`:''}
@@ -225,16 +243,22 @@ async function applyLaunchPrefill(){
  const region=get('region'),comuna=get('comuna');
  if(region){$('#region').value=region;fillCommunes(region);if(comuna)$('#comuna').value=comuna;}
  const set=(id,key)=>{const v=get(key);if(v!==null&&$('#'+id))$('#'+id).value=v};
- set('superficie','superficie');set('asking','asking');set('lat','lat');set('lng','lng');set('rol','rol');set('electricity','electricity');set('water','water');set('access','access');set('topography','topography');set('soil','soil');
+ set('superficie','superficie');set('asking','asking');set('lat','lat');set('lng','lng');set('rol','rol');set('electricity','electricity');set('water','water');set('access','access');set('topography','topography');set('soil','soil');set('communeDistanceKm','commune_distance');
+ set('areaCasa','area_casa');set('materialCasa','material_casa');set('dormitorios','dormitorios');set('banos','banos');set('anioConstruccion','anio_construccion');set('estadoCasa','estado_casa');
+ if(get('tipo_activo'))setAssetType(get('tipo_activo'));else if(get('incluye_vivienda')==='1')setAssetType('parcela_casa');
  if(get('lat')&&get('lng')){setMode('precisa');setTimeout(()=>setLocation(Number(get('lat')),Number(get('lng')),'manual'),100);}
  if(launchParams.get('embed')==='crm'){document.body.classList.add('is-crm-embed');}
 }
 
 document.addEventListener('DOMContentLoaded',async()=>{
- buildWorks();await fillRegions();await applyLaunchPrefill();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));setMode('rapida');
+ buildWorks();await fillRegions();await applyLaunchPrefill();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));document.querySelectorAll('[data-asset-type]').forEach(b=>b.onclick=()=>setAssetType(b.dataset.assetType));setAssetType(launchParams.get('tipo_activo')||((launchParams.get('incluye_vivienda')==='1')?'parcela_casa':'parcela'));setMode(launchParams.get('lat')&&launchParams.get('lng')?'precisa':'rapida');
  $('#incluyeVivienda').addEventListener('change',e=>$('#houseFields').hidden=!e.target.checked);
  $('#tasadorForm').addEventListener('submit',calculate);$('#useMyLocation').onclick=useLocation;$('#premiumReportBtn').onclick=openPremium;$('#closePremium').onclick=()=>$('#premiumDialog').close();
  document.querySelectorAll('[data-location-method]').forEach(b=>b.addEventListener('click',()=>setLocationMethod(b.dataset.locationMethod)));$('#applyGoogleMapsLink')?.addEventListener('click',applyGoogleMapsLink);$('#googleMapsLink')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyGoogleMapsLink();}});['lat','lng'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{const lat=Number($('#lat').value),lng=Number($('#lng').value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual')}));
  const electricity=$('#electricity'),poleWrap=$('#electricityPoleWrap');const syncPole=()=>{if(poleWrap)poleWrap.hidden=!/factibilidad|postación|postacion/i.test(electricity?.value||'')};electricity?.addEventListener('change',syncPole);syncPole();
  $('#immediateValueBtn')?.addEventListener('click',()=>{const v=Number($('#immediateValueBtn').dataset.value||0);if(!v)return;$('#immediateValue').textContent=money(v);$('#immediateDialog').showModal()});$('#closeImmediate')?.addEventListener('click',()=>$('#immediateDialog').close());
+ if(launchParams.get('embed')==='crm'&&launchParams.get('auto')==='1'){
+   const status=$('#status');if(status)status.textContent='Generando tasación express con los datos guardados en el CRM…';
+   setTimeout(()=>$('#tasadorForm')?.requestSubmit(),250);
+ }
 });

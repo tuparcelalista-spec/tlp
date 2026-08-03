@@ -143,14 +143,18 @@
       distanceKm: input.distanceKm !== undefined ? num(input.distanceKm) : (input.distanciaCarreteraKm !== undefined ? num(input.distanciaCarreteraKm) : 10)
     };
 
+    const soloVivienda = Boolean(input.soloVivienda || input.tipoActivo === 'casa');
     let landResult = null;
-    if (global.TPLLandEngine && typeof global.TPLLandEngine.calculate === 'function') {
+    if (soloVivienda) {
+      landResult = { ideal: 0, reference: 0, area: 0, quick: 0, patient: 0, source: 'sin_terreno' };
+    } else if (global.TPLLandEngine && typeof global.TPLLandEngine.calculate === 'function') {
       landResult = global.TPLLandEngine.calculate(landInput);
     } else {
       const landVal = num(input.valorTerreno || input.landValue || 0);
       landResult = { ideal: landVal, reference: landVal, area: landInput.area };
     }
-    const valorTerreno = num(landResult.ideal || landResult.reference || 0);
+    if (landResult?.error && !soloVivienda) return landResult;
+    const valorTerreno = soloVivienda ? 0 : num(landResult.ideal || landResult.reference || 0);
 
     // Antigüedad efectiva de la propiedad / vivienda (disponible siempre para obras adicionales)
     const anioConst = num(input.anioConstruccion || input.year);
