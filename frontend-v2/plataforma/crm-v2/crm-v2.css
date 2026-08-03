@@ -26,3 +26,8 @@
 
 .tasar-basic-btn{border:1px solid #0f6bff;background:#eef5ff;color:#073b86;border-radius:10px;padding:.68rem .85rem;font-weight:800;cursor:pointer}
 .tasar-basic-btn:hover{background:#dfeeff}
+
+
+.crm-valuation-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0;padding:10px;border:1px solid rgba(17,67,116,.14);border-radius:12px;background:rgba(17,67,116,.045)}
+.crm-valuation-summary span{min-width:0}.crm-valuation-summary small{display:block;color:var(--muted,#64748b);font-size:.72rem}.crm-valuation-summary b{display:block;margin-top:2px;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.crm-valuation-summary span:first-child b{color:#114374}.crm-valuation-empty{margin:12px 0;padding:9px 10px;border-radius:10px;background:#f8fafc;color:#64748b;font-size:.82rem}
+@media(max-width:620px){.crm-valuation-summary{grid-template-columns:1fr}.crm-valuation-summary b{white-space:normal}}

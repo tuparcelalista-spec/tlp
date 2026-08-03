@@ -7,7 +7,10 @@
     loading: false,
     uf: null,
     command: null,
-    universalQuery: ''
+    universalQuery: '',
+    recentValuations: new Map(),
+    handledTasaciones: new Set(),
+    activeTasadorPropertyId: null
   };
 
   const groups = [
@@ -495,6 +498,45 @@
   };
 
 
+
+  function hydratedProperty(record = {}) {
+    const metadata = record.metadata && typeof record.metadata === 'object' ? record.metadata : {};
+    const ubicacion = metadata.ubicacion && typeof metadata.ubicacion === 'object' ? metadata.ubicacion : {};
+    const house = record.casa_datos || metadata.casa_datos || metadata.casa || {};
+    return {
+      ...metadata,
+      ...ubicacion,
+      ...record,
+      region: record.region || ubicacion.region || metadata.region || '',
+      comuna: record.comuna || ubicacion.comuna || metadata.comuna || '',
+      superficie_m2: record.superficie_m2 || metadata.superficie_m2 || metadata.superficie || null,
+      precio_publicado: record.precio_publicado || metadata.precio_publicado || metadata.precio || null,
+      lat: record.lat ?? ubicacion.lat ?? metadata.lat ?? null,
+      lng: record.lng ?? ubicacion.lng ?? metadata.lng ?? null,
+      casa_datos: house
+    };
+  }
+
+  function latestValuation(record) {
+    const id = String(record?.id || '');
+    const recent = state.recentValuations.get(id);
+    if (recent) return recent;
+    return arr('tasaciones')
+      .filter((t) => String(t.propiedad_id || t.entrada?.propiedadId || t.entrada?.propiedad_id || '') === id)
+      .sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))[0] || null;
+  }
+
+  function valuationValues(record) {
+    const valuation = latestValuation(record);
+    const result = valuation?.resultado || valuation?.result || {};
+    return {
+      valuation,
+      ideal: Number(result.ideal ?? result.recommended ?? result.market ?? 0),
+      quick: Number(result.quick ?? result.agile ?? 0),
+      patient: Number(result.patient ?? result.technicalPotential ?? 0)
+    };
+  }
+
   function reportDialogHtml(record, history = []) {
     const owner = arr('duenos').find((x) => x.id === record.propietario_actor_id || x.actor_id === record.propietario_actor_id) || {};
     return `
@@ -516,78 +558,76 @@
   }
 
   function propertyHasValuation(record) {
-    return arr('tasaciones').some((t) => String(t.propiedad_id || '') === String(record.id || ''));
+    return Boolean(latestValuation(record));
   }
 
   function tasadorUrlFor(record, options = {}) {
+    record = hydratedProperty(record);
     const q = new URLSearchParams();
-    const metadata = record.metadata || {};
-    const pick = (...values) => values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
-    const put = (key, ...values) => {
-      const value = pick(...values);
-      if (value !== undefined) q.set(key, String(value));
-    };
-
     q.set('embed', 'crm');
     if (options.auto) q.set('auto', '1');
     if (options.openReport) q.set('open_report', '1');
     if (options.full) q.set('full', '1');
     if (options.mode) q.set('modo', options.mode);
-    put('propiedad_id', record.id);
-    put('propiedad_codigo', record.codigo, metadata.codigo);
-    put('region', record.region, metadata.region, metadata.ubicacion?.region);
-    put('comuna', record.comuna, metadata.comuna, metadata.ubicacion?.comuna);
-    put('superficie', record.superficie_m2, metadata.superficie_m2, metadata.superficie);
-    put('asking', record.precio_publicado, metadata.precio_publicado, metadata.precio);
-    put('lat', record.lat, metadata.lat, metadata.ubicacion?.lat);
-    put('lng', record.lng, metadata.lng, metadata.ubicacion?.lng);
-    put('rol', record.rol_situacion, metadata.rol_situacion, metadata.rol);
-    put('electricity', record.electricidad, metadata.electricidad);
-    put('water', record.agua, metadata.agua);
-    put('access', record.acceso, metadata.acceso);
-    put('topography', record.topografia, metadata.topografia);
-    put('soil', record.suelo, metadata.suelo);
-    put('exposure', record.exposicion, metadata.exposicion);
-    put('view', record.vista_principal, metadata.vista_principal, metadata.vista);
-    put('vegetation', record.vegetacion, metadata.vegetacion);
-    put('fencing', record.cierre_perimetral, metadata.cierre_perimetral);
-    put('gate', record.porton, metadata.porton);
-    const condominium = pick(record.condominio, metadata.condominio);
-    if (condominium !== undefined) q.set('condominium', condominium === true || String(condominium).toLowerCase() === 'si' ? 'si' : 'no');
-    put('route_distance', record.distancia_ruta_principal_km, metadata.distancia_ruta_principal_km);
-
-    const house = record.casa_datos || metadata.casa_datos || metadata.casa || {};
-    const assetType = record.tipo === 'casa' || metadata.solo_vivienda
-      ? 'casa'
-      : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
+    q.set('propiedad_id', record.id || '');
+    if (record.codigo) q.set('propiedad_codigo', record.codigo);
+    if (record.region) q.set('region', record.region);
+    if (record.comuna) q.set('comuna', record.comuna);
+    if (record.superficie_m2) q.set('superficie', record.superficie_m2);
+    if (record.precio_publicado) q.set('asking', record.precio_publicado);
+    if (record.lat) q.set('lat', record.lat);
+    if (record.lng) q.set('lng', record.lng);
+    if (record.rol_situacion) q.set('rol', record.rol_situacion);
+    if (record.electricidad) q.set('electricity', record.electricidad);
+    if (record.agua) q.set('water', record.agua);
+    if (record.acceso) q.set('access', record.acceso);
+    if (record.topografia) q.set('topography', record.topografia);
+    if (record.suelo) q.set('soil', record.suelo);
+    if (record.exposicion) q.set('exposure', record.exposicion);
+    if (record.vista_principal) q.set('view', record.vista_principal);
+    if (record.vegetacion) q.set('vegetation', record.vegetacion);
+    if (record.cierre_perimetral) q.set('fencing', record.cierre_perimetral);
+    if (record.porton) q.set('gate', record.porton);
+    if (record.condominio !== undefined && record.condominio !== null) q.set('condominium', record.condominio ? 'si' : 'no');
+    if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance', record.distancia_ruta_principal_km);
+    const metadata = record.metadata || {};
+    const house = record.casa_datos || metadata.casa_datos || {};
+    const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
     q.set('tipo_activo', assetType);
-    put('commune_distance', record.distancia_centro_comuna_km, metadata.distancia_centro_comuna_km, metadata.communeDistanceKm);
+    const communeDistance = record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm;
+    if (communeDistance !== undefined && communeDistance !== null && communeDistance !== '') q.set('commune_distance', communeDistance);
+    // Sin coordenadas ni distancia declarada, el Tasador básico usa una referencia comunal neutral.
     if (house && Object.keys(house).length) {
       q.set('incluye_vivienda', '1');
-      put('area_casa', house.superficie_m2, house.m2);
-      put('material_casa', house.material, house.materialidad);
-      put('dormitorios', house.dormitorios);
-      put('banos', house.banos, house.baños);
-      put('pisos', house.pisos);
-      put('anio_construccion', house.anio_construccion);
-      put('anio_remodelacion', house.anio_remodelacion);
-      put('estado_casa', house.estado);
+      if (house.superficie_m2 || house.m2) q.set('area_casa', house.superficie_m2 || house.m2);
+      if (house.material || house.materialidad) q.set('material_casa', house.material || house.materialidad);
+      if (house.dormitorios) q.set('dormitorios', house.dormitorios);
+      if (house.banos || house.baños) q.set('banos', house.banos || house.baños);
+      if (house.anio_construccion) q.set('anio_construccion', house.anio_construccion);
+      if (house.estado) q.set('estado_casa', house.estado);
     }
     return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
   }
 
   function openCrmTasador(record, options = {}) {
+    record = hydratedProperty(record);
+    if (!record.region || !record.comuna || !Number(record.superficie_m2)) {
+      return alert('Para tasar se necesita como mínimo región, comuna y superficie. Completa esos datos en la ficha de la propiedad.');
+    }
+    if (state.activeTasadorPropertyId) return;
+    state.activeTasadorPropertyId = String(record.id || '');
     const dialog = document.querySelector('#crmTasadorDialog');
     const frame = document.querySelector('#crmTasadorFrame');
     const title = document.querySelector('#crmTasadorTitle');
-    if (!dialog || !frame) return window.open(tasadorUrlFor(record, options), '_blank', 'noopener,noreferrer');
+    if (!dialog || !frame) { state.activeTasadorPropertyId = null; return window.open(tasadorUrlFor(record, options), '_blank', 'noopener,noreferrer'); }
     if (title) title.textContent = `Tasar · ${record.titulo || record.codigo || 'Propiedad'}`;
     frame.src = tasadorUrlFor(record, options);
+    dialog.addEventListener('close', () => { state.activeTasadorPropertyId = null; }, { once: true });
     dialog.showModal();
   }
 
-  async function openPremiumReport(record) {
-    if (!propertyHasValuation(record)) {
+  async function openPremiumReport(record, options = {}) {
+    if (!options.force && !propertyHasValuation(record)) {
       openCrmTasador(record, { auto: true, openReport: true });
       return;
     }
@@ -671,7 +711,8 @@
               <small>${esc(r.codigo || r.id || '')}</small>
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
-              <div class="catalog-facts"><b>${Number(r.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(r.precio_publicado)}</b></div>
+              <div class="catalog-facts"><b>${Number(hydratedProperty(r).superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(hydratedProperty(r).precio_publicado)}</b></div>
+              ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor TPL</small><b>${fmtMoney(v.ideal)}</b></span><span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
               <div class="catalog-actions">
                 <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
                 <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
@@ -989,19 +1030,29 @@
     const dialog = document.querySelector('#crmTasadorDialog');
     const frame = document.querySelector('#crmTasadorFrame');
     dialog?.close();
+    state.activeTasadorPropertyId = null;
     if (frame) frame.src = 'about:blank';
   });
 
   window.addEventListener('message', async (event) => {
-    if (event.origin !== window.location.origin || event.data?.type !== 'TPL_TASACION_GUARDADA') return;
-    document.querySelector('#crmTasadorDialog')?.close();
     const frame = document.querySelector('#crmTasadorFrame');
+    if (event.origin !== window.location.origin || event.source !== frame?.contentWindow || event.data?.type !== 'TPL_TASACION_GUARDADA') return;
+    const tasacionId = String(event.data.tasacion_id || '');
+    const propertyId = String(event.data.propiedad_id || '');
+    if (!tasacionId || !propertyId) {
+      statusBadge('La tasación no fue confirmada por Supabase', 'danger');
+      return;
+    }
+    if (state.handledTasaciones.has(tasacionId)) return;
+    state.handledTasaciones.add(tasacionId);
+    state.recentValuations.set(propertyId, { id: tasacionId, propiedad_id: propertyId, resultado: event.data.resultado || {}, entrada: event.data.entrada || {}, created_at: new Date().toISOString() });
+    document.querySelector('#crmTasadorDialog')?.close();
+    state.activeTasadorPropertyId = null;
     if (frame) frame.src = 'about:blank';
     await loadSnapshot();
     render('parcelas');
-    const propertyId = event.data.propiedad_id;
     const record = detailFor('parcelas', propertyId);
-    if (record && event.data.open_report) await openPremiumReport(record);
+    if (record && event.data.open_report === true) await openPremiumReport(record, { force: true });
   });
 
   async function bootstrap() {
