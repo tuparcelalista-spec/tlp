@@ -398,6 +398,22 @@
   }
 
 
+  async function getLatestCrmValuation(propertyId) {
+    const id = String(propertyId || '').trim();
+    if (!id) return null;
+    const client = await getClient();
+    const { data, error } = await client
+      .from('tpl_tasaciones')
+      .select('id,propiedad_id,tipo,superficie_m2,valor_tpl_total,valor_tpl_m2,referencia_comunal_m2,entrada,resultado,version_motor,created_at')
+      .eq('propiedad_id', id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+
 
   async function saveCrmValuationProperty(propertyId, input = {}, result = {}) {
     const id = String(propertyId || '').trim();
@@ -576,6 +592,7 @@
     getTasadorContext,
     getObservedComparables,
     registerValuation,
+    getLatestCrmValuation,
     saveCrmValuationProperty,
     registerTerritorialAnalysis,
     getTerritorialPublicSummary,

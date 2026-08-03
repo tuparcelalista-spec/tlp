@@ -627,10 +627,13 @@
   }
 
   async function openPremiumReport(record, options = {}) {
-    if (!options.force && !propertyHasValuation(record)) {
+    let serverValuation = null;
+    try { serverValuation = await window.TPLDataService.getLatestCrmValuation?.(record.id); } catch (error) { console.warn(error); }
+    if (!serverValuation) {
       openCrmTasador(record, { auto: true, openReport: true });
       return;
     }
+    state.recentValuations.set(String(record.id), serverValuation);
     document.querySelector('#premiumReportDialog')?.remove();
     let history = [];
     try { history = await window.TPLDataService.getCrmReportHistory(record.id); } catch (error) { console.warn(error); }
@@ -1045,7 +1048,17 @@
     }
     if (state.handledTasaciones.has(tasacionId)) return;
     state.handledTasaciones.add(tasacionId);
-    state.recentValuations.set(propertyId, { id: tasacionId, propiedad_id: propertyId, resultado: event.data.resultado || {}, entrada: event.data.entrada || {}, created_at: new Date().toISOString() });
+    let confirmed = null;
+    try {
+      confirmed = await window.TPLDataService.getLatestCrmValuation?.(propertyId);
+    } catch (error) {
+      console.error('No fue posible verificar la tasación en Supabase.', error);
+    }
+    if (!confirmed || String(confirmed.id) !== tasacionId || String(confirmed.propiedad_id) !== propertyId) {
+      statusBadge('La tasación fue calculada, pero aún no está vinculada a esta propiedad', 'danger');
+      return;
+    }
+    state.recentValuations.set(propertyId, confirmed);
     document.querySelector('#crmTasadorDialog')?.close();
     state.activeTasadorPropertyId = null;
     if (frame) frame.src = 'about:blank';
