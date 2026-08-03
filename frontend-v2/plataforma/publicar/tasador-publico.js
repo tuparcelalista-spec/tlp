@@ -3,6 +3,9 @@ const money=n=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',ma
 const normalize=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const works={quincho_abierto:'Quincho abierto (m²)',quincho_cerrado:'Quincho cerrado (m²)',terraza_sin_techo:'Terraza sin techo (m²)',terraza_techada:'Terraza techada (m²)',bodega_madera:'Bodega madera (m²)',bodega_solida:'Bodega sólida (m²)',galpon:'Galpón (m²)',cobertizo:'Cobertizo (m²)',estacionamiento_techado:'Estacionamiento techado (m²)',piscina_fibra:'Piscina fibra (m²)',piscina_hormigon:'Piscina hormigón (m²)',tinaja_simple:'Tinaja simple (un.)',tinaja_equipada:'Tinaja equipada (un.)',porton_automatico:'Portón automático (un.)'};
 let mode='rapida',lastResult=null,lastInput=null,catalog=null,tasadorContext=null,locationMap=null,locationMarker=null;
+const launchParams=new URLSearchParams(location.search);
+const linkedPropertyId=launchParams.get('propiedad_id')||'';
+const linkedPropertyCode=launchParams.get('propiedad_codigo')||'';
 const withTimeout=(promise,ms,fallback)=>Promise.race([Promise.resolve(promise),new Promise(resolve=>setTimeout(()=>resolve(fallback),ms))]);
 
 function buildWorks(){
@@ -71,7 +74,7 @@ function setLocationMethod(method){
 function inputs(){
  const obras={};document.querySelectorAll('[data-work]').forEach(el=>{const n=Number(el.value||0);if(n>0)obras[el.dataset.work]=n});
  const withHouse=$('#incluyeVivienda').checked;const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
- const base={area:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
+ const base={propiedadId:linkedPropertyId||null,propiedadCodigo:linkedPropertyCode||null,origen:launchParams.get('embed')==='crm'?'crm_tasador':'tasador_publico',area:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
  if(mode==='precisa')Object.assign(base,{access:$('#access').value,routeDistanceKm:Number($('#routeDistanceKm').value||0),soil:$('#soil').value,exposure:$('#exposure').value,view:$('#view').value,vegetation:$('#vegetation').value,fencing:$('#fencing').value,gate:$('#gate').value,condominium:$('#condominium').value,asking:parseMoney($('#asking').value),nature,lat:Number($('#lat').value),lng:Number($('#lng').value)});
  return {...base,incluyeVivienda:withHouse,areaCasa:withHouse?Number($('#areaCasa').value||0):0,materialCasa:$('#materialCasa').value,anioConstruccion:Number($('#anioConstruccion').value||0),estadoCasa:$('#estadoCasa').value,tipoFundacion:'sin_fundacion',anioRemodelacion:Number($('#anioRemodelacion').value||0),remodelacionIntegral:Number($('#anioRemodelacion').value||0)>0,dormitorios:Number($('#dormitorios').value||0),banos:Number($('#banos').value||0),pisos:Number($('#pisos').value||1),obrasAdicionales:obras,caracteristicaDiferenciadora:$('#caracteristicaDiferenciadora').value};
 }
@@ -217,8 +220,18 @@ function useLocation(){
  const b=$('#useMyLocation');b.disabled=true;b.textContent='Obteniendo ubicación…';
  navigator.geolocation.getCurrentPosition(p=>{setLocation(p.coords.latitude,p.coords.longitude,'gps');b.disabled=false;b.innerHTML='<span>Ubicación lista</span><small>Punto cargado correctamente</small>'},()=>{b.disabled=false;b.innerHTML='<span>Mi ubicación</span><small>Usa el GPS del dispositivo</small>';alert('No pudimos obtener tu ubicación.')},{enableHighAccuracy:true,timeout:10000});
 }
+async function applyLaunchPrefill(){
+ const get=(k)=>launchParams.get(k);
+ const region=get('region'),comuna=get('comuna');
+ if(region){$('#region').value=region;fillCommunes(region);if(comuna)$('#comuna').value=comuna;}
+ const set=(id,key)=>{const v=get(key);if(v!==null&&$('#'+id))$('#'+id).value=v};
+ set('superficie','superficie');set('asking','asking');set('lat','lat');set('lng','lng');set('rol','rol');set('electricity','electricity');set('water','water');set('access','access');set('topography','topography');set('soil','soil');
+ if(get('lat')&&get('lng')){setMode('precisa');setTimeout(()=>setLocation(Number(get('lat')),Number(get('lng')),'manual'),100);}
+ if(launchParams.get('embed')==='crm'){document.body.classList.add('is-crm-embed');}
+}
+
 document.addEventListener('DOMContentLoaded',async()=>{
- buildWorks();await fillRegions();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));setMode('rapida');
+ buildWorks();await fillRegions();await applyLaunchPrefill();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));setMode('rapida');
  $('#incluyeVivienda').addEventListener('change',e=>$('#houseFields').hidden=!e.target.checked);
  $('#tasadorForm').addEventListener('submit',calculate);$('#useMyLocation').onclick=useLocation;$('#premiumReportBtn').onclick=openPremium;$('#closePremium').onclick=()=>$('#premiumDialog').close();
  document.querySelectorAll('[data-location-method]').forEach(b=>b.addEventListener('click',()=>setLocationMethod(b.dataset.locationMethod)));$('#applyGoogleMapsLink')?.addEventListener('click',applyGoogleMapsLink);$('#googleMapsLink')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyGoogleMapsLink();}});['lat','lng'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{const lat=Number($('#lat').value),lng=Number($('#lng').value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual')}));

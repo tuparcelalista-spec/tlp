@@ -7,14 +7,14 @@
 <meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynWdq4bV8hN3J1uVSc8VxjD60W0A=" crossorigin="">
-<link rel="stylesheet" href="tasador-publico.css?v=20260731-tpl-v2">
+<link rel="stylesheet" href="tasador-publico.css?v=20260802-crm1?v=20260731-tpl-v2">
 <script src="../../js/core/tpl-data-service.js?v=20260731-tasador-db"></script>
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix1"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script defer src="tasador-publico.js?v=20260802-map1"></script>
+<script defer src="tasador-publico.js?v=20260802-crm1"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
@@ -107,8 +107,31 @@
 <aside class="card result-card">
 <span class="eyebrow">Resultado orientativo</span><div id="status">Elige el tipo de tasación y completa los datos.</div>
 <div id="result" hidden>
-<div class="main-price"><small>Valor TPL Recomendado · horizonte estimado 3–6 meses</small><strong id="ideal">$0</strong><span id="idealUf" class="uf-equivalent">Equivalente UF disponible después de calcular</span></div>
-<div class="strategies"><div><small>Venta Ágil</small><b id="quick">$0</b></div><div><small>Valor de Mercado Potencial</small><b id="patient">$0</b></div></div>
+<div class="valuation-cards" aria-label="Escenarios de valor TPL">
+  <article class="valuation-card valuation-card--tpl">
+    <span class="valuation-card__tag">Recomendación principal</span>
+    <small>Valor TPL recomendado</small>
+    <strong id="ideal">$0</strong>
+    <p>Precio sugerido para una comercialización equilibrada, normalmente entre 3 y 6 meses.</p>
+    <span id="idealUf" class="uf-equivalent">Equivalente UF disponible después de calcular</span>
+  </article>
+  <article class="valuation-card valuation-card--agile">
+    <span class="valuation-card__tag">Prioriza velocidad</span>
+    <small>Valor con apuro · venta ágil</small>
+    <strong id="quick">$0</strong>
+    <p>Escenario más competitivo para aumentar la probabilidad de recibir consultas y ofertas antes.</p>
+  </article>
+  <article class="valuation-card valuation-card--patient">
+    <span class="valuation-card__tag">Prioriza precio</span>
+    <small>Valor sin apuro · potencial técnico</small>
+    <strong id="patient">$0</strong>
+    <p>Potencial técnico según ubicación y atributos, sin rebaja por velocidad y sin mezclar automáticamente el mercado comunal.</p>
+  </article>
+</div>
+<div id="tplValueFormula" class="tpl-value-formula" aria-live="polite">
+  <strong>¿Cómo se obtiene el Valor TPL?</strong>
+  <span>Calcula una tasación para ver si se incorporó la referencia comunal.</span>
+</div>
 <button id="immediateValueBtn" class="immediate-value-btn" type="button" hidden>¿Quieres conocer un escenario de venta inmediata según cierres anteriores?</button>
 <div id="marketReference" class="market-reference" hidden></div>
 <div class="score-summary" aria-label="Índices TPL">

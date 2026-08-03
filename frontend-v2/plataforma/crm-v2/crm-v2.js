@@ -502,20 +502,58 @@
         <form method="dialog"><button class="dialog-close" value="cancel" aria-label="Cerrar">×</button></form>
         <div class="premium-report-head"><small>INFORME PREMIUM TPL</small><h2>${esc(record.titulo || 'Parcela')}</h2><p>${esc([record.comuna, record.region].filter(Boolean).join(' · '))}</p></div>
         <div class="premium-report-grid">
-          <label>Nombre del destinatario<input id="premiumReportName" value="${esc(owner.nombre || '')}" placeholder="Nombre del propietario o cliente"></label>
-          <label>Correo<input id="premiumReportEmail" type="email" value="${esc(owner.email || '')}" placeholder="cliente@correo.cl"></label>
-          <label>WhatsApp<input id="premiumReportPhone" value="${esc(owner.telefono || owner.whatsapp || '')}" placeholder="+56 9..."></label>
+          <label>Nombre del destinatario <small>(opcional)</small><input id="premiumReportName" value="${esc(owner.nombre || '')}" placeholder="Solo si deseas personalizarlo"></label>
+          <label>Correo <small>(solo para enviar)</small><input id="premiumReportEmail" type="email" value="${esc(owner.email || '')}" placeholder="No es necesario para descargar"></label>
+          <label>WhatsApp <small>(opcional)</small><input id="premiumReportPhone" value="${esc(owner.telefono || owner.whatsapp || '')}" placeholder="+56 9..."></label>
         </div>
-        <div class="premium-report-note">La vista previa y descarga son internas. El envío por correo usa <strong>informes@parcelalista.cl</strong> y queda registrado en el historial.</div>
+        <div class="premium-report-note"><strong>Puedes descargar el PDF sin completar ningún dato.</strong> El correo solo es necesario cuando elijas enviarlo.</div>
         <div class="premium-report-actions">
-          <button type="button" class="nav-btn" data-report-action="preview">Generar y descargar</button>
+          <button type="button" class="nav-btn" data-report-action="preview">Descargar PDF</button>
           <button type="button" class="primary" data-report-action="send">Generar y enviar</button>
         </div>
         <section class="premium-report-history"><h3>Historial</h3>${history.length ? history.map((h) => `<article><div><strong>${esc(h.codigo || 'Informe')}</strong><small>${fmtDate(h.generado_at || h.created_at)}${h.enviado_a ? ` · enviado a ${esc(h.enviado_a)}` : ''}</small></div>${h.estado ? pill(h.estado) : ''}</article>`).join('') : '<p class="muted">Todavía no existen informes generados para esta parcela.</p>'}</section>
       </dialog>`;
   }
 
+  function propertyHasValuation(record) {
+    return arr('tasaciones').some((t) => String(t.propiedad_id || '') === String(record.id || ''));
+  }
+
+  function tasadorUrlFor(record) {
+    const q = new URLSearchParams();
+    q.set('embed', 'crm');
+    q.set('propiedad_id', record.id || '');
+    if (record.codigo) q.set('propiedad_codigo', record.codigo);
+    if (record.region) q.set('region', record.region);
+    if (record.comuna) q.set('comuna', record.comuna);
+    if (record.superficie_m2) q.set('superficie', record.superficie_m2);
+    if (record.precio_publicado) q.set('asking', record.precio_publicado);
+    if (record.lat) q.set('lat', record.lat);
+    if (record.lng) q.set('lng', record.lng);
+    if (record.rol_situacion) q.set('rol', record.rol_situacion);
+    if (record.electricidad) q.set('electricity', record.electricidad);
+    if (record.agua) q.set('water', record.agua);
+    if (record.acceso) q.set('access', record.acceso);
+    if (record.topografia) q.set('topography', record.topografia);
+    if (record.suelo) q.set('soil', record.suelo);
+    return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
+  }
+
+  function openCrmTasador(record) {
+    const dialog = document.querySelector('#crmTasadorDialog');
+    const frame = document.querySelector('#crmTasadorFrame');
+    const title = document.querySelector('#crmTasadorTitle');
+    if (!dialog || !frame) return window.open(tasadorUrlFor(record), '_blank', 'noopener,noreferrer');
+    if (title) title.textContent = `Tasar · ${record.titulo || record.codigo || 'Propiedad'}`;
+    frame.src = tasadorUrlFor(record);
+    dialog.showModal();
+  }
+
   async function openPremiumReport(record) {
+    if (!propertyHasValuation(record)) {
+      openCrmTasador(record);
+      return;
+    }
     document.querySelector('#premiumReportDialog')?.remove();
     let history = [];
     try { history = await window.TPLDataService.getCrmReportHistory(record.id); } catch (error) { console.warn(error); }
@@ -538,7 +576,7 @@
         alert(send ? (result.enviado ? 'Informe generado y enviado correctamente.' : 'Informe generado. No se pudo confirmar el envío por correo.') : 'Informe Premium generado correctamente.');
         dialog.close();
       } catch (error) { console.error(error); alert(error?.message || 'No fue posible generar el informe.'); }
-      finally { action.disabled = false; action.textContent = send ? 'Generar y enviar' : 'Generar y descargar'; }
+      finally { action.disabled = false; action.textContent = send ? 'Generar y enviar' : 'Descargar PDF'; }
     });
   }
 
@@ -600,6 +638,7 @@
               <div class="catalog-actions">
                 <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
                 <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
+                <button class="tasar-crm-btn" data-crm-tasar="${esc(r.id)}">${propertyHasValuation(r) ? 'Recalcular tasación' : 'Tasar ahora'}</button>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}">Informe Premium</button>
                 <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
               </div>
@@ -838,6 +877,14 @@
       return;
     }
 
+    const tasar = event.target.closest('[data-crm-tasar]');
+    if (tasar) {
+      const record = detailFor('parcelas', tasar.dataset.crmTasar);
+      if (!record) return alert('No pudimos recuperar la parcela.');
+      openCrmTasador(record);
+      return;
+    }
+
     const premiumReport = event.target.closest('[data-premium-report]');
     if (premiumReport) {
       const record = detailFor('parcelas', premiumReport.dataset.premiumReport);
@@ -890,6 +937,25 @@
       await window.TPLDataService.saveCrmHouse({id:val('#houseId')||null,nombre:val('#houseName'),codigo:val('#houseCode')||null,superficie_m2:val('#houseM2')||null,dormitorios:val('#houseBedrooms')||null,banos:val('#houseBathrooms')||null,pisos:val('#houseFloors')||null,material:val('#houseMaterial')||null,precio_base:val('#housePrice')||null,estado:val('#houseState'),proveedor_estado:val('#houseProviderState'),nombre_proveedor_pendiente:val('#houseProviderName')||null,partner_actor_id:val('#housePartnerId')||null,tipo_relacion:val('#houseRelation'),plazo_estimado_dias:val('#houseDays')||null,garantia:val('#houseWarranty')||null,descripcion:val('#houseDescription')||null,imagenes:lines('#houseImages'),planos:lines('#housePlans')});
       document.querySelector('#houseDialog')?.close(); await loadSnapshot(); render('casas');
     } catch(error){console.error(error);alert(error?.message||'No fue posible guardar la casa.')} finally {button.disabled=false;button.textContent='Guardar y sincronizar';}
+  });
+
+  document.querySelector('#crmTasadorClose')?.addEventListener('click', () => {
+    const dialog = document.querySelector('#crmTasadorDialog');
+    const frame = document.querySelector('#crmTasadorFrame');
+    dialog?.close();
+    if (frame) frame.src = 'about:blank';
+  });
+
+  window.addEventListener('message', async (event) => {
+    if (event.origin !== window.location.origin || event.data?.type !== 'TPL_TASACION_GUARDADA') return;
+    document.querySelector('#crmTasadorDialog')?.close();
+    const frame = document.querySelector('#crmTasadorFrame');
+    if (frame) frame.src = 'about:blank';
+    await loadSnapshot();
+    render('parcelas');
+    const propertyId = event.data.propiedad_id;
+    const record = detailFor('parcelas', propertyId);
+    if (record) await openPremiumReport(record);
   });
 
   async function bootstrap() {
