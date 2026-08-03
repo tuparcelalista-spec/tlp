@@ -197,6 +197,21 @@
     return items;
   }
 
+  function groupedAdjustmentFactor(adjustments=[]){
+    const byKey=Object.fromEntries((adjustments||[]).map(x=>[x.key,Number(x.pct||0)]));
+    const tourism=1+(byKey.tourism||0);
+    const legal=1+(byKey.rol||0);
+    const infrastructure=1+clamp((byKey.electricity||0)+(byKey.water||0)+(byKey.condominium||0),-0.25,0.35);
+    const natural=1+clamp((byKey.river||0)+(byKey.spring||0)+(byKey.lake||0)+(byKey.thermal||0),0,0.40);
+    const readiness=1+clamp((byKey.fence||0),-0.15,0.15);
+    const route=1+clamp((byKey.route||0),-0.50,0);
+    return {
+      factor: tourism*legal*infrastructure*natural*readiness*route,
+      groups:{tourism,legal,infrastructure,natural,readiness,route},
+      rationale:'Bonificaciones agrupadas con topes para evitar doble conteo de atributos relacionados.'
+    };
+  }
+
   function scoreDistance(distance,bands){const km=Number(distance);if(!Number.isFinite(km)||km<0)return null;const m=bands.find(b=>km<=b.max);return m?m.ratio:0;}
   function nearestSummary(items,maxCount=5){const list=(items||[]).filter(x=>Number.isFinite(Number(x.distanceKm))).sort((a,b)=>a.distanceKm-b.distanceKm);if(!list.length)return null;return {nearest:list[0],count:list.length,within5:list.filter(x=>x.distanceKm<=5).length,within10:list.filter(x=>x.distanceKm<=10).length,within20:list.filter(x=>x.distanceKm<=20).length,examples:list.slice(0,maxCount)};}
 
@@ -239,7 +254,8 @@
     const territorialBlend=calculateTerritorialBlend({...input,majorCityDistanceKm:majorKm});
     const territorialBase=roundPrice(surfacePricing.base*territorialBlend.multiplier);
     const adjustments=directAdjustments(input);
-    const adjustmentFactor=adjustments.reduce((factor,x)=>factor*(1+Number(x.pct||0)),1);
+    const groupedAdjustments=groupedAdjustmentFactor(adjustments);
+    const adjustmentFactor=groupedAdjustments.factor;
     const totalPct=adjustmentFactor-1;
     const technicalPotential=roundPrice(territorialBase*adjustmentFactor);
 
@@ -271,13 +287,13 @@
       marketReference:market,marketBlend:{technicalWeight:1,marketWeight:0,independent:true,isolationApplied:false},
       propertyIndex,territorialIndex,nearbyContext:input.nearbyContext||null,
       priceAnalysis:{publishedM2,tplM2,marketM2,priceVsTplPct,classification,opportunity:priceVsTplPct!==null&&priceVsTplPct<=-15},
-      adjustments:adjustments.map(x=>({...x,amount:Math.round(territorialBase*x.pct)})),totalPct,adjustmentFactor,
+      adjustments:adjustments.map(x=>({...x,amount:Math.round(territorialBase*x.pct)})),adjustmentGroups:groupedAdjustments.groups,adjustmentRationale:groupedAdjustments.rationale,totalPct,adjustmentFactor,
       score:Math.round(propertyIndex.score*.55+territorialIndex.score*.45),coverage:'motor_tpl_v2',source:'tpl_land_engine_local',persisted:false,method:ENGINE_VERSION,engineVersion:ENGINE_VERSION,
       cautions:[...(area>=10000&&!market?['No existe una referencia comunal validada del mismo rango de superficie; el Valor TPL sigue siendo técnico e independiente.']:[]),...(immediateReference===null?['La referencia de venta inmediata rural no se muestra para turismo nacional.']:[])]
     };
   }
 
-  const exportObj=Object.freeze({ENGINE_VERSION,RULES,TERRITORIAL_WEIGHTS,MARKET_REFERENCES,MAJOR_URBAN_POLES,setMarketReferences,calculateSurfaceBase,distanceRule,calculateTerritorialBlend,marketReference,electricityAdjustment,directAdjustments,calculateTerritorialIndex,calculatePropertyIndex,fetchNearbyContext,haversineKm,calculate});
+  const exportObj=Object.freeze({ENGINE_VERSION,RULES,TERRITORIAL_WEIGHTS,MARKET_REFERENCES,MAJOR_URBAN_POLES,setMarketReferences,calculateSurfaceBase,distanceRule,calculateTerritorialBlend,marketReference,electricityAdjustment,directAdjustments,groupedAdjustmentFactor,calculateTerritorialIndex,calculatePropertyIndex,fetchNearbyContext,haversineKm,calculate});
   if(typeof module!=='undefined'&&module.exports)module.exports=exportObj;
   global.TPLLandEngine=exportObj;
 })(typeof window!=='undefined'?window:globalThis);

@@ -503,17 +503,42 @@
     const metadata = record.metadata && typeof record.metadata === 'object' ? record.metadata : {};
     const ubicacion = metadata.ubicacion && typeof metadata.ubicacion === 'object' ? metadata.ubicacion : {};
     const house = record.casa_datos || metadata.casa_datos || metadata.casa || {};
+    const source = { ...metadata, ...ubicacion, ...record };
+    const text = String([source.titulo, source.nombre, source.descripcion, metadata.descripcion].filter(Boolean).join(' '))
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const yes = (value) => /^(si|sí|true|1|disponible|con)$/i.test(String(value ?? '').trim());
+    const infer = (current, fallback) => current !== undefined && current !== null && String(current).trim() !== '' ? current : fallback;
+    const natural = Array.isArray(source.atributos_naturales) ? [...source.atributos_naturales] : [];
+    const pushNature = (value, pattern) => { if (pattern.test(text) && !natural.some(x => String(x).toLowerCase().includes(value))) natural.push(value); };
+    pushNature('rio', /acceso (?:directo )?al rio|rio dentro|orilla de rio/);
+    pushNature('lago', /acceso (?:directo )?al lago|orilla de lago/);
+    pushNature('termas', /aguas termales|termas/);
+    pushNature('bosque nativo', /bosque nativo|araucarias/);
+    const legacyRol = yes(source.rol) || /rol propio/.test(text) ? 'Rol propio' : '';
+    const legacyElectricity = yes(source.luz) || /energia electrica|electricidad disponible|empalme/.test(text) ? 'Empalme instalado' : '';
+    const legacyWater = yes(source.agua) || /agua disponible|disponibilidad de agua|con agua/.test(text) ? 'Agua disponible' : '';
+    const legacyCondo = source.condominio === true || /condominio privado|dentro del condominio/.test(text);
+    const legacyTourism = /caburgua|pucon|pucón|destino turistico|turismo aventura|parque nacional|lago caburgua/.test(text) ? 'nacional' : '';
+    const legacyView = /vista.*volcan|volcan villarrica/.test(text) ? 'Vista panorámica / cordillera / volcán' : '';
     return {
       ...metadata,
       ...ubicacion,
       ...record,
       region: record.region || ubicacion.region || metadata.region || '',
       comuna: record.comuna || ubicacion.comuna || metadata.comuna || '',
-      superficie_m2: record.superficie_m2 || metadata.superficie_m2 || metadata.superficie || null,
+      superficie_m2: record.superficie_m2 || metadata.superficie_m2 || metadata.superficie || metadata.tamano || null,
       precio_publicado: record.precio_publicado || metadata.precio_publicado || metadata.precio || null,
       lat: record.lat ?? ubicacion.lat ?? metadata.lat ?? null,
       lng: record.lng ?? ubicacion.lng ?? metadata.lng ?? null,
-      casa_datos: house
+      rol_situacion: infer(record.rol_situacion, legacyRol),
+      electricidad: infer(record.electricidad, legacyElectricity),
+      agua: infer(record.agua, legacyWater),
+      condominio: record.condominio !== undefined && record.condominio !== null ? record.condominio : legacyCondo,
+      clasificacion_turistica: infer(record.clasificacion_turistica ?? metadata.clasificacion_turistica, legacyTourism),
+      vista_principal: infer(record.vista_principal, legacyView),
+      atributos_naturales: natural,
+      casa_datos: house,
+      metadata: { ...metadata, legacy_inference: { applied: true, source: 'crm_hydration_v2' } }
     };
   }
 
@@ -545,15 +570,13 @@
     const input = valuation?.entrada || valuation?.input || {};
     if (!ideal) return '';
     const market = result.marketReference || result.landResult?.marketReference || null;
-    const blend = result.marketBlend || result.landResult?.marketBlend || result.observedBlend || null;
     const factors = [];
-    if (market) factors.push(`<span><b>Mercado comunal</b>${fmtMoney(Number(market.medianM2||0))}/m²</span>`);
-    if (blend) {
-      const technical = Math.round(Number(blend.technicalWeight ?? .5) * 100);
-      const observed = Math.max(0, 100 - technical);
-      factors.push(`<span><b>Análisis técnico</b>${technical}%</span>`);
-      factors.push(`<span><b>Mercado observado</b>${observed}%</span>`);
-    }
+    if (market) factors.push(`<span><b>Valor observado comunal</b>${fmtMoney(Number(market.medianM2||0))}/m² · no modifica el motor técnico</span>`);
+    const territorialBase=Number(result.territorialBase||result.landResult?.territorialBase||0);
+    if(territorialBase) factors.push(`<span><b>Base territorial</b>${fmtMoney(territorialBase)}</span>`);
+    const groups=result.adjustmentGroups||result.landResult?.adjustmentGroups||{};
+    const groupLabels={tourism:'Turismo',legal:'Situación legal',infrastructure:'Servicios e infraestructura',natural:'Atributos naturales',readiness:'Preparación',route:'Acceso a ruta'};
+    Object.entries(groups).forEach(([key,mult])=>{const pct=Math.round((Number(mult||1)-1)*100);if(pct)factors.push(`<span><b>${groupLabels[key]||key}</b>${pct>0?'+':''}${pct}%</span>`)});
     if (input.region && input.comuna) factors.push(`<span><b>Ubicación base</b>${esc(input.comuna)} · ${esc(input.region)}</span>`);
     if (Number(input.area || input.superficie_m2 || 0)) factors.push(`<span><b>Superficie</b>${Number(input.area || input.superficie_m2).toLocaleString('es-CL')} m²</span>`);
     const confidence = result.observedComparables?.confianza || (input.lat && input.lng ? 'alta' : 'referencial');

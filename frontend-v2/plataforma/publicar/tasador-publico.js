@@ -286,23 +286,30 @@ function hideKnownField(key){
 function applyCrmSmartMissing(){
  if(launchParams.get('embed')!=='crm'||launchParams.get('smart_missing')!=='1')return;
  const panel=$('#crmSmartCompletion');if(!panel)return;
- const present=new Set((launchParams.get('campos_presentes')||'').split(',').filter(Boolean));
+ const declared=new Set((launchParams.get('campos_presentes')||'').split(',').filter(Boolean));
  const withHouse=assetType!=='parcela';
  const applicable=Object.keys(CRM_FIELD_DEFS).filter(k=>withHouse||!['area_casa','material_casa','anio_construccion','estado_casa','anio_remodelacion','dormitorios','banos','pisos','works','differentiator'].includes(k));
- // Coordenadas se consideran un solo bloque.
- if(present.has('lat')&&present.has('lng'))document.querySelector('.coordinates-card')?.setAttribute('hidden','');
- applicable.forEach(k=>{if(present.has(k))hideKnownField(k)});
- const known=applicable.filter(k=>present.has(k));
- const missing=applicable.filter(k=>!present.has(k));
+ const hasActualValue=(key)=>{
+   if(key==='lat'||key==='lng') return Number.isFinite(Number($('#'+key)?.value)) && Number($('#'+key)?.value)!==0;
+   if(key==='nature') return document.querySelectorAll('[data-nature]:checked').length>0;
+   if(key==='works') return [...document.querySelectorAll('[data-work]')].some(el=>Number(el.value)>0);
+   const def=CRM_FIELD_DEFS[key], el=def?.id?$('#'+def.id):null;
+   if(!el) return declared.has(key);
+   return String(el.value??'').trim()!=='';
+ };
+ const known=applicable.filter(hasActualValue);
+ const missing=applicable.filter(k=>!hasActualValue(k));
+ if(known.includes('lat')&&known.includes('lng'))document.querySelector('.coordinates-card')?.setAttribute('hidden','');
+ known.forEach(hideKnownField);
  const score=Math.round((known.length/Math.max(1,applicable.length))*100);
  panel.hidden=false;
  $('#crmCompletionTitle').textContent=missing.length?`Solo faltan ${missing.length} antecedentes`:'La ficha ya está completa';
- $('#crmCompletionText').textContent=missing.length?'Los datos anteriores se conservan. Completa únicamente los campos visibles para mejorar la precisión del Informe Premium.':'Puedes revisar la tasación y guardar una nueva versión sin volver a ingresar información.';
+ $('#crmCompletionText').textContent=missing.length?'Los datos recuperados ya están cargados y protegidos. Completa únicamente los campos visibles y luego guarda la nueva tasación.':'Todos los campos disponibles están cargados. Puedes recalcular y guardar una nueva versión.';
  $('#crmCompletionBar').style.width=`${score}%`;
  $('#crmKnownData').innerHTML=`<strong>Información recuperada (${known.length})</strong><div>${known.slice(0,12).map(k=>`<span>✓ ${CRM_FIELD_DEFS[k].label}</span>`).join('')}${known.length>12?`<span>+${known.length-12} datos más</span>`:''}</div>`;
- $('#crmMissingData').innerHTML=missing.length?`<strong>Completar ahora</strong><div>${missing.map(k=>`<span>${CRM_FIELD_DEFS[k].label}</span>`).join('')}</div>`:'<strong>Lista para informe</strong><p>No quedan campos pendientes en esta ficha.</p>';
+ $('#crmMissingData').innerHTML=(missing.length?`<strong>Completar ahora</strong><div>${missing.map(k=>`<span>${CRM_FIELD_DEFS[k].label}</span>`).join('')}</div>`:'<strong>Lista para informe</strong><p>No quedan campos pendientes en esta ficha.</p>')+`<button id="crmSaveAndValue" type="button" class="primary crm-save-and-value">Tasar y guardar datos</button>`;
+ $('#crmSaveAndValue')?.addEventListener('click',()=>$('#tasadorForm')?.requestSubmit());
  document.body.classList.add('is-crm-smart-missing');
- // Si agua/electricidad ya existen, sus campos dependientes no deben forzar una selección artificial.
  setTimeout(()=>{document.querySelectorAll('.grid').forEach(grid=>{const visible=[...grid.children].some(x=>!x.hidden);grid.classList.toggle('is-empty-grid',!visible)});},0);
 }
 async function applyLaunchPrefill(){

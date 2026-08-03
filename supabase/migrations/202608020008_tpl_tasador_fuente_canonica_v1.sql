@@ -166,7 +166,7 @@ as $$
     from public.tpl_propiedades p
     join public.tpl_analisis_territoriales a on a.id=p.analisis_territorial_actual_id
     where (p.id::text=p_identificador or p.codigo=p_identificador)
-      and p.estado_publicacion in ('publicada','activa','disponible')
+      and p.estado in ('publicada', 'activa', 'disponible')
     limit 1
   ), '{}'::jsonb);
 $$;
@@ -199,8 +199,14 @@ grant execute on function public.tpl_analisis_proyecto_propiedad_v1(text) to ano
 
 alter table public.tpl_analisis_territoriales enable row level security;
 drop policy if exists tpl_analisis_staff_select on public.tpl_analisis_territoriales;
-create policy tpl_analisis_staff_select on public.tpl_analisis_territoriales for select to authenticated
-using (exists(select 1 from public.tpl_staff s where s.auth_user_id=auth.uid() and s.activo=true));
+drop policy if exists tpl_analisis_staff_select
+on public.tpl_analisis_territoriales;
+
+create policy tpl_analisis_staff_select
+on public.tpl_analisis_territoriales
+for select
+to authenticated
+using (public.tpl_es_staff());
 
 grant select on public.tpl_analisis_territoriales to authenticated;
 
