@@ -537,6 +537,29 @@
     };
   }
 
+
+  function valuationExplanation(record) {
+    const { valuation, ideal } = valuationValues(record);
+    const result = valuation?.resultado || valuation?.result || {};
+    const input = valuation?.entrada || valuation?.input || {};
+    if (!ideal) return '';
+    const market = result.marketReference || result.landResult?.marketReference || null;
+    const blend = result.marketBlend || result.landResult?.marketBlend || result.observedBlend || null;
+    const factors = [];
+    if (market) factors.push(`<span><b>Mercado comunal</b>${fmtMoney(Number(market.medianM2||0))}/m²</span>`);
+    if (blend) {
+      const technical = Math.round(Number(blend.technicalWeight ?? .5) * 100);
+      const observed = Math.max(0, 100 - technical);
+      factors.push(`<span><b>Análisis técnico</b>${technical}%</span>`);
+      factors.push(`<span><b>Mercado observado</b>${observed}%</span>`);
+    }
+    if (input.region && input.comuna) factors.push(`<span><b>Ubicación base</b>${esc(input.comuna)} · ${esc(input.region)}</span>`);
+    if (Number(input.area || input.superficie_m2 || 0)) factors.push(`<span><b>Superficie</b>${Number(input.area || input.superficie_m2).toLocaleString('es-CL')} m²</span>`);
+    const confidence = result.observedComparables?.confianza || (input.lat && input.lng ? 'alta' : 'referencial');
+    factors.push(`<span><b>Confianza</b>${esc(confidence)}</span>`);
+    return `<details class="crm-value-details"><summary>Cómo se llegó a estos valores</summary><div>${factors.join('')}</div></details>`;
+  }
+
   function reportDialogHtml(record, history = []) {
     const owner = arr('duenos').find((x) => x.id === record.propietario_actor_id || x.actor_id === record.propietario_actor_id) || {};
     return `
@@ -716,13 +739,16 @@
               <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(hydratedProperty(r).superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(hydratedProperty(r).precio_publicado)}</b></div>
               ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor TPL</small><b>${fmtMoney(v.ideal)}</b></span><span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
-              <div class="catalog-actions">
-                <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
-                <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
-                <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasación básica</button>
-                <button class="tasar-crm-btn" data-crm-tasar-full="${esc(r.id)}">${propertyHasValuation(r) ? 'Completar y recalcular' : 'Completar y tasar'}</button>
-                <button class="report-premium-btn" data-premium-report="${esc(r.id)}">Informe Premium</button>
-                <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
+              ${valuationExplanation(r)}
+              <div class="catalog-actions catalog-actions--primary">
+                <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver propiedad</a>
+                <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasar</button>
+                <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero realiza una tasación"'}>Informe Premium</button>
+                <details class="catalog-more"><summary>Más</summary><div>
+                  <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
+                  <button class="tasar-crm-btn" data-crm-tasar-full="${esc(r.id)}">${propertyHasValuation(r) ? 'Completar y recalcular' : 'Completar datos y tasar'}</button>
+                  <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
+                </div></details>
               </div>
             </div>
           </article>`).join('') || '<div class="empty">No hay parcelas en Supabase.</div>'}
@@ -963,7 +989,7 @@
     if (tasarBasic) {
       const record = detailFor('parcelas', tasarBasic.dataset.crmTasarBasic);
       if (!record) return alert('No pudimos recuperar la parcela.');
-      openCrmTasador(record, { auto: true, openReport: true, mode: 'rapida' });
+      openCrmTasador(record, { auto: true, openReport: false, mode: 'rapida' });
       return;
     }
 

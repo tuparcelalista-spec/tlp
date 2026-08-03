@@ -50,7 +50,7 @@ function validCoordinate(lat,lng){return Number.isFinite(Number(lat))&&Number.is
 function setLocation(lat,lng,source='manual'){
  if(!validCoordinate(lat,lng))return false;
  const a=Number(lat),o=Number(lng);$('#lat').value=a.toFixed(6);$('#lng').value=o.toFixed(6);
- initLocationMap();if(locationMap){locationMap.setView([a,o],Math.max(locationMap.getZoom(),15));if(!locationMarker)locationMarker=L.marker([a,o],{draggable:true}).addTo(locationMap);else locationMarker.setLatLng([a,o]);}
+ initLocationMap();if(locationMap){locationMap.setView([a,o],Math.max(locationMap.getZoom(),15));if(!locationMarker){const icon=L.divIcon({className:'tpl-map-pin-wrap',html:'<span class=\"tpl-map-pin\"></span>',iconSize:[32,42],iconAnchor:[16,40]});locationMarker=L.marker([a,o],{draggable:true,icon}).addTo(locationMap);}else locationMarker.setLatLng([a,o]);}
  updateLocationStatus(a,o,source);return true;
 }
 function updateLocationStatus(lat,lng,source='manual'){
@@ -61,7 +61,7 @@ function updateLocationStatus(lat,lng,source='manual'){
 }
 function initLocationMap(){
  const el=$('#tasadorMap');if(!el||locationMap||!window.L)return;
- locationMap=L.map(el,{scrollWheelZoom:false}).setView([-36.82,-73.05],7);
+ locationMap=L.map(el,{scrollWheelZoom:true,zoomControl:true,doubleClickZoom:true,touchZoom:true}).setView([-36.82,-73.05],7);
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(locationMap);
  locationMap.on('click',e=>setLocation(e.latlng.lat,e.latlng.lng,'mapa'));
  const lat=Number($('#lat')?.value),lng=Number($('#lng')?.value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual');
