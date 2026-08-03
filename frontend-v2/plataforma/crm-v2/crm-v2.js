@@ -616,6 +616,28 @@
     if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance', record.distancia_ruta_principal_km);
     const metadata = record.metadata || {};
     const house = record.casa_datos || metadata.casa_datos || {};
+    const natural = record.atributos_naturales || metadata.atributos_naturales || metadata.nature || [];
+    const known = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+    const present = [];
+    const mark = (key, value) => { if (known(value)) present.push(key); };
+    mark('region', record.region); mark('comuna', record.comuna); mark('superficie', record.superficie_m2);
+    mark('asking', record.precio_publicado); mark('lat', record.lat); mark('lng', record.lng);
+    mark('rol', record.rol_situacion); mark('electricity', record.electricidad); mark('water', record.agua);
+    mark('access', record.acceso); mark('topography', record.topografia); mark('soil', record.suelo);
+    mark('exposure', record.exposicion); mark('view', record.vista_principal); mark('vegetation', record.vegetacion);
+    mark('fencing', record.cierre_perimetral); mark('gate', record.porton);
+    if (record.condominio !== undefined && record.condominio !== null) present.push('condominium');
+    mark('route_distance', record.distancia_ruta_principal_km);
+    mark('commune_distance', record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm);
+    mark('electricity_pole_distance', record.distancia_poste_electrico_m ?? metadata.distancia_poste_electrico_m ?? metadata.electricityPoleDistanceM);
+    mark('tourism', record.clasificacion_turistica ?? metadata.clasificacion_turistica ?? metadata.tourismLevel);
+    if (Array.isArray(natural) && natural.length) present.push('nature');
+    if (options.full) { q.set('smart_missing', '1'); q.set('campos_presentes', present.join(',')); }
+    if (Array.isArray(natural) && natural.length) q.set('nature', natural.join('|'));
+    const poleDistance = record.distancia_poste_electrico_m ?? metadata.distancia_poste_electrico_m ?? metadata.electricityPoleDistanceM;
+    if (known(poleDistance)) q.set('electricity_pole_distance', poleDistance);
+    const tourismLevel = record.clasificacion_turistica ?? metadata.clasificacion_turistica ?? metadata.tourismLevel;
+    if (known(tourismLevel)) q.set('tourism', tourismLevel);
     const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
     q.set('tipo_activo', assetType);
     const communeDistance = record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm;
@@ -629,6 +651,18 @@
       if (house.banos || house.baños) q.set('banos', house.banos || house.baños);
       if (house.anio_construccion) q.set('anio_construccion', house.anio_construccion);
       if (house.estado) q.set('estado_casa', house.estado);
+      if (house.anio_remodelacion) q.set('anio_remodelacion', house.anio_remodelacion);
+      if (house.pisos) q.set('pisos', house.pisos);
+      if (house.obras_adicionales && Object.keys(house.obras_adicionales).length) q.set('works', JSON.stringify(house.obras_adicionales));
+      if (house.caracteristica_diferenciadora) q.set('differentiator', house.caracteristica_diferenciadora);
+      mark('area_casa', house.superficie_m2 || house.m2);
+      mark('material_casa', house.material || house.materialidad);
+      mark('dormitorios', house.dormitorios); mark('banos', house.banos || house.baños);
+      mark('anio_construccion', house.anio_construccion); mark('estado_casa', house.estado);
+      mark('anio_remodelacion', house.anio_remodelacion); mark('pisos', house.pisos);
+      if (house.obras_adicionales && Object.keys(house.obras_adicionales).length) present.push('works');
+      mark('differentiator', house.caracteristica_diferenciadora);
+      if (options.full) q.set('campos_presentes', [...new Set(present)].join(','));
     }
     return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
   }

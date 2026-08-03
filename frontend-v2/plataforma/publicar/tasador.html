@@ -7,14 +7,14 @@
 <meta name="description" content="Estima el valor comercial de una parcela, campo o propiedad rural con una tasación rápida o precisa usando el motor TPL.">
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynWdq4bV8hN3J1uVSc8VxjD60W0A=" crossorigin="">
-<link rel="stylesheet" href="tasador-publico.css?v=20260803ind1-crmvaluation2">
+<link rel="stylesheet" href="tasador-publico.css?v=20260803smartmissing1">
 <script src="../../js/core/tpl-data-service.js?v=20260803ind1-crmvaluation2"></script>
 <script src="tpl-land-engine.js"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260803ind1-crmvaluation2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script defer src="tasador-publico.js?v=20260803ind1-crmvaluation2"></script>
+<script defer src="tasador-publico.js?v=20260803smartmissing1"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
@@ -33,32 +33,39 @@
 
 <div class="layout">
 <form id="tasadorForm" class="card form-card">
+<section id="crmSmartCompletion" class="crm-smart-completion" hidden aria-live="polite">
+  <div class="crm-smart-completion__head"><span>Ficha Inteligente TPL</span><strong id="crmCompletionTitle">Revisando información…</strong></div>
+  <p id="crmCompletionText">TPL está comparando la ficha histórica con los antecedentes necesarios para una tasación completa.</p>
+  <div class="crm-completion-meter"><span id="crmCompletionBar"></span></div>
+  <div id="crmKnownData" class="crm-known-data"></div>
+  <div id="crmMissingData" class="crm-missing-data"></div>
+</section>
 <div class="section-heading"><span class="step-pill">1</span><div><h2>Ubicación y terreno</h2><p>Estos datos siempre son necesarios.</p></div></div>
 <div class="grid">
 <label><span>Región</span><select id="region" required><option value="">Cargando regiones…</option></select></label>
 <label><span>Comuna</span><select id="comuna" required disabled><option value="">Primero selecciona región</option></select></label>
 <label><span>Superficie terreno (m²)</span><input id="superficie" type="number" min="100" step="100" value="5000" required></label>
 <label><span>Distancia al centro de la comuna (km)</span><input id="communeDistanceKm" type="number" min="0" step=".5" placeholder="Ej. 8"><small>Indica la distancia aproximada a la comuna seleccionada. TPL calcula internamente la relación con la ciudad principal.</small></label>
-<label><span>Rol / situación legal</span><select id="rol"><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
-<label><span>Electricidad</span><select id="electricity"><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
+<label><span>Rol / situación legal</span><select id="rol"><option value="">Selecciona situación</option><option>Rol propio</option><option>En trámite</option><option>Sin rol conocido</option></select></label>
+<label><span>Electricidad</span><select id="electricity"><option value="">Selecciona disponibilidad</option><option>Empalme instalado</option><option>Factibilidad</option><option>Sin electricidad</option></select></label>
 <label id="electricityPoleWrap" hidden><span>Distancia al poste / red eléctrica</span><div class="suffix"><input id="electricityPoleDistanceM" type="number" min="0" step="50" placeholder="Ej. 500"><b>m</b></div><small>Factibilidad: +10% en 0 m y baja 1 punto por cada 100 m hasta 0% a 1 km.</small></label>
-<label><span>Topografía</span><select id="topography"><option>Completamente plana</option><option>Mayormente plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
-<label><span>Agua</span><select id="water"><option value="factibilidad">Factibilidad</option><option value="sin factibilidad">Sin factibilidad</option><option value="puntera">Puntera</option><option value="pozo">Pozo</option><option value="apr">APR</option></select></label>
+<label><span>Topografía</span><select id="topography"><option value="">Selecciona topografía</option><option>Completamente plana</option><option>Mayormente plana</option><option>Pendiente suave</option><option>Mixta</option><option>Quebrada</option></select></label>
+<label><span>Agua</span><select id="water"><option value="">Selecciona disponibilidad</option><option value="factibilidad">Factibilidad</option><option value="sin factibilidad">Sin factibilidad</option><option value="puntera">Puntera</option><option value="pozo">Pozo</option><option value="apr">APR</option></select></label>
 <label><span>Clasificación turística</span><select id="tourismLevel"><option value="auto">Automático según territorio</option><option value="">No turística</option><option value="local">Turística local / regional</option><option value="nacional">Turística nacional</option></select></label>
 </div>
 
 <section id="preciseFields" class="precise-fields" hidden>
 <div class="section-heading"><span class="step-pill">2</span><div><h2>Características que diferencian la parcela</h2><p>Se usan en el análisis cuando el motor tiene regla definida y siempre se incorporan al Informe Premium.</p></div></div>
 <div class="grid">
-<label><span>Acceso</span><select id="access"><option value="pavimentado">Pavimentado</option><option value="ripio bueno">Ripio en buen estado</option><option value="ripio regular">Ripio regular</option><option value="camino tierra">Camino de tierra</option><option value="servidumbre">Servidumbre / acceso interior</option></select></label>
-<label><span>Distancia a ruta principal (km)</span><input id="routeDistanceKm" type="number" min="0" step=".5" value="0"></label>
-<label><span>Tipo de suelo</span><select id="soil"><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
-<label><span>Exposición solar</span><select id="exposure"><option>Muy soleado</option><option>Soleado medio</option><option>Poco soleado</option></select></label>
-<label><span>Vista principal</span><select id="view"><option value="panoramica arriba">Panorámica desde arriba</option><option value="panoramica abajo">Panorámica desde abajo</option><option value="poca visibilidad">Poca visibilidad</option><option value="distante">Distante</option><option value="lago">Vista a lago o laguna</option><option value="mar">Vista al mar</option><option value="cordillera">Vista a cordillera</option></select></label>
-<label><span>Vegetación</span><select id="vegetation"><option value="sin especial">Sin característica especial</option><option value="bosque nativo">Bosque nativo</option><option value="pradera">Pradera</option><option value="frutales">Frutales / productiva</option></select></label>
-<label><span>Cierre perimetral</span><select id="fencing"><option>Completamente cercada</option><option>Parcialmente cercada</option><option>Sin cierre</option></select></label>
-<label><span>Acceso controlado</span><select id="gate"><option value="sin porton">Sin portón</option><option value="porton instalado">Portón instalado</option><option value="porton automatico">Portón automático</option><option value="acceso controlado">Acceso controlado</option></select></label>
-<label><span>Condominio o loteo</span><select id="condominium"><option value="no">No</option><option value="si">Sí</option></select></label>
+<label><span>Acceso</span><select id="access"><option value="">Selecciona acceso</option><option value="pavimentado">Pavimentado</option><option value="ripio bueno">Ripio en buen estado</option><option value="ripio regular">Ripio regular</option><option value="camino tierra">Camino de tierra</option><option value="servidumbre">Servidumbre / acceso interior</option></select></label>
+<label><span>Distancia a ruta principal (km)</span><input id="routeDistanceKm" type="number" min="0" step=".5" placeholder="Ej. 2,5"></label>
+<label><span>Tipo de suelo</span><select id="soil"><option value="">Selecciona tipo de suelo</option><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option></select></label>
+<label><span>Exposición solar</span><select id="exposure"><option value="">Selecciona exposición</option><option>Muy soleado</option><option>Soleado medio</option><option>Poco soleado</option></select></label>
+<label><span>Vista principal</span><select id="view"><option value="">Selecciona vista</option><option value="panoramica arriba">Panorámica desde arriba</option><option value="panoramica abajo">Panorámica desde abajo</option><option value="poca visibilidad">Poca visibilidad</option><option value="distante">Distante</option><option value="lago">Vista a lago o laguna</option><option value="mar">Vista al mar</option><option value="cordillera">Vista a cordillera</option></select></label>
+<label><span>Vegetación</span><select id="vegetation"><option value="">Selecciona vegetación</option><option value="sin especial">Sin característica especial</option><option value="bosque nativo">Bosque nativo</option><option value="pradera">Pradera</option><option value="frutales">Frutales / productiva</option></select></label>
+<label><span>Cierre perimetral</span><select id="fencing"><option value="">Selecciona cierre</option><option>Completamente cercada</option><option>Parcialmente cercada</option><option>Sin cierre</option></select></label>
+<label><span>Acceso controlado</span><select id="gate"><option value="">Selecciona acceso controlado</option><option value="sin porton">Sin portón</option><option value="porton instalado">Portón instalado</option><option value="porton automatico">Portón automático</option><option value="acceso controlado">Acceso controlado</option></select></label>
+<label><span>Condominio o loteo</span><select id="condominium"><option value="">Selecciona opción</option><option value="no">No</option><option value="si">Sí</option></select></label>
 <label><span>Precio que esperas obtener</span><input id="asking" inputmode="numeric" placeholder="Ej. 35.000.000"></label>
 </div>
 
@@ -95,13 +102,13 @@
 <div class="section-heading"><span class="step-pill">3</span><div><h2>Vivienda</h2><p>Separa el valor de construcción del terreno.</p></div></div>
 <div class="grid">
 <label><span>Superficie casa (m²)</span><input id="areaCasa" type="number" min="0" step="1"></label>
-<label><span>Material principal</span><select id="materialCasa"><option value="madera">Madera</option><option value="metalcon">Metalcon</option><option value="albanileria">Albañilería</option><option value="hormigon">Hormigón</option><option value="mixta">Mixta</option></select></label>
+<label><span>Material principal</span><select id="materialCasa"><option value="">Selecciona material</option><option value="madera">Madera</option><option value="metalcon">Metalcon</option><option value="albanileria">Albañilería</option><option value="hormigon">Hormigón</option><option value="mixta">Mixta</option></select></label>
 <label><span>Año construcción</span><input id="anioConstruccion" type="number" min="1900"></label>
-<label><span>Estado</span><select id="estadoCasa"><option value="excelente">Excelente / nueva</option><option value="bueno">Bueno</option><option value="aceptable">Aceptable</option><option value="necesita mejoras">Necesita mejoras</option><option value="para remodelar">Para remodelar</option></select></label>
+<label><span>Estado</span><select id="estadoCasa"><option value="">Selecciona estado</option><option value="excelente">Excelente / nueva</option><option value="bueno">Bueno</option><option value="aceptable">Aceptable</option><option value="necesita mejoras">Necesita mejoras</option><option value="para remodelar">Para remodelar</option></select></label>
 <label><span>Año remodelación integral</span><input id="anioRemodelacion" type="number" min="1900"></label>
 <label><span>Dormitorios</span><input id="dormitorios" type="number" min="0"></label>
 <label><span>Baños</span><input id="banos" type="number" min="0"></label>
-<label><span>Pisos</span><input id="pisos" type="number" min="1" value="1"></label>
+<label><span>Pisos</span><input id="pisos" type="number" min="1" placeholder="Ej. 1"></label>
 </div>
 <details class="extras"><summary>Obras adicionales</summary><div id="worksGrid" class="works-grid"></div></details>
 <label class="full"><span>Característica realmente diferenciadora</span><textarea id="caracteristicaDiferenciadora" rows="3" placeholder="Ej. acceso privado al río, piscina, vista despejada al volcán, quincho equipado..."></textarea><small>Descríbela de forma concreta. Quedará registrada en el informe.</small></label>

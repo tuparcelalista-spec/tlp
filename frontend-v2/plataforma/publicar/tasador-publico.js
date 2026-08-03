@@ -87,7 +87,7 @@ function inputs(){
  const obras={};document.querySelectorAll('[data-work]').forEach(el=>{const n=Number(el.value||0);if(n>0)obras[el.dataset.work]=n});
  const withHouse=assetType!=='parcela';const nature=[...document.querySelectorAll('[data-nature]:checked')].map(x=>x.value);
  const base={tipoActivo:assetType,soloVivienda:assetType==='casa',propiedadId:linkedPropertyId||null,propiedadCodigo:linkedPropertyCode||null,origen:launchParams.get('embed')==='crm'?'crm_tasador':'tasador_publico',area:assetType==='casa'?1:Number($('#superficie').value||0),communeDistanceKm:$('#communeDistanceKm').value===''?null:Number($('#communeDistanceKm').value),region:$('#region').value,comuna:$('#comuna').value,rol:$('#rol').value,electricity:$('#electricity').value,electricityPoleDistanceM:$('#electricityPoleDistanceM').value===''?null:Number($('#electricityPoleDistanceM').value),topography:$('#topography').value,water:$('#water').value,tourismLevel:$('#tourismLevel').value,mode};
- if(mode==='precisa')Object.assign(base,{access:$('#access').value,routeDistanceKm:Number($('#routeDistanceKm').value||0),soil:$('#soil').value,exposure:$('#exposure').value,view:$('#view').value,vegetation:$('#vegetation').value,fencing:$('#fencing').value,gate:$('#gate').value,condominium:$('#condominium').value,asking:parseMoney($('#asking').value),nature,lat:Number($('#lat').value),lng:Number($('#lng').value)});
+ if(mode==='precisa')Object.assign(base,{access:$('#access').value,routeDistanceKm:$('#routeDistanceKm').value===''?null:Number($('#routeDistanceKm').value),soil:$('#soil').value,exposure:$('#exposure').value,view:$('#view').value,vegetation:$('#vegetation').value,fencing:$('#fencing').value,gate:$('#gate').value,condominium:$('#condominium').value,asking:parseMoney($('#asking').value),nature,lat:Number($('#lat').value),lng:Number($('#lng').value)});
  return {...base,incluyeVivienda:withHouse,areaCasa:withHouse?Number($('#areaCasa').value||0):0,materialCasa:$('#materialCasa').value,anioConstruccion:Number($('#anioConstruccion').value||0),estadoCasa:$('#estadoCasa').value,tipoFundacion:'sin_fundacion',anioRemodelacion:Number($('#anioRemodelacion').value||0),remodelacionIntegral:Number($('#anioRemodelacion').value||0)>0,dormitorios:Number($('#dormitorios').value||0),banos:Number($('#banos').value||0),pisos:Number($('#pisos').value||1),obrasAdicionales:obras,caracteristicaDiferenciadora:$('#caracteristicaDiferenciadora').value};
 }
 function territorialContextFor(x){
@@ -257,6 +257,54 @@ function selectMatchingValue(el,value){
  if(!option)return false;
  el.value=option.value;return true;
 }
+
+const CRM_FIELD_DEFS={
+ region:{id:'region',label:'Región'},comuna:{id:'comuna',label:'Comuna'},superficie:{id:'superficie',label:'Superficie del terreno'},
+ commune_distance:{id:'communeDistanceKm',label:'Distancia al centro comunal'},rol:{id:'rol',label:'Rol / situación legal'},
+ electricity:{id:'electricity',label:'Electricidad'},electricity_pole_distance:{id:'electricityPoleDistanceM',label:'Distancia a red eléctrica'},
+ topography:{id:'topography',label:'Topografía'},water:{id:'water',label:'Agua'},tourism:{id:'tourismLevel',label:'Clasificación turística'},
+ access:{id:'access',label:'Acceso'},route_distance:{id:'routeDistanceKm',label:'Distancia a ruta principal'},soil:{id:'soil',label:'Tipo de suelo'},
+ exposure:{id:'exposure',label:'Exposición solar'},view:{id:'view',label:'Vista principal'},vegetation:{id:'vegetation',label:'Vegetación'},
+ fencing:{id:'fencing',label:'Cierre perimetral'},gate:{id:'gate',label:'Acceso controlado'},condominium:{id:'condominium',label:'Condominio o loteo'},
+ asking:{id:'asking',label:'Precio esperado'},lat:{id:'lat',label:'Latitud'},lng:{id:'lng',label:'Longitud'},nature:{selector:'.feature-fieldset',label:'Atributos naturales'},
+ area_casa:{id:'areaCasa',label:'Superficie de la casa'},material_casa:{id:'materialCasa',label:'Materialidad de la casa'},
+ anio_construccion:{id:'anioConstruccion',label:'Año de construcción'},estado_casa:{id:'estadoCasa',label:'Estado de la casa'},
+ anio_remodelacion:{id:'anioRemodelacion',label:'Año de remodelación'},dormitorios:{id:'dormitorios',label:'Dormitorios'},banos:{id:'banos',label:'Baños'},
+ pisos:{id:'pisos',label:'Pisos'},works:{selector:'.extras',label:'Obras adicionales'},differentiator:{id:'caracteristicaDiferenciadora',label:'Característica diferenciadora'}
+};
+function valueForField(def){
+ const el=def.id?$('#'+def.id):null;if(!el)return '';
+ if(el.tagName==='SELECT')return el.selectedOptions?.[0]?.textContent?.trim()||el.value;
+ return String(el.value||'').trim();
+}
+function hideKnownField(key){
+ const def=CRM_FIELD_DEFS[key];if(!def)return;
+ let node=def.selector?document.querySelector(def.selector):$('#'+def.id)?.closest('label');
+ if(key==='lat'||key==='lng')return;
+ if(node){node.hidden=true;node.dataset.crmKnown='1';}
+}
+function applyCrmSmartMissing(){
+ if(launchParams.get('embed')!=='crm'||launchParams.get('smart_missing')!=='1')return;
+ const panel=$('#crmSmartCompletion');if(!panel)return;
+ const present=new Set((launchParams.get('campos_presentes')||'').split(',').filter(Boolean));
+ const withHouse=assetType!=='parcela';
+ const applicable=Object.keys(CRM_FIELD_DEFS).filter(k=>withHouse||!['area_casa','material_casa','anio_construccion','estado_casa','anio_remodelacion','dormitorios','banos','pisos','works','differentiator'].includes(k));
+ // Coordenadas se consideran un solo bloque.
+ if(present.has('lat')&&present.has('lng'))document.querySelector('.coordinates-card')?.setAttribute('hidden','');
+ applicable.forEach(k=>{if(present.has(k))hideKnownField(k)});
+ const known=applicable.filter(k=>present.has(k));
+ const missing=applicable.filter(k=>!present.has(k));
+ const score=Math.round((known.length/Math.max(1,applicable.length))*100);
+ panel.hidden=false;
+ $('#crmCompletionTitle').textContent=missing.length?`Solo faltan ${missing.length} antecedentes`:'La ficha ya está completa';
+ $('#crmCompletionText').textContent=missing.length?'Los datos anteriores se conservan. Completa únicamente los campos visibles para mejorar la precisión del Informe Premium.':'Puedes revisar la tasación y guardar una nueva versión sin volver a ingresar información.';
+ $('#crmCompletionBar').style.width=`${score}%`;
+ $('#crmKnownData').innerHTML=`<strong>Información recuperada (${known.length})</strong><div>${known.slice(0,12).map(k=>`<span>✓ ${CRM_FIELD_DEFS[k].label}</span>`).join('')}${known.length>12?`<span>+${known.length-12} datos más</span>`:''}</div>`;
+ $('#crmMissingData').innerHTML=missing.length?`<strong>Completar ahora</strong><div>${missing.map(k=>`<span>${CRM_FIELD_DEFS[k].label}</span>`).join('')}</div>`:'<strong>Lista para informe</strong><p>No quedan campos pendientes en esta ficha.</p>';
+ document.body.classList.add('is-crm-smart-missing');
+ // Si agua/electricidad ya existen, sus campos dependientes no deben forzar una selección artificial.
+ setTimeout(()=>{document.querySelectorAll('.grid').forEach(grid=>{const visible=[...grid.children].some(x=>!x.hidden);grid.classList.toggle('is-empty-grid',!visible)});},0);
+}
 async function applyLaunchPrefill(){
  const get=(k)=>launchParams.get(k);
  const region=get('region'),comuna=get('comuna');
@@ -266,17 +314,19 @@ async function applyLaunchPrefill(){
    if(comuna)selectMatchingValue($('#comuna'),comuna);
  }
  const set=(id,key)=>{const v=get(key),el=$('#'+id);if(v===null||!el)return;if(el.tagName==='SELECT')selectMatchingValue(el,v);else el.value=v};
- set('superficie','superficie');set('asking','asking');set('lat','lat');set('lng','lng');set('rol','rol');set('electricity','electricity');set('water','water');set('access','access');set('topography','topography');set('soil','soil');set('communeDistanceKm','commune_distance');
+ set('superficie','superficie');set('asking','asking');set('lat','lat');set('lng','lng');set('rol','rol');set('electricity','electricity');set('electricityPoleDistanceM','electricity_pole_distance');set('water','water');set('tourismLevel','tourism');set('access','access');set('topography','topography');set('soil','soil');set('communeDistanceKm','commune_distance');
  set('exposure','exposure');set('view','view');set('vegetation','vegetation');set('fencing','fencing');set('gate','gate');set('condominium','condominium');set('routeDistanceKm','route_distance');
- set('areaCasa','area_casa');set('materialCasa','material_casa');set('dormitorios','dormitorios');set('banos','banos');set('anioConstruccion','anio_construccion');set('estadoCasa','estado_casa');
+ set('areaCasa','area_casa');set('materialCasa','material_casa');set('dormitorios','dormitorios');set('banos','banos');set('anioConstruccion','anio_construccion');set('estadoCasa','estado_casa');set('anioRemodelacion','anio_remodelacion');set('pisos','pisos');set('caracteristicaDiferenciadora','differentiator');
+ const nature=(get('nature')||'').split('|').map(normalize).filter(Boolean);if(nature.length)document.querySelectorAll('[data-nature]').forEach(el=>{el.checked=nature.includes(normalize(el.value))});
+ try{const parsed=JSON.parse(get('works')||'{}');document.querySelectorAll('[data-work]').forEach(el=>{if(parsed[el.dataset.work]!==undefined)el.value=parsed[el.dataset.work]})}catch(_e){}
  if(get('tipo_activo'))setAssetType(get('tipo_activo'));else if(get('incluye_vivienda')==='1')setAssetType('parcela_casa');
  if(get('lat')&&get('lng')){setMode('precisa');setTimeout(()=>setLocation(Number(get('lat')),Number(get('lng')),'manual'),100);}
  if(launchParams.get('embed')==='crm'){document.body.classList.add('is-crm-embed');}
 }
 
 document.addEventListener('DOMContentLoaded',async()=>{
- buildWorks();await fillRegions();await applyLaunchPrefill();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));document.querySelectorAll('[data-asset-type]').forEach(b=>b.onclick=()=>setAssetType(b.dataset.assetType));setAssetType(launchParams.get('tipo_activo')||((launchParams.get('incluye_vivienda')==='1')?'parcela_casa':'parcela'));setMode(launchParams.get('modo')||(launchParams.get('full')==='1'?'precisa':(launchParams.get('lat')&&launchParams.get('lng')?'precisa':'rapida')));
- const submitLabel=$('#tasadorSubmit');if(submitLabel&&launchParams.get('embed')==='crm')submitLabel.textContent='Tasar y guardar datos';
+ buildWorks();await fillRegions();await applyLaunchPrefill();tasadorContext=await window.TPLTasadorSupabase?.loadContext?.()||{uf:null,references:[]};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));document.querySelectorAll('[data-asset-type]').forEach(b=>b.onclick=()=>setAssetType(b.dataset.assetType));setAssetType(launchParams.get('tipo_activo')||((launchParams.get('incluye_vivienda')==='1')?'parcela_casa':'parcela'));setMode(launchParams.get('modo')||(launchParams.get('full')==='1'?'precisa':(launchParams.get('lat')&&launchParams.get('lng')?'precisa':'rapida')));applyCrmSmartMissing();
+ const submitLabel=$('#tasadorSubmit');if(submitLabel&&launchParams.get('embed')==='crm')submitLabel.textContent=launchParams.get('smart_missing')==='1'?'Tasar y guardar datos':'Tasar propiedad';
  $('#incluyeVivienda').addEventListener('change',e=>$('#houseFields').hidden=!e.target.checked);
  $('#tasadorForm').addEventListener('submit',calculate);$('#useMyLocation').onclick=useLocation;$('#premiumReportBtn').onclick=openPremium;$('#closePremium').onclick=()=>$('#premiumDialog').close();
  document.querySelectorAll('[data-location-method]').forEach(b=>b.addEventListener('click',()=>setLocationMethod(b.dataset.locationMethod)));$('#applyGoogleMapsLink')?.addEventListener('click',applyGoogleMapsLink);$('#googleMapsLink')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();applyGoogleMapsLink();}});['lat','lng'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{const lat=Number($('#lat').value),lng=Number($('#lng').value);if(validCoordinate(lat,lng)&&lat&&lng)setLocation(lat,lng,'manual')}));
