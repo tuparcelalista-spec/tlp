@@ -398,6 +398,21 @@
   }
 
 
+
+  async function saveCrmValuationProperty(propertyId, input = {}, result = {}) {
+    const id = String(propertyId || '').trim();
+    if (!id) throw new Error('Falta la propiedad que se debe actualizar.');
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_guardar_datos_tasacion_v1', {
+      p_propiedad_id: id,
+      p_entrada: input || {},
+      p_resultado: result || {}
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.message || 'Supabase no confirmó la actualización de la propiedad.');
+    return data;
+  }
+
   async function registerTerritorialAnalysis(payload) {
     const client = await getClient();
     const { data, error } = await client.rpc('tpl_registrar_analisis_tasador_v1', { p_payload: payload || {} });
@@ -561,6 +576,7 @@
     getTasadorContext,
     getObservedComparables,
     registerValuation,
+    saveCrmValuationProperty,
     registerTerritorialAnalysis,
     getTerritorialPublicSummary,
     getTerritorialProjectAnalysis,

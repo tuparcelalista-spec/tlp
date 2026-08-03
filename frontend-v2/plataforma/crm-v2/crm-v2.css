@@ -23,3 +23,6 @@
 .tasar-crm-btn{border:0;border-radius:10px;padding:.68rem .9rem;background:#e9b21a;color:#123047;font-weight:900;cursor:pointer}.tasar-crm-btn:hover{filter:brightness(.97)}
 .crm-tasador-dialog{width:min(1180px,96vw);height:min(900px,94vh);max-width:none;padding:0;border:0;border-radius:20px;overflow:hidden}.crm-tasador-dialog::backdrop{background:#031d2dcc}.crm-tasador-shell{height:100%;display:grid;grid-template-rows:auto 1fr;background:#fff}.crm-tasador-shell>header{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:18px 22px;border-bottom:1px solid #dfe8ee}.crm-tasador-shell h2{margin:2px 0 4px}.crm-tasador-shell p{margin:0;color:#64748b}.crm-tasador-shell>header button{border:0;background:#edf3f6;border-radius:999px;width:38px;height:38px;font-size:1.5rem;cursor:pointer}.crm-tasador-shell iframe{width:100%;height:100%;border:0;background:#f6f8fa}.premium-report-grid label small{display:block;color:#748795;font-weight:600;margin-top:2px}
 @media(max-width:680px){.crm-tasador-dialog{width:100vw;height:100vh;border-radius:0}.crm-tasador-shell>header{padding:14px}.crm-tasador-shell>header p{display:none}}
+
+.tasar-basic-btn{border:1px solid #0f6bff;background:#eef5ff;color:#073b86;border-radius:10px;padding:.68rem .85rem;font-weight:800;cursor:pointer}
+.tasar-basic-btn:hover{background:#dfeeff}

@@ -524,6 +524,8 @@
     q.set('embed', 'crm');
     if (options.auto) q.set('auto', '1');
     if (options.openReport) q.set('open_report', '1');
+    if (options.full) q.set('full', '1');
+    if (options.mode) q.set('modo', options.mode);
     q.set('propiedad_id', record.id || '');
     if (record.codigo) q.set('propiedad_codigo', record.codigo);
     if (record.region) q.set('region', record.region);
@@ -538,6 +540,13 @@
     if (record.acceso) q.set('access', record.acceso);
     if (record.topografia) q.set('topography', record.topografia);
     if (record.suelo) q.set('soil', record.suelo);
+    if (record.exposicion) q.set('exposure', record.exposicion);
+    if (record.vista_principal) q.set('view', record.vista_principal);
+    if (record.vegetacion) q.set('vegetation', record.vegetacion);
+    if (record.cierre_perimetral) q.set('fencing', record.cierre_perimetral);
+    if (record.porton) q.set('gate', record.porton);
+    if (record.condominio !== undefined && record.condominio !== null) q.set('condominium', record.condominio ? 'si' : 'no');
+    if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance', record.distancia_ruta_principal_km);
     const metadata = record.metadata || {};
     const house = record.casa_datos || metadata.casa_datos || {};
     const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
@@ -656,7 +665,8 @@
               <div class="catalog-actions">
                 <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
                 <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver anuncio</a>
-                <button class="tasar-crm-btn" data-crm-tasar="${esc(r.id)}">${propertyHasValuation(r) ? 'Recalcular tasación' : 'Tasar ahora'}</button>
+                <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasación básica</button>
+                <button class="tasar-crm-btn" data-crm-tasar-full="${esc(r.id)}">${propertyHasValuation(r) ? 'Completar y recalcular' : 'Completar y tasar'}</button>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}">Informe Premium</button>
                 <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
               </div>
@@ -895,11 +905,19 @@
       return;
     }
 
-    const tasar = event.target.closest('[data-crm-tasar]');
-    if (tasar) {
-      const record = detailFor('parcelas', tasar.dataset.crmTasar);
+    const tasarBasic = event.target.closest('[data-crm-tasar-basic]');
+    if (tasarBasic) {
+      const record = detailFor('parcelas', tasarBasic.dataset.crmTasarBasic);
       if (!record) return alert('No pudimos recuperar la parcela.');
-      openCrmTasador(record, { auto: true, openReport: true });
+      openCrmTasador(record, { auto: true, openReport: true, mode: 'rapida' });
+      return;
+    }
+
+    const tasarFull = event.target.closest('[data-crm-tasar-full]');
+    if (tasarFull) {
+      const record = detailFor('parcelas', tasarFull.dataset.crmTasarFull);
+      if (!record) return alert('No pudimos recuperar la parcela.');
+      openCrmTasador(record, { full: true, openReport: true, mode: 'precisa' });
       return;
     }
 
