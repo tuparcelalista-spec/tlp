@@ -7,7 +7,7 @@
   <meta name="description" content="Conoce la ubicación, superficie, características y diagnóstico TPL de esta parcela antes de elegir tu vivienda.">
   <meta name="theme-color" content="#003f7a">
 <link rel="stylesheet" href="css/tpl-identity-seo.css">
-  <link rel="stylesheet" href="./css/parcela.css?v=20260802-diseno-2">
+  <link rel="stylesheet" href="./css/parcela.css?v=20260803-mini-landing-v1">
   <script src="js/tpl-seo.js"></script>
 </head>
 <body>
@@ -42,6 +42,12 @@
   </section>
   <div class="tpl-positive-strip">Menos visitas por curiosidad. <strong>Más decisiones bien informadas.</strong></div>
 
+  <section class="conversion-strip" aria-label="Razones para avanzar">
+    <article><strong id="conversion-price-label">Precio analizado</strong><span>Comparado con referencias TPL</span></article>
+    <article><strong id="conversion-doc-label">Antecedentes visibles</strong><span>Lo confirmado y lo pendiente</span></article>
+    <article><strong id="conversion-project-label">Proyecto completo</strong><span>Parcela, casa y obras en un solo flujo</span></article>
+    <article><strong>Acompañamiento TPL</strong><span>Visita, propuesta y próximos pasos</span></article>
+  </section>
 
   <main id="parcel-page" hidden>
     <section class="hero-detail">
@@ -64,6 +70,9 @@
           <article><span>Tipo de suelo</span><strong id="fact-soil">Por confirmar</strong></article>
         </div>
         <div id="primary-tags" class="primary-tags"></div>
+        <div class="hero-opportunity-chip" id="hero-opportunity-chip">
+          <span>Índice TPL</span><strong id="hero-opportunity-score">—/100</strong><small id="hero-opportunity-label">Analizando oportunidad</small>
+        </div>
         <div class="hero-actions">
           <a id="visit-link" class="primary-action" href="#contact-section">Agendar visita</a>
           <button id="share-button" class="secondary-action" type="button">Compartir</button>
@@ -186,6 +195,15 @@
           </article>
         </section>
 
+        <section class="clean-section trust-section" id="confianza-tpl">
+          <div class="section-heading"><span>RESPALDO PARA DECIDIR</span><h2>No avanzas solo con una fotografía</h2></div>
+          <div class="trust-grid">
+            <article><strong>Información ordenada</strong><p>Reunimos precio, ubicación, superficie, atributos y antecedentes declarados en una sola vista.</p></article>
+            <article><strong>Comparación orientativa</strong><p>El Índice TPL ayuda a entender la posición de precio y las fortalezas de la propiedad.</p></article>
+            <article><strong>Acompañamiento humano</strong><p>Puedes coordinar una visita, presentar una propuesta y preparar el proyecto completo con TPL.</p></article>
+          </div>
+        </section>
+
         <section class="clean-section location-section">
           <div class="section-heading"><span>UBICACIÓN</span><h2>Entorno y referencia geográfica</h2></div>
           <div id="map" class="map-box"><button id="load-map" type="button">Ver ubicación en mapa</button></div>
@@ -236,11 +254,40 @@
       </div>
     </section>
 
+    <section class="faq-section" aria-labelledby="faq-title">
+      <div class="section-heading"><span>DUDAS ANTES DE AVANZAR</span><h2 id="faq-title">Lo importante antes de visitar o reservar</h2></div>
+      <div class="faq-list">
+        <details open><summary>¿La información está completamente verificada?</summary><p>La ficha diferencia antecedentes declarados, información confirmada y puntos que conviene revisar antes de construir o comprar.</p></details>
+        <details><summary>¿Puedo cotizar una casa para esta parcela?</summary><p>Sí. La parcela queda guardada al continuar hacia casas prefabricadas o diseño propio, para calcular un proyecto más completo.</p></details>
+        <details><summary>¿Puedo presentar una oferta o pedir una mejora?</summary><p>Sí. Puedes proponer un monto o solicitar condiciones concretas, como portón, cerco o una solución básica de servicios.</p></details>
+        <details><summary>¿Qué ocurre después de agendar una visita?</summary><p>TPL registra tu interés, coordina el contacto y puede acompañarte en la revisión de antecedentes y próximos pasos.</p></details>
+      </div>
+    </section>
+
     <section id="contact-section" class="contact-section">
       <div><span>ASESORÍA HUMANA</span><h2>¿Quieres revisar esta parcela antes de decidir?</h2><p>Podemos ayudarte a confirmar antecedentes, coordinar una visita y preparar el siguiente paso.</p></div>
       <a id="contact-link" href="https://wa.me/56964659162" target="_blank" rel="noopener">Hablar con un asesor</a>
     </section>
+
+    <section class="closing-section" id="cierre-parcela">
+      <div class="closing-copy">
+        <span>PRÓXIMO PASO</span>
+        <h2 id="closing-title">¿Te imaginas desarrollando tu proyecto aquí?</h2>
+        <p id="closing-copy">Agenda una visita, conversa una condición o continúa con una vivienda pensada para esta parcela.</p>
+        <div class="closing-proof"><span>Visita coordinada</span><span>Propuesta al propietario</span><span>Cotización parcela + casa</span></div>
+      </div>
+      <div class="closing-actions">
+        <a class="closing-primary" href="#contact-section">Agendar visita</a>
+        <a class="closing-whatsapp" id="closing-whatsapp" href="https://wa.me/56964659162" target="_blank" rel="noopener">Hablar por WhatsApp</a>
+        <a class="closing-secondary" id="closing-project-link" href="#home-choice">Cotizar parcela + casa</a>
+      </div>
+    </section>
   </main>
+
+  <div class="mobile-close-bar" id="mobile-close-bar">
+    <div><span id="mobile-close-price">Consultar precio</span><small id="mobile-close-score">Índice TPL en análisis</small></div>
+    <a href="#contact-section">Agendar visita</a>
+  </div>
 
   <section id="not-found" class="not-found" hidden>
     <h1>No encontramos esta parcela</h1>
@@ -257,7 +304,7 @@
   <script src="./js/core/tpl-data-service.js?v=20260802-parcela-fix-1" defer></script>
   <script src="./plataforma/publicar/tpl-land-engine.js?v=20260731-tpl-v2" defer></script>
   <script src="./js/tpl-market-intelligence.js?v=20260802-badges-v1" defer></script>
-  <script src="./js/parcela.js?v=20260803-valores-4-v1" defer></script>
+  <script src="./js/parcela.js?v=20260803-mini-landing-v1" defer></script>
 <script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Parcelas y campos | Tu Parcela Lista",description:"Conoce cada parcela con informaci\u00f3n clara de ubicaci\u00f3n, superficie, valor, entorno y posibilidades para tomar una decisi\u00f3n mejor informada."}));</script>
 
 <script>

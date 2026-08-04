@@ -281,6 +281,17 @@
     $('opportunity-source').textContent=result.a?.market
       ? `Análisis TPL basado en ${result.a.market.sampleSize} propiedades comparables de ${parcel.comuna}. Confianza ${String(result.a.market.confidence||'referencial').replace('-',' ')}.`
       : 'Análisis TPL basado en precio y atributos declarados. La referencia comunal se incorporará cuando exista una muestra validada.';
+
+    const heroScore=$('hero-opportunity-score');
+    const heroLabel=$('hero-opportunity-label');
+    const heroChip=$('hero-opportunity-chip');
+    if(heroScore) heroScore.textContent=`${score}/100`;
+    if(heroLabel) heroLabel.textContent=band.label;
+    if(heroChip) heroChip.dataset.band=band.key;
+    const mobileScore=$('mobile-close-score');
+    if(mobileScore) mobileScore.textContent=`Índice TPL ${score}/100 · ${band.label}`;
+    const conversionPrice=$('conversion-price-label');
+    if(conversionPrice) conversionPrice.textContent=diff!==null&&diff<0?`${Math.abs(diff)}% bajo referencia TPL`:band.label;
   }
   function renderInvestment(){
     valuation();
@@ -336,6 +347,17 @@
     $("search-memory").textContent=`${contextLabel()}${parcel.fuenteDatos==='respaldo-local'?' · Datos de respaldo':''}`;
     $("parcel-name").textContent=parcel.nombre||`${type} en ${parcel.comuna||"Chile"}`;
     $("parcel-price").textContent=parcel.precio||formatMoney(price);
+    const mobilePrice=$("mobile-close-price");
+    if(mobilePrice) mobilePrice.textContent=parcel.precio||formatMoney(price)||"Consultar precio";
+    const closingTitle=$("closing-title");
+    if(closingTitle) closingTitle.textContent=`¿Te imaginas tu proyecto en ${parcel.comuna||"esta parcela"}?`;
+    const closingCopy=$("closing-copy");
+    if(closingCopy) closingCopy.textContent=`Coordina una visita a ${parcel.nombre||type}, conversa una condición o continúa con una vivienda pensada para sus ${size?size.toLocaleString("es-CL")+" m²":"atributos"}.`;
+    const whatsapp=$("closing-whatsapp");
+    if(whatsapp){
+      const text=`Hola, quiero consultar por ${parcel.nombre||type} en ${parcel.comuna||""}. Vi la ficha en Tu Parcela Lista.`;
+      whatsapp.href=`https://wa.me/56964659162?text=${encodeURIComponent(text)}`;
+    }
     $("fact-distance").textContent=context.distance?`${context.distance} km desde tu ubicación`:parcel.distanciaConcepcion||"Por calcular";
     $("fact-commune").textContent=parcel.comuna||"Por confirmar";
     $("fact-size").textContent=size?`${size.toLocaleString("es-CL")} m² · ${type}`:"Por confirmar";
@@ -350,6 +372,8 @@
     $("aside-meta").textContent=`${parcel.comuna||"Comuna por confirmar"} · ${size?size.toLocaleString("es-CL")+" m²":"Superficie por confirmar"}`;
     $("prefab-link").href=cotizadorUrl("prefabricada");
     $("custom-link").href=cotizadorUrl("diseno-propio");
+    const closingProject=$("closing-project-link");
+    if(closingProject) closingProject.href=cotizadorUrl("prefabricada");
     $("prefab-link").addEventListener("click",persistParcelForProject,{once:false});
     $("custom-link").addEventListener("click",persistParcelForProject,{once:false});
     renderInvestment(); setImage(); $("parcel-page").hidden=false; renderTerritorialProfile(parcel);
