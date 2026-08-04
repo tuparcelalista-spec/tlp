@@ -12,7 +12,16 @@
     universalQuery: '',
     recentValuations: new Map(),
     handledTasaciones: new Set(),
-    activeTasadorPropertyId: null
+    activeTasadorPropertyId: null,
+    parcelFilters: {
+      query: '',
+      region: '',
+      commune: '',
+      status: '',
+      valuation: '',
+      completeness: '',
+      sort: 'recent'
+    }
   };
 
   const groups = [
@@ -697,7 +706,7 @@
       mark('differentiator', house.caracteristica_diferenciadora);
       if (options.full) q.set('campos_presentes', [...new Set(present)].join(','));
     }
-    return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
+    return `${appPath('plataforma/publicar/tasador.html')}?${q.toString()}`;
   }
 
   function openCrmTasador(record, options = {}) {
@@ -787,40 +796,193 @@
   }
   function crmCommercialBadge(r){const t=crmCommercialTier(r);return t?`<span class="crm-commercial-badge is-${t.key}">${esc(t.label)}</span>`:'';}
 
+
+  const normText = (value) => String(value ?? '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().trim();
+
+  function parcelCompletion(record) {
+    const p = hydratedProperty(record);
+    const checks = [
+      Boolean(record?.imagen_principal || (Array.isArray(record?.imagenes) && record.imagenes.length)),
+      Boolean(p.titulo || record?.titulo),
+      Boolean(p.descripcion || record?.descripcion),
+      Number(p.superficie_m2 || 0) > 0,
+      Number(p.precio_publicado || 0) > 0,
+      Boolean(p.region),
+      Boolean(p.comuna),
+      Boolean(p.rol_situacion || p.rol),
+      Boolean(p.agua || p.agua_tipo),
+      Boolean(p.electricidad || p.electricidad_tipo),
+      Boolean(p.acceso),
+      Boolean(p.topografia),
+      propertyHasValuation(record)
+    ];
+    const completed = checks.filter(Boolean).length;
+    return {
+      score: Math.round((completed / checks.length) * 100),
+      missing: checks.length - completed
+    };
+  }
+
+  function parcelFilterOptions(rows, field) {
+    return [...new Set(rows.map((row) => String(hydratedProperty(row)?.[field] || row?.[field] || '').trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+  }
+
+  function applyParcelFilters() {
+    if (state.current !== 'parcelas' || !content) return;
+    const filters = state.parcelFilters;
+    const grid = content.querySelector('#parcelCatalogGrid');
+    const cards = [...content.querySelectorAll('.catalog-card[data-parcel-card]')];
+    const query = normText(filters.query);
+    let visible = cards.filter((card) => {
+      const matchesQuery = !query || normText(card.dataset.searchRow).includes(query);
+      const matchesRegion = !filters.region || card.dataset.region === normText(filters.region);
+      const matchesCommune = !filters.commune || card.dataset.commune === normText(filters.commune);
+      const matchesStatus = !filters.status || card.dataset.status === normText(filters.status);
+      const matchesValuation =
+        !filters.valuation ||
+        (filters.valuation === 'with' && card.dataset.valuation === 'with') ||
+        (filters.valuation === 'without' && card.dataset.valuation === 'without');
+      const matchesCompleteness =
+        !filters.completeness ||
+        (filters.completeness === 'pending' && Number(card.dataset.completion) < 100) ||
+        (filters.completeness === 'complete' && Number(card.dataset.completion) === 100) ||
+        (filters.completeness === 'critical' && Number(card.dataset.completion) < 60);
+      return matchesQuery && matchesRegion && matchesCommune && matchesStatus && matchesValuation && matchesCompleteness;
+    });
+
+    const sorters = {
+      recent: (a, b) => Number(b.dataset.updated || 0) - Number(a.dataset.updated || 0),
+      oldest: (a, b) => Number(a.dataset.updated || 0) - Number(b.dataset.updated || 0),
+      'price-asc': (a, b) => Number(a.dataset.price) - Number(b.dataset.price),
+      'price-desc': (a, b) => Number(b.dataset.price) - Number(a.dataset.price),
+      'area-desc': (a, b) => Number(b.dataset.area) - Number(a.dataset.area),
+      'tpl-desc': (a, b) => Number(b.dataset.tpl) - Number(a.dataset.tpl),
+      'completion-asc': (a, b) => Number(a.dataset.completion) - Number(b.dataset.completion)
+    };
+    visible.sort(sorters[filters.sort] || sorters.recent);
+    cards.forEach((card) => { card.hidden = !visible.includes(card); });
+    visible.forEach((card) => grid?.appendChild(card));
+
+    const resultCount = content.querySelector('#parcelResultCount');
+    if (resultCount) resultCount.textContent = `${visible.length} de ${cards.length} parcelas`;
+    const empty = content.querySelector('#parcelFilterEmpty');
+    if (empty) empty.hidden = visible.length > 0;
+
+    const communes = [...new Set(cards
+      .filter((card) => !filters.region || card.dataset.region === normText(filters.region))
+      .map((card) => card.dataset.communeLabel)
+      .filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    const communeSelect = content.querySelector('#parcelCommuneFilter');
+    if (communeSelect) {
+      const current = filters.commune;
+      communeSelect.innerHTML = `<option value="">Todas las comunas</option>${communes.map((x) => `<option value="${esc(x)}">${esc(x)}</option>`).join('')}`;
+      communeSelect.value = communes.includes(current) ? current : '';
+      if (current && !communes.includes(current)) {
+        state.parcelFilters.commune = '';
+      }
+    }
+  }
+
   function parcelsView() {
     const rows = arr('parcelas');
-    const published = rows.filter((x) => x.estado === 'publicada').length;
+    const published = rows.filter((x) => normText(x.estado) === 'publicada').length;
     const withoutImage = rows.filter((x) => !x.imagen_principal && !(Array.isArray(x.imagenes) && x.imagenes.length)).length;
+    const withoutValuation = rows.filter((x) => !propertyHasValuation(x)).length;
+    const pending = rows.filter((x) => parcelCompletion(x).score < 100).length;
+    const regions = parcelFilterOptions(rows, 'region');
+    const statuses = [...new Set(rows.map((x) => String(x.estado || x.estado_publicacion || '').trim()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    const f = state.parcelFilters;
+
     return `
       <div class="toolbar catalog-toolbar">
-        <div><h2>Parcelas y campos</h2><p class="muted">Vista completa del inventario canónico. Incluye publicaciones nuevas y el catálogo histórico migrado.</p></div>
-        <div class="catalog-toolbar-actions"><input id="search" placeholder="Buscar nombre, comuna, código…"><button class="primary" data-action="refresh">Actualizar</button></div>
+        <div><h2>Parcelas y campos</h2><p class="muted">Encuentra y prioriza propiedades por ubicación, estado, tasación y completitud.</p></div>
+        <div class="catalog-toolbar-actions"><button class="primary" data-action="refresh">Actualizar</button></div>
       </div>
-      <div class="metric-grid">${metric('Inventario', rows.length, 'propiedades en Supabase')}${metric('Publicadas', published, 'visibles o listas para revisión')}${metric('Sin fotografía', withoutImage, 'requieren completar ficha')}${metric('Oportunidades', rows.filter(x=>['opportunity','great-opportunity','selection'].includes(crmCommercialTier(x)?.key)).length, 'detectadas por TPL')}</div>
-      <div class="catalog-grid">
-        ${rows.map((r) => `
-          <article class="catalog-card" data-search-row="${esc(JSON.stringify(r).toLowerCase())}">
+
+      <div class="metric-grid crm-parcel-metrics">
+        ${metric('Inventario', rows.length, 'propiedades en Supabase')}
+        ${metric('Publicadas', published, 'visibles o listas para revisión')}
+        ${metric('Sin tasación', withoutValuation, 'requieren calcular valor TPL')}
+        ${metric('Ficha pendiente', pending, 'con antecedentes por completar')}
+        ${metric('Sin fotografía', withoutImage, 'requieren completar material')}
+        ${metric('Oportunidades', rows.filter(x=>['opportunity','great-opportunity','selection'].includes(crmCommercialTier(x)?.key)).length, 'detectadas por TPL')}
+      </div>
+
+      <section class="parcel-control-center" aria-label="Buscar y filtrar parcelas">
+        <div class="parcel-search-main">
+          <label for="search">Buscar parcela</label>
+          <input id="search" type="search" value="${esc(f.query)}" placeholder="Nombre, código, comuna, sector, propietario o rol…">
+        </div>
+        <div class="parcel-filter-grid">
+          <label>Región<select id="parcelRegionFilter"><option value="">Todas las regiones</option>${regions.map((x)=>`<option value="${esc(x)}" ${f.region===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label>
+          <label>Comuna<select id="parcelCommuneFilter"><option value="">Todas las comunas</option></select></label>
+          <label>Estado<select id="parcelStatusFilter"><option value="">Todos los estados</option>${statuses.map((x)=>`<option value="${esc(x)}" ${f.status===x?'selected':''}>${esc(x)}</option>`).join('')}</select></label>
+          <label>Tasación<select id="parcelValuationFilter"><option value="">Todas</option><option value="with" ${f.valuation==='with'?'selected':''}>Con tasación</option><option value="without" ${f.valuation==='without'?'selected':''}>Sin tasación</option></select></label>
+          <label>Completitud<select id="parcelCompletenessFilter"><option value="">Todas</option><option value="pending" ${f.completeness==='pending'?'selected':''}>Con datos pendientes</option><option value="critical" ${f.completeness==='critical'?'selected':''}>Crítica: menos de 60%</option><option value="complete" ${f.completeness==='complete'?'selected':''}>Ficha completa</option></select></label>
+          <label>Ordenar<select id="parcelSortFilter"><option value="recent" ${f.sort==='recent'?'selected':''}>Más recientes</option><option value="oldest" ${f.sort==='oldest'?'selected':''}>Más antiguas</option><option value="price-asc" ${f.sort==='price-asc'?'selected':''}>Menor precio</option><option value="price-desc" ${f.sort==='price-desc'?'selected':''}>Mayor precio</option><option value="area-desc" ${f.sort==='area-desc'?'selected':''}>Mayor superficie</option><option value="tpl-desc" ${f.sort==='tpl-desc'?'selected':''}>Mayor Valor TPL</option><option value="completion-asc" ${f.sort==='completion-asc'?'selected':''}>Más incompletas primero</option></select></label>
+        </div>
+        <div class="parcel-filter-footer">
+          <strong id="parcelResultCount">${rows.length} parcelas</strong>
+          <div class="parcel-quick-filters">
+            <button type="button" data-parcel-quick="without-valuation">Sin tasación</button>
+            <button type="button" data-parcel-quick="pending">Datos pendientes</button>
+            <button type="button" data-parcel-quick="published">Publicadas</button>
+            <button type="button" data-parcel-clear>Limpiar filtros</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="catalog-grid" id="parcelCatalogGrid">
+        ${rows.map((r) => {
+          const p=hydratedProperty(r);
+          const v=valuationValues(r);
+          const completion=parcelCompletion(r);
+          const searchPayload=[
+            r.titulo,r.codigo,r.id,r.comuna,r.region,r.sector,r.localidad,
+            r.propietario_nombre,r.contacto_nombre,r.rol,r.rol_situacion,r.descripcion
+          ].filter(Boolean).join(' ');
+          const updated=new Date(r.updated_at||r.publicada_at||r.created_at||0).getTime()||0;
+          return `
+          <article class="catalog-card" data-parcel-card
+            data-search-row="${esc(searchPayload)}"
+            data-region="${esc(normText(p.region||r.region))}"
+            data-commune="${esc(normText(p.comuna||r.comuna))}"
+            data-commune-label="${esc(p.comuna||r.comuna||'')}"
+            data-status="${esc(normText(r.estado||r.estado_publicacion))}"
+            data-valuation="${v.technical?'with':'without'}"
+            data-completion="${completion.score}"
+            data-price="${Number(p.precio_publicado||0)}"
+            data-area="${Number(p.superficie_m2||0)}"
+            data-tpl="${Number(v.suggested||v.technical||0)}"
+            data-updated="${updated}">
             <div class="catalog-card-media">${previewImage(r, 'parcela')}<span class="catalog-state">${esc(r.estado || 'sin estado')}</span><span class="catalog-count">${Number(r.total_imagenes || 0)} fotos</span></div>
             <div class="catalog-card-body">
-              <small>${esc(r.codigo || r.id || '')}</small>
+              <div class="parcel-card-topline"><small>${esc(r.codigo || r.id || '')}</small><span class="parcel-completion ${completion.score<60?'is-critical':completion.score<100?'is-pending':'is-complete'}">${completion.score}% completa</span></div>
+              <div class="parcel-completion-track"><i style="width:${completion.score}%"></i></div>
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
-              <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
-              <div class="catalog-facts"><b>${Number(hydratedProperty(r).superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(hydratedProperty(r).precio_publicado)}</b></div>
-              ${(() => { const v=valuationValues(r); return v.technical ? `<div class="crm-valuation-summary"><span><small>Valor TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>Valor TPL Tasador + Comuna</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Valor Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Venta Nivel Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
+              <p>${esc([p.comuna||r.comuna,p.region||r.region].filter(Boolean).join(' · '))}</p>
+              <div class="catalog-facts"><b>${Number(p.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(p.precio_publicado)}</b></div>
+              ${v.technical ? `<div class="crm-valuation-summary"><span><small>Valor TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>Valor TPL Tasador + Comuna</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Valor Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Venta Nivel Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'}
               ${valuationExplanation(r)}
               <div class="catalog-actions catalog-actions--primary">
                 <a class="primary-link" href="${appPath(`parcela.html?id=${encodeURIComponent(r.codigo || r.id)}`)}" target="_blank" rel="noopener">Ver propiedad</a>
                 <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasar</button>
-                <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero realiza una tasación"'}>Informe Premium</button>
+                <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero debes tasar esta propiedad"'}>Informe Premium</button>
                 <details class="catalog-more"><summary>Más</summary><div>
                   <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
-                  <button class="tasar-crm-btn" data-crm-tasar-full="${esc(r.id)}">${propertyHasValuation(r) ? 'Completar y recalcular' : 'Completar datos y tasar'}</button>
+                  <button class="nav-btn" data-crm-tasar-full="${esc(r.id)}">Completar datos y tasar</button>
                   <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
                 </div></details>
               </div>
             </div>
-          </article>`).join('') || '<div class="empty">No hay parcelas en Supabase.</div>'}
-      </div>`;
+          </article>`}).join('') || '<div class="empty">No hay parcelas en Supabase.</div>'}
+      </div>
+      <div id="parcelFilterEmpty" class="empty parcel-filter-empty" hidden>No encontramos parcelas que coincidan con estos filtros.</div>`;
   }
 
   function housesView() {
@@ -898,7 +1060,7 @@
     const dialog = document.querySelector('#previewDialog');
     const body = document.querySelector('#previewDialogBody');
     if (!dialog || !body) return showDetail(record);
-    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
+    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="${appPath(`parcela.html?id=${encodeURIComponent(record.codigo || record.id)}`)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
     dialog.showModal();
   }
 
@@ -917,6 +1079,7 @@
     else if (view === 'revision') content.innerHTML = reviewView();
     else if (view === 'studio') content.innerHTML = studioView();
     else if (view === 'parcelas') content.innerHTML = parcelsView();
+    if (view === 'parcelas') requestAnimationFrame(applyParcelFilters);
     else if (view === 'casas') content.innerHTML = housesView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
@@ -1020,6 +1183,21 @@
   }
 
   content?.addEventListener('click', async (event) => {
+    const parcelClear = event.target.closest('[data-parcel-clear]');
+    if (parcelClear) {
+      state.parcelFilters = { query:'', region:'', commune:'', status:'', valuation:'', completeness:'', sort:'recent' };
+      render('parcelas');
+      return;
+    }
+    const parcelQuick = event.target.closest('[data-parcel-quick]');
+    if (parcelQuick) {
+      const quick = parcelQuick.dataset.parcelQuick;
+      if (quick === 'without-valuation') state.parcelFilters.valuation = 'without';
+      if (quick === 'pending') state.parcelFilters.completeness = 'pending';
+      if (quick === 'published') state.parcelFilters.status = 'publicada';
+      render('parcelas');
+      return;
+    }
     const openStudio = event.target.closest('[data-open-studio]');
     if (openStudio) {
       window.location.href = '../studio/index.html?origen=crm';
@@ -1099,11 +1277,33 @@
   });
 
   content?.addEventListener('input', (event) => {
+    if (event.target.id === 'search' && state.current === 'parcelas') {
+      state.parcelFilters.query = event.target.value || '';
+      applyParcelFilters();
+      return;
+    }
     if (event.target.id !== 'search') return;
-    const q = event.target.value.toLowerCase().trim();
+    const q = normText(event.target.value);
     content.querySelectorAll('[data-search-row]').forEach((row) => {
-      row.hidden = q && !row.dataset.searchRow.includes(q);
+      row.hidden = q && !normText(row.dataset.searchRow).includes(q);
     });
+  });
+
+  content?.addEventListener('change', (event) => {
+    if (state.current !== 'parcelas') return;
+    const map = {
+      parcelRegionFilter: 'region',
+      parcelCommuneFilter: 'commune',
+      parcelStatusFilter: 'status',
+      parcelValuationFilter: 'valuation',
+      parcelCompletenessFilter: 'completeness',
+      parcelSortFilter: 'sort'
+    };
+    const key = map[event.target.id];
+    if (!key) return;
+    state.parcelFilters[key] = event.target.value || '';
+    if (key === 'region') state.parcelFilters.commune = '';
+    applyParcelFilters();
   });
 
   document.querySelector('#universalSearch')?.addEventListener('input', (event) => {
