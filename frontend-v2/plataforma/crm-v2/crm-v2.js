@@ -583,6 +583,26 @@
   }
 
 
+  function valuationSummaryHtml(record) {
+    const v = valuationValues(record);
+    if (!v.technical) return '<div class="crm-valuation-empty"><strong>Sin tasación registrada</strong><span>Usa Tasación rápida para una referencia inicial o Tasación completa para incorporar mapa, accesos y atributos detallados.</span></div>';
+    const item = (key, label, value, note, featured = false) => `
+      <article class="crm-valuation-item crm-valuation-item--${key}${featured ? ' is-featured' : ''}">
+        <div class="crm-valuation-item__head"><span>${esc(label)}</span>${featured ? '<em>Referencia comercial</em>' : ''}</div>
+        <strong>${value ? fmtMoney(value) : 'Sin muestra'}</strong>
+        <small>${esc(note)}</small>
+      </article>`;
+    return `<section class="crm-valuation-panel" aria-label="Resumen de tasación TPL">
+      <header><div><small>ÚLTIMA TASACIÓN</small><h4>Lectura de valor</h4></div><span>${v.valuation?.created_at ? fmtDate(v.valuation.created_at) : 'Resultado vigente'}</span></header>
+      <div class="crm-valuation-grid">
+        ${item('technical','TPL Tasador',v.technical,'Resultado técnico del motor TPL.')}
+        ${item('suggested','TPL Tasador Comunal',v.suggested,'Equilibra motor TPL y Base Comunal.',true)}
+        ${item('communal','Base Comunal',v.communal,'Referencia observada del segmento comparable.')}
+        ${item('urgency','Valor de Apuro',v.urgency,'Escenario orientativo para una venta más rápida.')}
+      </div>
+    </section>`;
+  }
+
   function valuationExplanation(record) {
     const { valuation, technical: ideal, communal } = valuationValues(record);
     const result = valuation?.resultado || valuation?.result || {};
@@ -720,7 +740,9 @@
     const frame = document.querySelector('#crmTasadorFrame');
     const title = document.querySelector('#crmTasadorTitle');
     if (!dialog || !frame) { state.activeTasadorPropertyId = null; return window.open(tasadorUrlFor(record, options), '_blank', 'noopener,noreferrer'); }
-    if (title) title.textContent = `Tasar · ${record.titulo || record.codigo || 'Propiedad'}`;
+    if (title) title.textContent = `${options.full ? 'Tasación completa' : 'Tasación rápida'} · ${record.titulo || record.codigo || 'Propiedad'}`;
+    const subtitle = document.querySelector('#crmTasadorSubtitle');
+    if (subtitle) subtitle.textContent = options.full ? 'Completa mapa, accesos, atributos naturales y antecedentes técnicos para una tasación más precisa.' : 'Calcula una referencia inicial con los antecedentes esenciales ya disponibles.';
     frame.src = tasadorUrlFor(record, options);
     dialog.addEventListener('close', () => { state.activeTasadorPropertyId = null; }, { once: true });
     dialog.showModal();
@@ -948,7 +970,7 @@
           ].filter(Boolean).join(' ');
           const updated=new Date(r.updated_at||r.publicada_at||r.created_at||0).getTime()||0;
           return `
-          <article class="catalog-card" data-parcel-card
+          <article class="catalog-card crm-parcel-card" data-parcel-card
             data-search-row="${esc(searchPayload)}"
             data-region="${esc(normText(p.region||r.region))}"
             data-commune="${esc(normText(p.comuna||r.comuna))}"
@@ -967,15 +989,17 @@
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([p.comuna||r.comuna,p.region||r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(p.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(p.precio_publicado)}</b></div>
-              ${v.technical ? `<div class="crm-valuation-summary"><span><small>TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>TPL Tasador Comunal</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Base Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Valor de Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'}
+              ${valuationSummaryHtml(r)}
               ${valuationExplanation(r)}
-              <div class="catalog-actions catalog-actions--primary">
+              <div class="crm-valuation-actions" aria-label="Acciones de tasación">
+                <button class="crm-tasacion-action crm-tasacion-action--quick" data-crm-tasar-basic="${esc(r.id)}"><span>Tasación rápida</span><small>Datos esenciales · referencia inicial</small></button>
+                <button class="crm-tasacion-action crm-tasacion-action--full" data-crm-tasar-full="${esc(r.id)}"><span>Tasación completa</span><small>Mapa, accesos y atributos detallados</small></button>
+              </div>
+              <div class="catalog-actions catalog-actions--primary crm-parcel-secondary-actions">
                 <a class="primary-link" href="${appPath(`parcela.html?id=${encodeURIComponent(r.codigo || r.id)}`)}" target="_blank" rel="noopener">Ver propiedad</a>
-                <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasar</button>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero debes tasar esta propiedad"'}>Informe Premium</button>
-                <details class="catalog-more"><summary>Más</summary><div>
+                <details class="catalog-more"><summary>Más acciones</summary><div>
                   <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
-                  <button class="nav-btn" data-crm-tasar-full="${esc(r.id)}">Completar datos y tasar</button>
                   <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
                 </div></details>
               </div>
