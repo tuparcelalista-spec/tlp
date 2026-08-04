@@ -50,6 +50,12 @@
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 
+  const appPath = (path = '') => {
+    const clean = String(path || '').replace(/^\/+/, '');
+    const legacyPrefix = window.location.pathname.startsWith('/frontend-v2/') ? '/frontend-v2' : '';
+    return `${legacyPrefix}/${clean}`;
+  };
+
   const fmtMoney = (value) => {
     const n = Number(value);
     return Number.isFinite(n) && n
@@ -687,7 +693,7 @@
       mark('differentiator', house.caracteristica_diferenciadora);
       if (options.full) q.set('campos_presentes', [...new Set(present)].join(','));
     }
-    return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
+    return `${appPath('plataforma/publicar/tasador.html')}?${q.toString()}`;
   }
 
   function openCrmTasador(record, options = {}) {
@@ -799,7 +805,7 @@
               ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor Técnico TPL</small><b>${fmtMoney(v.ideal)}</b></span>${v.communal?`<span><small>Valor Comunal TPL</small><b>${fmtMoney(v.communal)}</b></span>`:''}<span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
               ${valuationExplanation(r)}
               <div class="catalog-actions catalog-actions--primary">
-                <a class="primary-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver propiedad</a>
+                <a class="primary-link" href="${appPath('parcela.html')}?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver propiedad</a>
                 <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasar</button>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero realiza una tasación"'}>Informe Premium</button>
                 <details class="catalog-more"><summary>Más</summary><div>
@@ -888,7 +894,7 @@
     const dialog = document.querySelector('#previewDialog');
     const body = document.querySelector('#previewDialogBody');
     if (!dialog || !body) return showDetail(record);
-    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
+    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="${appPath('parcela.html')}?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
     dialog.showModal();
   }
 
