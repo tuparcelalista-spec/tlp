@@ -64,3 +64,6 @@ body.is-crm-embed .public-header,body.is-crm-embed .public-footer{display:none!i
 .crm-save-only:hover{background:#eef6ff}
 .crm-save-actions button:disabled{opacity:.55;cursor:wait}
 @media(max-width:640px){.crm-save-actions button{width:100%}}
+
+/* Tasador CRM V2: cuatro valores, acciones visibles y mapa estable */
+.valuation-cards--four{grid-template-columns:repeat(2,minmax(0,1fr))}.valuation-card--communal{border-color:#8fc0e8;background:#f4f9ff}.valuation-card--base{border-color:#d8dee7;background:#fafbfd}.crm-save-actions{position:sticky;bottom:8px;z-index:900;display:flex!important;gap:10px;flex-wrap:wrap;padding:12px;margin-top:12px;border:1px solid #b9d1e5;border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 10px 30px rgba(15,23,42,.18)}.crm-save-actions button{flex:1;min-width:170px}.is-crm-embed .tasador-map-shell{min-height:390px}.is-crm-embed .tasador-map{height:390px!important;min-height:390px!important;width:100%!important}.leaflet-container{width:100%!important;height:100%!important}.is-crm-embed #crmSmartCompletion{display:block!important}.is-crm-embed #crmSmartCompletion[hidden]{display:block!important}@media(max-width:700px){.valuation-cards--four{grid-template-columns:1fr}.crm-save-actions{position:static}.is-crm-embed .tasador-map,.is-crm-embed .tasador-map-shell{height:340px!important;min-height:340px!important}}

@@ -967,7 +967,7 @@
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([p.comuna||r.comuna,p.region||r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(p.superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(p.precio_publicado)}</b></div>
-              ${v.technical ? `<div class="crm-valuation-summary"><span><small>Valor TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>Valor TPL Tasador + Comuna</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Valor Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Venta Nivel Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'}
+              ${v.technical ? `<div class="crm-valuation-summary"><span><small>TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>TPL Tasador Comunal</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Base Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Valor de Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'}
               ${valuationExplanation(r)}
               <div class="catalog-actions catalog-actions--primary">
                 <a class="primary-link" href="${appPath(`parcela.html?id=${encodeURIComponent(r.codigo || r.id)}`)}" target="_blank" rel="noopener">Ver propiedad</a>
