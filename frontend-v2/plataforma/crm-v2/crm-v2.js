@@ -1,6 +1,8 @@
 (() => {
   'use strict';
 
+  const appPath=(path='')=>{const clean=String(path||'').replace(/^\/+/, '');const prefix=window.location.pathname.startsWith('/frontend-v2/')?'/frontend-v2':'';return `${prefix}/${clean}`;};
+
   const state = {
     snapshot: null,
     current: 'inicio',
@@ -49,12 +51,6 @@
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
-
-  const appPath = (path = '') => {
-    const clean = String(path || '').replace(/^\/+/, '');
-    const legacyPrefix = window.location.pathname.startsWith('/frontend-v2/') ? '/frontend-v2' : '';
-    return `${legacyPrefix}/${clean}`;
-  };
 
   const fmtMoney = (value) => {
     const n = Number(value);
@@ -560,18 +556,26 @@
   function valuationValues(record) {
     const valuation = latestValuation(record);
     const result = valuation?.resultado || valuation?.result || {};
+    const technical = Number(result.valorTplTasador ?? result.valor_tpl_tasador ?? result.ideal ?? result.recommended ?? result.market ?? 0);
+    const communal = Number(result.valorComunal ?? result.valor_comunal ?? result.marketReference?.medianValue ?? result.referencia_comunal_total ?? result.observedComparables?.mediana_total ?? 0);
+    const suggested = Number(result.valorTplTasadorComuna ?? result.valor_tpl_tasador_comuna ?? (communal ? Math.round((technical + communal) / 2) : technical));
+    const urgency = Number(result.valorVentaApuro ?? result.valor_venta_apuro ?? result.quick ?? result.agile ?? Math.round(suggested * .93));
     return {
       valuation,
-      ideal: Number(result.ideal ?? result.recommended ?? result.market ?? 0),
-      quick: Number(result.quick ?? result.agile ?? 0),
-      patient: Number(result.patient ?? result.patientPotential ?? (Number(result.ideal ?? result.recommended ?? 0)*1.07) ?? 0),
-      communal: Number(result.marketReference?.medianValue ?? result.referencia_comunal_total ?? result.observedComparables?.mediana_total ?? 0)
+      technical,
+      suggested,
+      communal,
+      urgency,
+      // aliases temporales para módulos antiguos
+      ideal: technical,
+      quick: urgency,
+      patient: Number(result.patient ?? result.patientPotential ?? Math.round(technical*1.07) ?? 0)
     };
   }
 
 
   function valuationExplanation(record) {
-    const { valuation, ideal, communal } = valuationValues(record);
+    const { valuation, technical: ideal, communal } = valuationValues(record);
     const result = valuation?.resultado || valuation?.result || {};
     const input = valuation?.entrada || valuation?.input || {};
     if (!ideal) return '';
@@ -693,7 +697,7 @@
       mark('differentiator', house.caracteristica_diferenciadora);
       if (options.full) q.set('campos_presentes', [...new Set(present)].join(','));
     }
-    return `${appPath('plataforma/publicar/tasador.html')}?${q.toString()}`;
+    return `/frontend-v2/plataforma/publicar/tasador.html?${q.toString()}`;
   }
 
   function openCrmTasador(record, options = {}) {
@@ -802,10 +806,10 @@
               ${crmCommercialBadge(r)}<h3>${esc(r.titulo || 'Parcela sin título')}</h3>
               <p>${esc([r.comuna,r.region].filter(Boolean).join(' · '))}</p>
               <div class="catalog-facts"><b>${Number(hydratedProperty(r).superficie_m2 || 0).toLocaleString('es-CL')} m²</b><b>${fmtMoney(hydratedProperty(r).precio_publicado)}</b></div>
-              ${(() => { const v=valuationValues(r); return v.ideal ? `<div class="crm-valuation-summary"><span><small>Valor Técnico TPL</small><b>${fmtMoney(v.ideal)}</b></span>${v.communal?`<span><small>Valor Comunal TPL</small><b>${fmtMoney(v.communal)}</b></span>`:''}<span><small>Apuro</small><b>${fmtMoney(v.quick)}</b></span><span><small>Sin apuro</small><b>${fmtMoney(v.patient)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
+              ${(() => { const v=valuationValues(r); return v.technical ? `<div class="crm-valuation-summary"><span><small>Valor TPL Tasador</small><b>${fmtMoney(v.technical)}</b></span><span><small>Valor TPL Tasador + Comuna</small><b>${fmtMoney(v.suggested)}</b></span><span><small>Valor Comunal</small><b>${v.communal?fmtMoney(v.communal):'Sin muestra'}</b></span><span><small>Venta Nivel Apuro</small><b>${fmtMoney(v.urgency)}</b></span></div>` : '<div class="crm-valuation-empty">Aún sin tasación registrada</div>'; })()}
               ${valuationExplanation(r)}
               <div class="catalog-actions catalog-actions--primary">
-                <a class="primary-link" href="${appPath('parcela.html')}?id=${encodeURIComponent(r.codigo || r.id)}" target="_blank" rel="noopener">Ver propiedad</a>
+                <a class="primary-link" href="${appPath(`parcela.html?id=${encodeURIComponent(r.codigo || r.id)}`)}" target="_blank" rel="noopener">Ver propiedad</a>
                 <button class="tasar-basic-btn" data-crm-tasar-basic="${esc(r.id)}">Tasar</button>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero realiza una tasación"'}>Informe Premium</button>
                 <details class="catalog-more"><summary>Más</summary><div>
@@ -894,7 +898,7 @@
     const dialog = document.querySelector('#previewDialog');
     const body = document.querySelector('#previewDialogBody');
     if (!dialog || !body) return showDetail(record);
-    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="${appPath('parcela.html')}?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
+    body.innerHTML = `<div class="preview-hero">${media}</div><div class="preview-content"><small>${esc(record.codigo || record.source_legacy_id || '')}</small><h2>${esc(titleText || 'Sin título')}</h2><p>${esc(record.descripcion || 'Sin descripción disponible.')}</p><div class="preview-stats"><span><small>Ubicación / proveedor</small><b>${esc(isHouse ? (record.nombre_proveedor_pendiente || 'Por confirmar') : [record.comuna,record.region].filter(Boolean).join(' · '))}</b></span><span><small>Superficie</small><b>${esc(record.superficie_m2 || '—')} m²</b></span><span><small>Precio</small><b>${fmtMoney(isHouse ? record.precio_base : record.precio_publicado)}</b></span><span><small>Estado</small><b>${esc(record.estado_publicacion || record.estado || '—')}</b></span></div>${!isHouse ? `<a class="primary-link preview-public-link" href="/frontend-v2/parcela.html?id=${encodeURIComponent(record.codigo || record.id)}" target="_blank" rel="noopener">Abrir anuncio público</a>` : ''}</div>`;
     dialog.showModal();
   }
 

@@ -261,11 +261,18 @@
 
     const market=marketReference(input.comuna,area);
     const routeKm=Math.max(0,Number(input.routeDistanceKm)||0);
-    // Regla canónica TPL: el valor técnico es independiente del mercado comunal.
-    // La referencia comunal se conserva únicamente como contraste estadístico.
-    const recommended=technicalPotential;
-    const agile=roundPrice(recommended*RULES.agileFactor);
-    const patient=roundPrice(recommended*RULES.patientFactor);
+    // Cuatro valores canónicos TPL:
+    // 1) Valor TPL Tasador: motor técnico puro.
+    // 2) Valor TPL Tasador + Comuna: promedio equilibrado cuando existe muestra comunal.
+    // 3) Valor Comunal: mediana estadística del segmento.
+    // 4) Venta Nivel Apuro: 7% bajo el valor equilibrado.
+    const valorTplTasador=technicalPotential;
+    const valorComunal=market?.medianValue||((market?.medianM2&&area)?roundPrice(market.medianM2*area):0);
+    const valorTplTasadorComuna=valorComunal?roundPrice((valorTplTasador+valorComunal)/2):valorTplTasador;
+    const valorVentaApuro=roundPrice(valorTplTasadorComuna*.93);
+    const recommended=valorTplTasador;
+    const agile=valorVentaApuro;
+    const patient=roundPrice(valorTplTasador*RULES.patientFactor);
     const immediateBase=roundPrice(area*RULES.ruralImmediateClosingM2);
     const immediateReference=normalize(input.tourism)==='nacional'?null:roundPrice(((recommended*.90)+immediateBase)/2);
 
@@ -278,6 +285,11 @@
     return {
       quick:agile, ideal:recommended, patient,
       agile, recommended, technicalPotential, patientPotential:patient, immediateReference,
+      valorTplTasador, valorTplTasadorComuna, valorComunal, valorVentaApuro,
+      valor_tpl_tasador:valorTplTasador,
+      valor_tpl_tasador_comuna:valorTplTasadorComuna,
+      valor_comunal:valorComunal,
+      valor_venta_apuro:valorVentaApuro,
       reference:recommended, low:agile, high:technicalPotential,
       asking, area, location:input.location||'',region:input.region||'',comuna:input.comuna||'',
       base:surfacePricing.base,surfacePricing,territorialBase,commercialBase:territorialBase,

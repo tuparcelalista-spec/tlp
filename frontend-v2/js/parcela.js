@@ -200,9 +200,10 @@
   function buildOpportunity(){
     const a=marketAnalysis()||{};
     const published=Number(parcel.precio||0);
-    const technical=Number(a.technicalValue||a.tpl?.ideal||0);
-    const observed=Number(a.observedCommunalValue||0);
-    const suggested=Number(a.suggestedCommunalValue||technical||observed||published||0);
+    const technical=Number(a.valorTplTasador||a.valor_tpl_tasador||a.technicalValue||a.tpl?.ideal||0);
+    const observed=Number(a.valorComunal||a.valor_comunal||a.observedCommunalValue||0);
+    const suggested=Number(a.valorTplTasadorComuna||a.valor_tpl_tasador_comuna||a.suggestedCommunalValue||(observed?Math.round((technical+observed)/2):technical)||published||0);
+    const urgency=Number(a.valorVentaApuro||a.valor_venta_apuro||a.urgencyValue||Math.round(suggested*.93));
 
     let priceScore=60;
     if(published&&suggested){
@@ -235,7 +236,7 @@
       {key:'investment',label:'Potencial de inversión',score:investment,weight:10}
     ];
     const score=Math.max(0,Math.min(100,Math.round(factors.reduce((sum,f)=>sum+(f.score*f.weight/100),0))));
-    return {score,band:opportunityBand(score),factors,published,observed,suggested,technical,a};
+    return {score,band:opportunityBand(score),factors,published,observed,suggested,technical,urgency,a};
   }
   function valuation(){
     const result=buildOpportunity();
@@ -249,6 +250,12 @@
     $('opportunity-meter-marker').style.left=`${score}%`;
 
     const diff=result.published&&result.suggested?Math.round(((result.published-result.suggested)/result.suggested)*100):null;
+    const publishedRow=document.querySelector('#price-position-chart article.is-published');
+    if(publishedRow){
+      publishedRow.classList.toggle('is-aligned',diff!==null&&Math.abs(diff)<=5);
+      publishedRow.classList.toggle('is-below',diff!==null&&diff<-5);
+      publishedRow.classList.toggle('is-above',diff!==null&&diff>5);
+    }
     let summary='La nota combina precio, acceso, servicios, documentación, topografía y potencial de inversión.';
     if(diff!==null){
       if(diff<=-10) summary=`El precio publicado está ${Math.abs(diff)}% bajo la referencia TPL y presenta una posición atractiva para compradores.`;

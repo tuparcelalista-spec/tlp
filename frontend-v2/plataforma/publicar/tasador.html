@@ -9,12 +9,12 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3ynWdq4bV8hN3J1uVSc8VxjD60W0A=" crossorigin="">
 <link rel="stylesheet" href="tasador-publico.css?v=20260803-caburgua-fix">
 <script src="../../js/core/tpl-data-service.js?v=20260803ind1-crmvaluation2"></script>
-<script src="tpl-land-engine.js"></script>
+<script src="tpl-land-engine.js?v=20260803-valores-canonicos-v1"></script>
 <script src="tpl-house-engine.js"></script>
 <script type="module" src="tpl-national-catalog.mjs"></script>
 <script src="tpl-tasador-supabase.js?v=20260803ind1-crmvaluation2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script defer src="tasador-publico.js?v=20260803-caburgua-fix"></script>
+<script defer src="tasador-publico.js?v=20260803-valores-canonicos-v1"></script>
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar"><a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Tu Parcela Lista</span></a><a class="back" href="index.html">Publicar propiedad</a></header>
@@ -119,25 +119,31 @@
 <aside class="card result-card">
 <span class="eyebrow">Resultado orientativo</span><div id="status">Elige el tipo de tasación y completa los datos.</div>
 <div id="result" hidden>
-<div class="valuation-cards" aria-label="Escenarios de valor TPL">
-  <article class="valuation-card valuation-card--tpl">
-    <span class="valuation-card__tag">Recomendación principal</span>
-    <small>Valor TPL recomendado</small>
+<div class="valuation-cards valuation-cards--four" aria-label="Cuatro valores oficiales TPL">
+  <article class="valuation-card valuation-card--technical">
+    <span class="valuation-card__tag">Motor técnico</span>
+    <small>Valor TPL Tasador</small>
     <strong id="ideal">$0</strong>
-    <p>Precio sugerido para una comercialización equilibrada, normalmente entre 3 y 6 meses.</p>
+    <p>Resultado particular del motor según superficie, territorio y atributos guardados.</p>
     <span id="idealUf" class="uf-equivalent">Equivalente UF disponible después de calcular</span>
+  </article>
+  <article class="valuation-card valuation-card--suggested">
+    <span class="valuation-card__tag">Equilibrio comercial</span>
+    <small>Valor TPL Tasador + Comuna</small>
+    <strong id="suggested">$0</strong>
+    <p>Promedio entre el motor técnico y la referencia comunal cuando existe una muestra válida.</p>
+  </article>
+  <article class="valuation-card valuation-card--communal">
+    <span class="valuation-card__tag">Mercado observado</span>
+    <small>Valor Comunal</small>
+    <strong id="communal">$0</strong>
+    <p>Mediana estadística de parcelas comparables del mismo segmento territorial.</p>
   </article>
   <article class="valuation-card valuation-card--agile">
     <span class="valuation-card__tag">Prioriza velocidad</span>
-    <small>Valor con apuro · venta ágil</small>
+    <small>Venta Nivel Apuro</small>
     <strong id="quick">$0</strong>
-    <p>Escenario más competitivo para aumentar la probabilidad de recibir consultas y ofertas antes.</p>
-  </article>
-  <article class="valuation-card valuation-card--patient">
-    <span class="valuation-card__tag">Prioriza precio</span>
-    <small>Valor sin apuro · potencial técnico</small>
-    <strong id="patient">$0</strong>
-    <p>Potencial técnico según ubicación y atributos, sin rebaja por velocidad y sin mezclar automáticamente el mercado comunal.</p>
+    <p>Escenario 7% bajo el valor equilibrado para una comercialización más rápida.</p>
   </article>
 </div>
 <div id="tplValueFormula" class="tpl-value-formula" aria-live="polite">

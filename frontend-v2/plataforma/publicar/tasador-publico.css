@@ -56,3 +56,14 @@ body.is-crm-embed .public-header,body.is-crm-embed .public-footer{display:none!i
 .crm-smart-completion{margin:0 0 24px;padding:20px;border:1px solid #a9cceb;border-radius:20px;background:linear-gradient(145deg,#edf6ff,#fff);box-shadow:0 12px 30px rgba(7,59,111,.08)}.crm-smart-completion__head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}.crm-smart-completion__head span{font-size:.74rem;font-weight:950;text-transform:uppercase;letter-spacing:.1em;color:#0c5da5}.crm-smart-completion__head strong{color:#073b6f;font-size:1.08rem}.crm-smart-completion p{margin:8px 0;color:#52677a;line-height:1.5}.crm-completion-meter{height:9px;border-radius:99px;background:#dbe8f4;overflow:hidden;margin:14px 0 16px}.crm-completion-meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,#0c5da5,#198754);transition:width .35s ease}.crm-known-data,.crm-missing-data{padding:13px 0;border-top:1px solid rgba(7,59,111,.12)}.crm-known-data strong,.crm-missing-data strong{display:block;color:#073b6f;margin-bottom:8px}.crm-known-data>div,.crm-missing-data>div{display:flex;flex-wrap:wrap;gap:7px}.crm-known-data span,.crm-missing-data span{border-radius:999px;padding:6px 9px;font-size:.76rem;font-weight:800}.crm-known-data span{background:#e5f5ec;color:#12643f}.crm-missing-data span{background:#fff3cd;color:#715300}.is-crm-smart-missing .mode-picker,.is-crm-smart-missing .asset-picker,.is-crm-smart-missing .hero{display:none!important}.is-crm-smart-missing .is-empty-grid{display:none}.is-crm-smart-missing .form-card>button.primary{position:sticky;bottom:12px;z-index:20;box-shadow:0 12px 28px rgba(7,59,111,.25)}@media(max-width:640px){.crm-smart-completion__head{display:grid}.crm-known-data>div,.crm-missing-data>div{display:grid;grid-template-columns:1fr 1fr}}
 
 .crm-save-and-value{width:100%;margin-top:16px;position:sticky;bottom:12px;z-index:25;box-shadow:0 12px 28px rgba(7,59,111,.24)}
+
+/* Cuatro valores canónicos TPL */
+.valuation-cards--four{grid-template-columns:repeat(2,minmax(0,1fr))}
+.valuation-card--technical{border-top:4px solid #073e72;background:#f4f8fc}
+.valuation-card--suggested{border-top:4px solid #2f7ec1;background:#eef7ff}
+.valuation-card--communal{border-top:4px solid #6a8d68;background:#f7faf6}
+.valuation-card--agile{border-top:4px solid #b45f3c;background:#fff7f3}
+.crm-save-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.crm-save-actions button{min-height:44px;padding:0 16px;border-radius:10px;font-weight:850}
+.crm-save-only{border:1px solid #0b5796;background:#fff;color:#0b5796}
+@media(max-width:700px){.valuation-cards--four{grid-template-columns:1fr}.crm-save-actions{display:grid}}
