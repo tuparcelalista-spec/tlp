@@ -1,7 +1,7 @@
 (function(global){
   'use strict';
 
-  const ENGINE_VERSION = 'tpl-land-engine-v2.0-20260731';
+  const ENGINE_VERSION = 'tpl-land-engine-v2.1-tourism-national-20260803';
 
   const RULES = Object.freeze({
     // Tramos acumulativos aprobados TPL.
@@ -140,10 +140,25 @@
     const communeKm=hasCommune?Number(communeRaw):null;
     const major=distanceBand(majorKm,RULES.majorCityDistanceMultipliers);
     const local=hasCommune?distanceBand(communeKm,RULES.localTownDistanceMultipliers):{distanceKm:null,multiplier:null,label:'Sin distancia comunal'};
-    const majorWeight=hasCommune?RULES.majorCityWeight:1;
-    const communeWeight=hasCommune?RULES.communeWeight:0;
-    const multiplier=(major.multiplier*majorWeight)+((local.multiplier||0)*communeWeight);
-    return {multiplier:Number(multiplier.toFixed(3)),major,local,majorWeight,communeWeight};
+    const tourism=normalize(input.tourism ?? input.tourismLevel);
+    let majorWeight=hasCommune?RULES.majorCityWeight:1;
+    let communeWeight=hasCommune?RULES.communeWeight:0;
+    let multiplier=(major.multiplier*majorWeight)+((local.multiplier||0)*communeWeight);
+
+    // Un destino turístico nacional funciona como polo propio. La distancia a una
+    // gran ciudad sigue aportando contexto, pero no puede rebajar la base territorial
+    // por debajo de un piso turístico nacional verificable.
+    let tourismNationalProtected=false;
+    if(tourism==='nacional'){
+      majorWeight=hasCommune?0.20:0.35;
+      communeWeight=hasCommune?0.30:0;
+      const destinationWeight=hasCommune?0.50:0.65;
+      const destinationMultiplier=1.50;
+      multiplier=(major.multiplier*majorWeight)+((local.multiplier||1)*communeWeight)+(destinationMultiplier*destinationWeight);
+      multiplier=Math.max(destinationMultiplier,multiplier);
+      tourismNationalProtected=true;
+    }
+    return {multiplier:Number(multiplier.toFixed(3)),major,local,majorWeight,communeWeight,tourismNationalProtected};
   }
 
   function marketReference(comuna,area){

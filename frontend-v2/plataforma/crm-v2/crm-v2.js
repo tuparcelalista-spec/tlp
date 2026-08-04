@@ -655,7 +655,7 @@
     if (record.cierre_perimetral) q.set('fencing', record.cierre_perimetral);
     if (record.porton) q.set('gate', record.porton);
     if (record.condominio !== undefined && record.condominio !== null) q.set('condominium', record.condominio ? 'si' : 'no');
-    if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance', record.distancia_ruta_principal_km);
+    if (record.distancia_ruta_principal_km !== undefined && record.distancia_ruta_principal_km !== null) q.set('route_distance_m', Math.round(Number(record.distancia_ruta_principal_km) * 1000));
     const metadata = record.metadata || {};
     const house = record.casa_datos || metadata.casa_datos || {};
     const natural = record.atributos_naturales || metadata.atributos_naturales || metadata.nature || [];
@@ -683,7 +683,7 @@
     const assetType = record.tipo === 'casa' || metadata.solo_vivienda ? 'casa' : (house && Object.keys(house).length ? 'parcela_casa' : 'parcela');
     q.set('tipo_activo', assetType);
     const communeDistance = record.distancia_centro_comuna_km ?? metadata.distancia_centro_comuna_km ?? metadata.communeDistanceKm;
-    if (communeDistance !== undefined && communeDistance !== null && communeDistance !== '') q.set('commune_distance', communeDistance);
+    if (communeDistance !== undefined && communeDistance !== null && communeDistance !== '') q.set('commune_distance_m', Math.round(Number(communeDistance) * 1000));
     // Sin coordenadas ni distancia declarada, el Tasador básico usa una referencia comunal neutral.
     if (house && Object.keys(house).length) {
       q.set('incluye_vivienda', '1');

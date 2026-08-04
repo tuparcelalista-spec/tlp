@@ -392,7 +392,10 @@
       p_entrada: input || {},
       p_resultado: result || {}
     });
-    if (error) throw error;
+    if (error) {
+      if (/Could not find the function|404|PGRST202/i.test(error.message || '')) throw new Error('Falta instalar la RPC tpl_registrar_tasacion_v1(jsonb,jsonb) en Supabase.');
+      throw error;
+    }
     if (!data?.ok) throw new Error('Supabase no confirmó la tasación.');
     return data;
   }
