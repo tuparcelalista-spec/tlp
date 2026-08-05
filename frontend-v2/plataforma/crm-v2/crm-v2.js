@@ -998,10 +998,10 @@
               <div class="catalog-actions catalog-actions--primary crm-parcel-secondary-actions">
                 <a class="primary-link" href="${appPath(`parcela.html?id=${encodeURIComponent(r.codigo || r.id)}`)}" target="_blank" rel="noopener">Ver propiedad</a>
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero debes tasar esta propiedad"'}>Informe Premium</button>
-                <details class="catalog-more"><summary aria-label="Abrir acciones adicionales">Más acciones <span aria-hidden="true">⌄</span></summary><div class="catalog-more-menu" role="menu">
-                  <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}" role="menuitem"><b>Vista completa CRM</b><small>Revisar ficha, contacto e historial</small></button>
-                  <button class="owner-link-btn" data-owner-link="${esc(r.id)}" role="menuitem"><b>Generar link del propietario</b><small>Actualizar datos sin contraseña</small></button>
-                  <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}" role="menuitem"><b>Abrir TPL Studio</b><small>Contenido, landing y promoción</small></button>
+                <details class="catalog-more"><summary>Más acciones</summary><div>
+                  <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
+                  <button class="owner-link-btn" data-owner-link="${esc(r.id)}">Link formulario</button>
+                  <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
                 </div></details>
               </div>
             </div>
@@ -1281,9 +1281,24 @@
         const result = await window.TPLDataService.generateOwnerLink(ownerLink.dataset.ownerLink, 30);
         const url = new URL(appPath('mi-parcela.html'), window.location.origin);
         url.searchParams.set('t', result.token);
-        await navigator.clipboard.writeText(url.href);
-        ownerLink.textContent = '¡Link copiado!';
-        alert(`Enlace seguro copiado. Vence el ${new Intl.DateTimeFormat('es-CL',{dateStyle:'long'}).format(new Date(result.expires_at))}.`);
+        let copied = false;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(url.href);
+            copied = true;
+          }
+        } catch (clipboardError) {
+          console.warn('No se pudo usar el portapapeles automático:', clipboardError);
+        }
+
+        ownerLink.textContent = copied ? '¡Link copiado!' : 'Link generado';
+        const expiration = new Intl.DateTimeFormat('es-CL',{dateStyle:'long'}).format(new Date(result.expires_at));
+        const action = copied
+          ? `Enlace seguro copiado. Vence el ${expiration}.`
+          : `Enlace seguro generado. Vence el ${expiration}. Copia este enlace:
+
+${url.href}`;
+        alert(action);
       } catch (error) {
         console.error(error);
         alert(error?.message || 'No fue posible generar el enlace.');
