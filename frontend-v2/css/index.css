@@ -93,3 +93,12 @@
 .tpl-commercial-badge small{font-size:.62rem;font-weight:750;opacity:.9}.tpl-commercial-badge-image{position:absolute;z-index:12;left:12px;top:12px}.tpl-commercial-badge-card{margin:0 0 9px;box-shadow:none}
 .tpl-commercial-badge-featured{background:#eaf2ff;color:#123f73;border:1px solid #b8d2f3}.tpl-commercial-badge-opportunity{background:#e7f7ed;color:#17653c;border:1px solid #9bd4b1}.tpl-commercial-badge-great-opportunity{background:#fff0dd;color:#9a4500;border:1px solid #f0b875}.tpl-commercial-badge-selection{background:#231b45;color:#fff;border:1px solid #6e60a8}
 @media(max-width:640px){.tpl-commercial-badge-image{top:9px;left:9px}.tpl-commercial-badge{font-size:.66rem}.tpl-commercial-badge small{display:none}}
+
+
+/* Corrección filtros: evitar que “1 hectárea o más” quede cortado */
+.priority-bar{flex-wrap:wrap;overflow:visible;padding-right:2px}
+.priority-bar button{max-width:100%;white-space:nowrap;line-height:1.2}
+@media(max-width:700px){
+  .priority-bar{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding:2px 22px 10px 1px;scroll-padding-right:22px;-webkit-overflow-scrolling:touch}
+  .priority-bar button:last-child{margin-right:8px}
+}

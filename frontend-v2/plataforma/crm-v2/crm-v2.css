@@ -227,5 +227,22 @@
 .crm-tasador-shell>header p{max-width:780px;line-height:1.45}
 
 
-/* Parche 03 · Bandeja operativa única */
-.operational-metrics{margin-top:14px}.operational-inbox{display:grid;gap:12px}.operational-item{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:14px;align-items:center;background:#fff;border:1px solid #dbe7ef;border-left:5px solid #f2b705;border-radius:16px;padding:15px 16px}.operational-item.priority-urgente,.operational-item.priority-alta{border-left-color:#b42318}.operational-item.priority-baja{border-left-color:#86c9a2}.operational-icon{width:42px;height:42px;border-radius:13px;background:#eef8ff;display:grid;place-items:center;font-size:1.25rem}.operational-copy{min-width:0}.operational-heading{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.operational-copy p{margin:5px 0;color:#34566b}.operational-copy small{color:#64748b;text-transform:capitalize}.operational-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}@media(max-width:760px){.operational-item{grid-template-columns:42px 1fr}.operational-actions{grid-column:1/-1;justify-content:stretch}.operational-actions button{flex:1}.operational-metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:460px){.operational-metrics{grid-template-columns:1fr}.operational-item{padding:13px}.operational-actions{display:grid;grid-template-columns:1fr}}
+/* Corrección CRM: menú Más acciones visible y comprensible */
+.crm-parcel-card{overflow:visible;position:relative;z-index:1}
+.crm-parcel-card:has(.catalog-more[open]){z-index:60}
+.crm-parcel-card .catalog-card-media{border-radius:17px 17px 0 0}
+.crm-parcel-card .catalog-more{min-width:150px}
+.crm-parcel-card .catalog-more>summary{gap:7px;white-space:nowrap;background:#f7fafc;color:#174b6b;border-color:#c9d8e2}
+.crm-parcel-card .catalog-more[open]>summary{border-color:#0b75b2;background:#edf7fc;color:#074c74}
+.crm-parcel-card .catalog-more>summary span{font-size:.78rem;transition:transform .18s ease}
+.crm-parcel-card .catalog-more[open]>summary span{transform:rotate(180deg)}
+.crm-parcel-card .catalog-more-menu{width:min(300px,calc(100vw - 42px));padding:9px;overflow:hidden}
+.crm-parcel-card .catalog-more-menu button{display:grid;gap:2px;min-height:54px;padding:10px 11px;border:0;border-radius:9px;background:#fff;color:#174b6b;text-align:left;cursor:pointer}
+.crm-parcel-card .catalog-more-menu button:hover,.crm-parcel-card .catalog-more-menu button:focus-visible{background:#edf7fc;outline:2px solid rgba(11,117,178,.18);outline-offset:-2px}
+.crm-parcel-card .catalog-more-menu button b{font-size:.82rem}
+.crm-parcel-card .catalog-more-menu button small{color:#667d8d;font-size:.7rem;font-weight:650;line-height:1.35}
+@media(max-width:720px){
+  .crm-parcel-card .catalog-more{grid-column:1/-1;width:100%}
+  .crm-parcel-card .catalog-more>summary{width:100%}
+  .crm-parcel-card .catalog-more>div{left:0;right:0;width:100%;position:relative;top:6px;box-shadow:0 12px 30px rgba(15,23,42,.13)}
+}
