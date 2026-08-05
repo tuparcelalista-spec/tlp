@@ -321,12 +321,32 @@
       throw new Error('Nombre y correo son obligatorios.');
     }
     const client = await getClient();
-    const { data, error } = await client.rpc('tpl_registrar_oportunidad_publica_v1', {
+    const rpc = ['oferta', 'economica', 'mejoras', 'mixta'].includes(payload?.tipo)
+      ? 'tpl_registrar_oferta_propiedad_v1'
+      : 'tpl_registrar_oportunidad_publica_v1';
+    const { data, error } = await client.rpc(rpc, { p_payload: payload });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible registrar la solicitud.');
+    localEmit(rpc === 'tpl_registrar_oferta_propiedad_v1' ? 'oferta.propiedad_creada' : 'oportunidad.publica_creada', data);
+    return data;
+  }
+
+  async function getOwnerOffers(token) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_propietario_ofertas_por_token_v1', { p_token: token });
+    if (error) throw error;
+    return data || { ok: false, items: [] };
+  }
+
+  async function respondOwnerOffer(token, offerId, action, payload = {}) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_propietario_responder_oferta_v1', {
+      p_token: token,
+      p_oferta_id: offerId,
+      p_accion: action,
       p_payload: payload
     });
     if (error) throw error;
-    if (!data?.ok) throw new Error(data?.error || 'No fue posible registrar la solicitud.');
-    localEmit('oportunidad.publica_creada', data);
     return data;
   }
 
@@ -680,6 +700,8 @@
     listPublishedProperties,
     getPublishedPropertyById,
     createPublicOpportunity,
+    getOwnerOffers,
+    respondOwnerOffer,
     getCrmSnapshot,
     getCrmCommandCenter,
     getCrmOperationalInbox,

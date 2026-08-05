@@ -27,7 +27,46 @@
     return client;
   }
 
-  const cleanEmail = value => String(value || '').trim().toLowerCase();
+  const cleanEmail = value => String(value || '').trim().toLowerCase().slice(0, 254);
+  const IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let lastActivityAt = Date.now();
+  let idleTimer = null;
+
+  function touchActivity() { lastActivityAt = Date.now(); }
+
+  async function enforceActiveSession() {
+    const session = await getSession();
+    if (!session) return null;
+    if (Date.now() - lastActivityAt > IDLE_LIMIT_MS) {
+      await signOut({ scope: 'local' });
+      throw new Error('Tu sesión se cerró por inactividad. Vuelve a ingresar.');
+    }
+    return session;
+  }
+
+  function startSessionGuard(onExpired) {
+    ['click','keydown','pointerdown','touchstart','scroll'].forEach((name) =>
+      window.addEventListener(name, touchActivity, { passive: true })
+    );
+    if (idleTimer) window.clearInterval(idleTimer);
+    idleTimer = window.setInterval(async () => {
+      try {
+        const session = await enforceActiveSession();
+        if (!session && typeof onExpired === 'function') onExpired();
+      } catch (_) {
+        if (typeof onExpired === 'function') onExpired();
+      }
+    }, 60 * 1000);
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const session = await enforceActiveSession();
+        if (!session && typeof onExpired === 'function') onExpired();
+      } catch (_) {
+        if (typeof onExpired === 'function') onExpired();
+      }
+    });
+  }
 
   function recoveryRedirectUrl() {
     const redirectTo = new URL(config.portalPath, window.location.origin);
@@ -151,6 +190,8 @@
     isRecoveryReturn,
     establishRecoverySession,
     clearAuthUrl,
-    recoveryRedirectUrl
+    recoveryRedirectUrl,
+    enforceActiveSession,
+    startSessionGuard
   });
 })(window);

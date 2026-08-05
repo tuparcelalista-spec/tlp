@@ -1,0 +1,76 @@
+/* TPL Brand System D1 — compact, premium and legible at every size */
+:root{
+  --tpl-brand-navy:#0a3556;
+  --tpl-brand-blue:#0d527e;
+  --tpl-brand-teal:#218e91;
+  --tpl-brand-yellow:#f4c542;
+  --tpl-brand-green:#82ad55;
+}
+
+/* Header lockup: the legacy square logo remains preserved as a master asset,
+   while navigation uses the compact mark + a clean text lockup. */
+.tpl-header .tpl-brand{
+  min-width:max-content;
+  display:inline-flex!important;
+  align-items:center;
+  gap:11px;
+  text-decoration:none;
+  color:var(--tpl-brand-navy);
+  isolation:isolate;
+}
+.tpl-header .tpl-brand img[src*="logo-tu-parcela-lista"]{
+  content:url("../assets/brand/tpl-mark.svg");
+  width:46px!important;
+  height:46px!important;
+  flex:0 0 46px;
+  border-radius:14px;
+  object-fit:contain!important;
+  filter:none!important;
+  box-shadow:0 8px 20px rgba(7,47,79,.13);
+}
+.tpl-header .tpl-brand::after{
+  content:"Tu Parcela\A LISTA";
+  white-space:pre;
+  font-family:Inter,Arial,sans-serif;
+  font-size:14px;
+  line-height:1.02;
+  font-weight:760;
+  letter-spacing:-.015em;
+  color:var(--tpl-brand-navy);
+}
+.tpl-header .tpl-brand:hover img{transform:translateY(-1px);box-shadow:0 11px 25px rgba(7,47,79,.18)}
+.tpl-header .tpl-brand img{transition:transform .18s ease,box-shadow .18s ease}
+
+/* Footer uses the horizontal signature instead of shrinking the detailed seal. */
+.tpl-footer img[src*="logo-tu-parcela-lista"]{
+  content:url("../assets/brand/tpl-wordmark.svg");
+  width:min(260px,76vw)!important;
+  height:auto!important;
+  filter:none!important;
+}
+
+/* Pages that show the logo as a central status illustration keep it restrained. */
+.payment-card>img[src*="logo-tu-parcela-lista"],
+.tpl-institutional-page main img[src*="logo-tu-parcela-lista"]{
+  content:url("../assets/brand/tpl-wordmark.svg");
+  width:min(250px,78vw)!important;
+  height:auto!important;
+}
+
+/* Focus and contrast are part of the identity, not an afterthought. */
+.tpl-brand:focus-visible{
+  outline:3px solid rgba(244,197,66,.72);
+  outline-offset:5px;
+  border-radius:16px;
+}
+
+@media(max-width:640px){
+  .tpl-header .tpl-brand{gap:7px}
+  .tpl-header .tpl-brand img[src*="logo-tu-parcela-lista"]{
+    width:40px!important;height:40px!important;flex-basis:40px;border-radius:12px;
+  }
+  .tpl-header .tpl-brand::after{font-size:11px;letter-spacing:0}
+}
+@media(max-width:390px){
+  .tpl-header .tpl-brand::after{content:"TPL";font-size:13px;font-weight:900;letter-spacing:.08em}
+}

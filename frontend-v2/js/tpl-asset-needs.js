@@ -1,26 +1,11 @@
-(function(window){
-'use strict';
-const $=(s,r=document)=>r.querySelector(s);
-const esc=(v)=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-function identifier(){
- const q=new URLSearchParams(location.search);
- return q.get('id')||q.get('parcela')||q.get('propiedad')||localStorage.getItem('selectedParcelaId')||'';
-}
-function host(){
- return $('#analisis-territorial')||$('#investment-section')||$('.main-column .clean-section:last-of-type')||$('main');
-}
-async function load(){
- const id=identifier(); if(!id||!window.TPLDataService?.getAssetServiceRecommendations)return;
- try{
-  const data=await window.TPLDataService.getAssetServiceRecommendations(id);
-  const items=Array.isArray(data?.recomendaciones)?data.recomendaciones:[];
-  if(!data?.ok||!items.length)return;
-  const section=document.createElement('section');
-  section.className='clean-section tpl-needs-section';
-  section.id='servicios-para-esta-propiedad';
-  section.innerHTML=`<div class="section-heading"><span>CAPACIDADES TPL</span><h2>${esc(data.titulo||'Para que esta propiedad sea aún mejor')}</h2></div><p class="tpl-needs-intro">${esc(data.explicacion||'Mostramos soluciones relacionadas con esta propiedad.')}</p><div class="tpl-needs-grid">${items.map(x=>`<article class="tpl-need-card" data-kind="${esc(x.tipo)}"><div class="tpl-need-top"><span>${x.tipo==='necesidad_detectada'?'Necesidad detectada':'Mejora posible'}</span><b>${esc(x.prioridad||'media')}</b></div><h3>${esc(x.nombre)}</h3><p>${esc(x.motivo)}</p><small>${Number(x.especialistas_disponibles||0)>0?`TPL cuenta con ${Number(x.especialistas_disponibles)} especialista${Number(x.especialistas_disponibles)===1?'':'s'} compatible${Number(x.especialistas_disponibles)===1?'':'s'} en la red.`:'TPL está incorporando especialistas para esta capacidad.'}</small></article>`).join('')}</div><p class="tpl-needs-note">Estas sugerencias son orientativas y dependen de los datos declarados. No reemplazan una visita técnica.</p>`;
-  const h=host(); h.parentNode.insertBefore(section,h.nextSibling);
- }catch(error){console.warn('TPL necesidades: recomendaciones no disponibles.',error)}
-}
-window.addEventListener('DOMContentLoaded',()=>setTimeout(load,250));
-})(window);
+(()=>{
+ const section=document.querySelector('[data-tpl-asset-needs]'); if(!section)return;
+ const esc=(v)=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+ const label=(type)=> type==='necesidad_detectada'?'Necesidad confirmada':type==='informacion_pendiente'?'Información pendiente':'Mejora opcional';
+ const group=(items,type)=>items.filter(x=>x.tipo===type);
+ const cards=(items)=>items.map(x=>`<article class="tpl-need-card" data-kind="${esc(x.tipo)}"><div class="tpl-need-top"><span>${label(x.tipo)}</span><b>${esc(x.prioridad||'media')}</b></div><h3>${esc(x.nombre)}</h3><p>${esc(x.motivo)}</p><small>${Number(x.especialistas_disponibles||0)>0?`TPL cuenta con ${Number(x.especialistas_disponibles)} especialista${Number(x.especialistas_disponibles)===1?'':'s'} compatible${Number(x.especialistas_disponibles)===1?'':'s'} en la red.`:'TPL está incorporando especialistas para esta capacidad.'}</small></article>`).join('');
+ async function load(){try{const id=new URLSearchParams(location.search).get('id');if(!id)return;const data=await window.TPLDataService?.getRecommendedServices?.(id);if(!data?.ok)return;const items=Array.isArray(data.recomendaciones)?data.recomendaciones:[];if(!items.length){section.innerHTML='<div class="tpl-needs-empty"><strong>Esta propiedad no presenta necesidades prioritarias confirmadas.</strong><span>La evaluación se actualizará cuando cambien sus antecedentes.</span></div>';return;}
+ const confirmed=group(items,'necesidad_detectada'), pending=group(items,'informacion_pendiente'), optional=group(items,'mejora_sugerida');
+ section.innerHTML=`<div class="section-heading"><span>DIAGNÓSTICO ACTUALIZABLE</span><h2>${esc(data.titulo||'Para que esta propiedad sea aún mejor')}</h2></div><p class="tpl-needs-intro">${esc(data.explicacion||'Mostramos recomendaciones relacionadas con la información actual de esta propiedad.')}</p>${confirmed.length?`<section class="tpl-needs-group is-confirmed"><h3>Necesidades confirmadas</h3><p>Aspectos declarados que conviene resolver antes de construir o habitar.</p><div class="tpl-needs-grid">${cards(confirmed)}</div></section>`:''}${pending.length?`<section class="tpl-needs-group is-pending"><h3>Información pendiente</h3><p>Datos que conviene confirmar antes de recomendar una solución.</p><div class="tpl-needs-grid">${cards(pending)}</div></section>`:''}${optional.length?`<section class="tpl-needs-group is-optional"><h3>Mejoras opcionales</h3><p>Ideas para complementar el proyecto, sin considerarlas una carencia.</p><div class="tpl-needs-grid">${cards(optional)}</div></section>`:''}<p class="tpl-needs-note">La evaluación se recalcula cuando el propietario o el CRM actualizan la ficha. Las recomendaciones son orientativas y no reemplazan una visita técnica.</p>`;
+ }catch(error){console.warn('TPL necesidades: recomendaciones no disponibles.',error)}} load();
+})();

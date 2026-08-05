@@ -158,14 +158,15 @@
             <div class="owner-action-intro">
               <span class="owner-action-kicker">ANTES DE RESERVAR</span>
               <h3>Conversa una condición con el propietario</h3>
-              <p id="owner-action-advice">Puedes presentar una oferta o pedir una mejora concreta antes de solicitar la reserva.</p>
+              <p id="owner-action-advice">Presenta una oferta económica, una propuesta con mejoras o una combinación de ambas. El propietario podrá aceptar, rechazar o responder con una contraoferta.</p>
             </div>
             <div class="owner-action-options">
-              <button class="owner-option is-active" type="button" data-owner-action="oferta">Ofertar al dueño</button>
-              <button class="owner-option" type="button" data-owner-action="mejoras">Pedir mejoras</button>
+              <button class="owner-option is-active" type="button" data-owner-action="economica">Oferta en dinero</button>
+              <button class="owner-option" type="button" data-owner-action="mejoras">Oferta con mejoras</button>
+              <button class="owner-option" type="button" data-owner-action="mixta">Dinero + mejoras</button>
             </div>
             <form id="owner-proposal-form" class="owner-proposal-form">
-              <input type="hidden" id="proposal-type" value="oferta">
+              <input type="hidden" id="proposal-type" value="economica">
               <div class="proposal-grid proposal-grid--primary">
                 <label id="offer-amount-field"><span>Mi oferta</span><input id="proposal-amount" inputmode="numeric" placeholder="$18.500.000"></label>
                 <label><span>Condición de compra</span><select id="proposal-condition"><option value="">Selecciona una opción</option><option>Compra al contado</option><option>Reserva durante este mes</option><option>Pie alto</option><option>Compra inmediata si acepta</option><option>Necesito financiamiento</option></select></label>

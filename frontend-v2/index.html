@@ -15,15 +15,15 @@
 
   <style>
     .tpl-campo-story{position:relative;isolation:isolate;overflow:hidden;min-height:420px;display:grid;align-items:end;margin:0;background:#173b2b;color:#fff}
-    .tpl-campo-story::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(5,27,24,.86),rgba(5,27,24,.46) 55%,rgba(5,27,24,.22)),url("https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Valle_del_Elqui%2C_Chile.jpg/1280px-Valle_del_Elqui%2C_Chile.jpg") center/cover no-repeat;transform:scale(1.01)}
+    .tpl-campo-story::before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(90deg,rgba(5,27,24,.86),rgba(5,27,24,.46) 55%,rgba(5,27,24,.22)),url("./assets/tpl-bienvenida-campo.webp") center 52%/cover no-repeat;transform:scale(1.01)}
     .tpl-campo-story::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,rgba(0,0,0,.22),transparent 55%)}
     .tpl-campo-story__inner{width:min(1180px,calc(100% - 40px));margin:0 auto;padding:72px 0 64px}
-    .tpl-campo-story__eyebrow{display:inline-block;margin-bottom:14px;font-size:.76rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#f2cf4a}
-    .tpl-campo-story h2{max-width:760px;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.35rem,5.6vw,5.1rem);font-weight:500;line-height:.98;letter-spacing:-.035em}
+    .tpl-campo-story__eyebrow{display:inline-block;color:#f2cf4a!important;margin-bottom:14px;font-size:.76rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+    .tpl-campo-story h2{max-width:760px;color:#fff;margin:0 0 14px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.35rem,5.6vw,5.1rem);font-weight:500;line-height:.98;letter-spacing:-.035em}
     .tpl-campo-story p{max-width:680px;margin:0 0 26px;font-size:clamp(1rem,1.6vw,1.16rem);line-height:1.7;color:rgba(255,255,255,.88)}
     .tpl-campo-story__action{display:inline-flex;align-items:center;gap:10px;padding:13px 18px;border-radius:999px;background:#f2cf4a;color:#103654;text-decoration:none;font-weight:800;box-shadow:0 12px 32px rgba(0,0,0,.16);transition:transform .2s ease,background .2s ease}
     .tpl-campo-story__action:hover{transform:translateY(-2px);background:#ffdb4d}
-    .tpl-campo-story__note{display:block;margin-top:15px;font-size:.76rem;color:rgba(255,255,255,.62)}
+    .tpl-campo-story__note{display:block;color:rgba(255,255,255,.72)!important;margin-top:15px;font-size:.76rem}
     @media(max-width:700px){.tpl-campo-story{min-height:390px}.tpl-campo-story__inner{width:min(100% - 28px,1180px);padding:56px 0 48px}.tpl-campo-story h2{font-size:clamp(2.4rem,13vw,3.7rem)}}
   </style>
 </head>

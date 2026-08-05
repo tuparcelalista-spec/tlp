@@ -1,24 +1,25 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
+import { consumeRateLimit, publicError, readJson, UUID_RE } from '../_shared/security.ts';
 
 const money = (n: unknown) => `$${Math.round(Number(n || 0)).toLocaleString('es-CL')}`;
 const clean = (v: unknown, max = 500) => String(v ?? 'No informado').replace(/[\r\n]+/g, ' ').slice(0, max);
 const isEmail = (v: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
   try {
     const url = Deno.env.get('SUPABASE_URL')!;
     const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
     const supabase = createClient(url, service);
     const bearer = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
-    let authorized = false;
+    const internalSecret = Deno.env.get('TPL_INTERNAL_FUNCTIONS_SECRET') || '';
+    const suppliedInternal = req.headers.get('x-tpl-internal-secret') || '';
+    let authorized = Boolean(internalSecret && suppliedInternal === internalSecret);
     let userId: string | null = null;
-    if (bearer && bearer === service) {
-      authorized = true;
-    } else if (bearer) {
+    if (!authorized && bearer) {
       const userClient = createClient(url, anon, { global: { headers: { Authorization: `Bearer ${bearer}` } } });
       const { data: { user } } = await userClient.auth.getUser();
       userId = user?.id || null;
@@ -27,9 +28,11 @@ Deno.serve(async (req) => {
         authorized = Boolean(staff);
       }
     }
-    if (!authorized) return jsonResponse({ ok: false, error: 'No autorizado.' }, 401);
-    const body = await req.json();
-    const orden_id = body.orden_id;
+    if (!authorized) return jsonResponse(req, { ok: false, error: 'NO_AUTORIZADO' }, 401);
+    await consumeRateLimit(supabase, req, 'generar-informe-premium', 20, 600, userId || 'service');
+    const body = await readJson(req, 24000);
+    const orden_id = String(body.orden_id || '');
+    if (!UUID_RE.test(orden_id)) throw new Error('ORDEN_INVALIDA');
     const enviar = body.enviar !== false;
     const overrideEmail = clean(body.email || '', 180).toLowerCase();
     const { data: order, error } = await supabase.from('tpl_ordenes_informe').select('*').eq('id', orden_id).single();
@@ -179,9 +182,9 @@ Deno.serve(async (req) => {
         await supabase.from('tpl_informes_tasacion').update({ enviado_at: new Date().toISOString(), enviado_a: recipient, asunto_envio: `Informe Premium TPL · ${clean(input.titulo || input.codigo || order.codigo, 80)}` }).eq('orden_id', order.id);
       }
     }
-    return jsonResponse({ ok: true, orden_id: order.id, estado: 'disponible', download_url: signed?.signedUrl || null, enviado: sent, email: recipient || null });
+    return jsonResponse(req, { ok: true, orden_id: order.id, estado: 'disponible', download_url: signed?.signedUrl || null, enviado: sent, email: recipient || null });
   } catch (error) {
     console.error(error);
-    return jsonResponse({ ok: false, error: error instanceof Error ? error.message : 'No fue posible generar el informe.' }, 400);
+    return jsonResponse(req, { ok: false, error: publicError(error) }, 400);
   }
 });

@@ -191,6 +191,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     .hidden {
       display: none !important;
     }
+
+    .trust-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:26px 0 6px}.trust-item{background:#f8fbfe;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}.trust-item strong{display:block;color:var(--primary);font-size:1.1rem}.trust-item span{display:block;color:var(--text-muted);font-size:.82rem;margin-top:4px}.section-kicker{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--secondary);margin-bottom:8px}.why-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}.why-card{border:1px solid var(--border);border-radius:16px;padding:18px;background:#fbfdff}.why-card strong{display:block;color:var(--primary);margin-bottom:6px}.why-card p{margin:0;color:var(--text-muted);line-height:1.55}.status-note{background:#eef7fb;border-left:4px solid var(--secondary);border-radius:12px;padding:14px 16px;color:#23405a;margin-top:18px}.empty-note{color:var(--text-muted);font-style:italic}.profile-footer{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:var(--text-muted);font-size:.86rem;padding:4px 2px 30px}.profile-footer a{color:var(--primary);font-weight:700}.rating.neutral{color:#64748b}.rating.good{color:#0f766e}.rating.excellent{color:#15803d}.badge-verified.pending{background:#e0f2fe;color:#075985}.metric-pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;padding:8px 12px;background:#fff;color:#334155;font-size:.85rem;font-weight:700}.metric-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:14px 0 20px}
+    @media(max-width:760px){.card{padding:26px 18px}.trust-strip{grid-template-columns:repeat(2,1fr)}.why-grid{grid-template-columns:1fr}.actions{flex-direction:column}.btn{justify-content:center}.grid-info{grid-template-columns:1fr}.header{padding-top:42px}.profile-container{padding:0 12px}}
   </style>
 
 <!-- Google Ads Tracking -->
@@ -225,19 +228,26 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         
         <div style="text-align: center;">
-          <span class="badge-verified">✓ Partner Verificado por TPL</span>
+          <span id="partner-verification-badge" class="badge-verified">✓ Perfil publicado en TPL</span>
         </div>
         
-        <h1 id="partner-name">Nombre Empresa</h1><p id="partner-short-value" style="text-align:center;font-weight:800;color:var(--secondary);font-size:1.05rem;margin:8px 0 4px"></p><p id="partner-differentiation" style="text-align:center;color:var(--text-muted);max-width:680px;margin:0 auto 18px"></p>
-        
-        <div class="rating">
-          <span class="partner-rating-label">Valoración</span> <span id="partner-rating">5.0 (0 evaluaciones)</span>
+        <h1 id="partner-name">Nombre Empresa</h1>
+        <p id="partner-short-value" style="text-align:center;font-weight:800;color:var(--secondary);font-size:1.05rem;margin:8px 0 4px"></p>
+        <p id="partner-differentiation" style="text-align:center;color:var(--text-muted);max-width:680px;margin:0 auto 18px"></p>
+        <div class="metric-row" id="partner-metrics"></div>
+        <div class="rating neutral" id="partner-rating-wrap">
+          <span class="partner-rating-label">Reputación TPL</span> <span id="partner-rating">Sin evaluaciones todavía</span>
         </div>
         
         <p class="description" id="partner-desc">
           Descripción del servicio prestado por el contratista.
         </p>
-        
+        <div class="trust-strip" id="trust-strip">
+          <div class="trust-item"><strong id="trust-experience">—</strong><span>Experiencia declarada</span></div>
+          <div class="trust-item"><strong id="trust-coverage">—</strong><span>Cobertura informada</span></div>
+          <div class="trust-item"><strong id="trust-invoice">—</strong><span>Facturación</span></div>
+          <div class="trust-item"><strong id="trust-warranty">—</strong><span>Garantía declarada</span></div>
+        </div>
         <div class="actions">
           <a href="#" id="btn-whatsapp" class="btn btn-whatsapp" target="_blank">WhatsApp</a>
           <a href="#contacto" id="btn-email" class="btn btn-primary">Solicitar Cotización</a>
@@ -263,6 +273,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
       </div>
 
+      <div class="card" id="why-card">
+        <div class="section-kicker">Comparación con criterio</div>
+        <h2 style="color: var(--primary); margin:0;">Por qué considerar a este Partner</h2>
+        <div class="why-grid">
+          <article class="why-card"><strong>Especialización</strong><p id="why-specialization">Revisa sus áreas de experiencia y el tipo de proyectos que declara ejecutar.</p></article>
+          <article class="why-card"><strong>Forma de trabajo</strong><p id="why-process">Conoce sus etapas, modalidad de pago y condiciones antes de solicitar una propuesta.</p></article>
+          <article class="why-card"><strong>Confianza verificable</strong><p id="why-trust">TPL distingue información declarada, publicada y evaluaciones obtenidas dentro de la plataforma.</p></article>
+        </div>
+        <div class="status-note">Solicita una propuesta para comparar alcance, precio, plazos, garantías y condiciones. La publicación del perfil no reemplaza la revisión técnica ni contractual del servicio.</div>
+      </div>
+
       <div class="card" id="services-card">
         <h2 style="color: var(--primary); margin-top: 0;">Cómo trabaja</h2>
         <div class="grid-info">
@@ -279,6 +300,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <!-- Imágenes dinámicas -->
         </div>
       </div>
+      <div class="profile-footer"><span>Información declarada por la empresa y publicada por TPL según su estado de revisión.</span><a href="./index.html">Volver a Red Partner</a></div>
     </div>
   </div>
 
@@ -303,14 +325,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const slug = (params.get('slug') || params.get('id') || '').trim();
       if (!slug || !/^[a-z0-9-]{3,100}$/i.test(slug)) return showError();
       try {
-        const fields = 'nombre_comercial,nombre_responsable,descripcion_servicios,tipo_servicio,especialidades,actividades,etapas_servicio,modalidades_pago,porcentaje_anticipo,garantia_servicio,region,comunas_atendidas,anos_experiencia,disponibilidad,emite_factura,logo_url,galeria_urls,slug,rating,trabajos_realizados,whatsapp,correo,plan_activo,curriculum_publicado';
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/partners_publicos?slug=eq.${encodeURIComponent(slug)}&select=${fields}&limit=1`, {
-          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/tpl_partner_publico_por_slug_v2`, {
+          method: 'POST',
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_slug: slug })
         });
         if (!response.ok) throw new Error('PROFILE_REQUEST_FAILED');
         const data = await response.json();
-        if (!Array.isArray(data) || !data.length) return showError();
-        renderProfile(data[0]);
+        if (!data || typeof data !== 'object') return showError();
+        renderProfile(data);
       } catch (error) {
         console.error(error);
         showError();
@@ -324,10 +347,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       const logoNode = document.getElementById('partner-logo');
       if (logo) logoNode.src = logo; else logoNode.removeAttribute('src');
       document.getElementById('partner-name').textContent = partner.nombre_comercial || 'Partner TPL';
-      document.getElementById('partner-rating').textContent = `${Number(partner.rating || 0).toFixed(1)} (${Number(partner.trabajos_realizados || 0)} trabajos)`;
+      const ratingValue = Number(partner.puntaje_reputacion || partner.rating || 0);
+      const jobsCount = Number(partner.trabajos_realizados || 0);
+      const ratingWrap = document.getElementById('partner-rating-wrap');
+      if (ratingValue > 0) {
+        document.getElementById('partner-rating').textContent = `${ratingValue.toFixed(1)} / 5 · ${jobsCount} trabajos registrados`;
+        ratingWrap.classList.remove('neutral');
+        ratingWrap.classList.add(ratingValue >= 4.5 ? 'excellent' : 'good');
+      } else {
+        document.getElementById('partner-rating').textContent = jobsCount > 0 ? `${jobsCount} trabajos registrados · Aún sin evaluación pública` : 'Perfil nuevo · Aún sin evaluaciones';
+      }
+      const method = partner.metodo_trabajo || {};
+      const methodStages = Array.isArray(method.etapas) ? method.etapas : [];
+      const metrics = [
+        partner.disponibilidad && `Disponibilidad: ${partner.disponibilidad}`,
+        Number(method.score || 0) > 0 && `Método ${Number(method.score)}% claro`,
+        Number(partner.puntaje_completitud || 0) > 0 && `Perfil ${Number(partner.puntaje_completitud)}% completo`,
+        partner.emite_factura && 'Emite factura'
+      ].filter(Boolean);
+      const metricRow = document.getElementById('partner-metrics');
+      metrics.forEach(value => { const span=document.createElement('span'); span.className='metric-pill'; span.textContent=value; metricRow.appendChild(span); });
       document.getElementById('partner-desc').textContent = partner.descripcion_servicios || '';
       document.getElementById('partner-short-value').textContent = partner.propuesta_corta || '';
-      document.getElementById('partner-differentiation').textContent = partner.diferenciacion ? `Lo que nos diferencia: ${partner.diferenciacion}` : '';
+      document.getElementById('partner-differentiation').textContent = partner.diferenciacion ? `Lo que nos diferencia: ${partner.diferenciacion}` : 'Revisa su cobertura, proceso de trabajo y condiciones para comparar con otras alternativas.';
+      document.getElementById('trust-experience').textContent = Number(partner.anos_experiencia || 0) > 0 ? `${Number(partner.anos_experiencia)} años` : 'Por confirmar';
+      const coverageCount = [...new Set([partner.region, ...(partner.comunas_atendidas || [])].filter(Boolean))].length;
+      document.getElementById('trust-coverage').textContent = coverageCount ? `${coverageCount} zonas` : 'Por confirmar';
+      document.getElementById('trust-invoice').textContent = partner.emite_factura ? 'Sí' : 'Consultar';
+      document.getElementById('trust-warranty').textContent = partner.garantia_servicio || 'Consultar';
+      document.getElementById('why-specialization').textContent = (partner.especialidades || []).length ? `Especialidades declaradas: ${(partner.especialidades || []).slice(0,4).join(', ')}.` : 'Especialidades pendientes de completar.';
+      const processCount = methodStages.length || (partner.etapas_servicio || []).length;
+      document.getElementById('why-process').textContent = processCount ? `Explica ${processCount} etapas de trabajo${Number(method.score || 0) ? ` con ${Number(method.score)}% de claridad TPL` : ''}.` : 'Solicita el detalle del proceso, plazos y forma de pago antes de contratar.';
+      document.getElementById('why-trust').textContent = ratingValue > 0 ? `Cuenta con una reputación TPL de ${ratingValue.toFixed(1)} sobre 5.` : 'Es un perfil publicado recientemente y todavía no registra suficientes evaluaciones públicas.';
       const lastJob = partner.ultimo_trabajo || {};
       document.getElementById('last-job-title').textContent = lastJob.nombre || 'Trabajo reciente no informado';
       document.getElementById('last-job-meta').textContent = [lastJob.ubicacion, lastJob.duracion, lastJob.resultado].filter(Boolean).join(' · ');
@@ -343,7 +394,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       populateList('list-coverage', [partner.region, ...(partner.comunas_atendidas || [])]);
       populateList('list-specialties', partner.especialidades || []);
       populateList('list-activities', partner.actividades || []);
-      populateList('list-stages', partner.etapas_servicio || []);
+      const publicStages = methodStages.length ? methodStages.map((stage, index) => {
+        const title = stage.nombre || `Etapa ${index + 1}`;
+        const details = [stage.duracion, stage.descripcion, stage.resultado && `Resultado: ${stage.resultado}`].filter(Boolean).join(' · ');
+        return details ? `${index + 1}. ${title} — ${details}` : `${index + 1}. ${title}`;
+      }) : (partner.etapas_servicio || []);
+      populateList('list-stages', publicStages);
       populateList('list-payments', partner.modalidades_pago || []);
       const paymentParts = [];
       if (Number(partner.porcentaje_anticipo || 0) > 0) paymentParts.push(`Anticipo habitual: ${Number(partner.porcentaje_anticipo)}%`);
@@ -364,7 +420,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     function populateList(id, items) {
       const list = document.getElementById(id);
       list.replaceChildren();
-      [...new Set((items || []).map(value => String(value).trim()).filter(Boolean))].forEach(value => {
+      const values = [...new Set((items || []).map(value => String(value).trim()).filter(Boolean))];
+      if (!values.length) { const item=document.createElement('li'); item.className='empty-note'; item.textContent='Información por completar'; list.appendChild(item); return; }
+      values.forEach(value => {
         const item = document.createElement('li'); item.textContent = value; list.appendChild(item);
       });
     }

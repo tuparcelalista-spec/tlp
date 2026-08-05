@@ -166,3 +166,16 @@
 .price-position-chart article.is-published.is-aligned strong{color:#14588f}
 .price-position-chart article.is-published.is-below i{background:#218c55}
 .price-position-chart article.is-published.is-above i{background:#d87523}
+
+/* P1 Premium · escala de valoración TPL */
+.opportunity-card.is-excellent{--score-color:#238354}
+.opportunity-card.is-very-good{--score-color:#2d8f78}
+.opportunity-card.is-balanced{--score-color:#07599f}
+.opportunity-card.is-review{--score-color:#bb7a24}
+.opportunity-card.is-critical{--score-color:#a94d45}
+.opportunity-meter-track{background:linear-gradient(90deg,#a94d45 0 30%,#bb7a24 30% 50%,#07599f 50% 70%,#2d8f78 70% 85%,#238354 85% 100%)}
+.factor-row.is-excellent strong,.factor-row.is-excellent small{color:#238354}
+.factor-row.is-very-good strong,.factor-row.is-very-good small{color:#2d8f78}
+.factor-row.is-balanced strong,.factor-row.is-balanced small{color:#07599f}
+.factor-row.is-review strong,.factor-row.is-review small{color:#9a681d}
+.factor-row.is-critical strong,.factor-row.is-critical small{color:#a94d45}

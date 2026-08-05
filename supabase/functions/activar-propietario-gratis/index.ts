@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { corsHeaders, jsonResponse } from '../_shared/cors.ts';
+import { consumeRateLimit, EMAIL_RE, publicError, readJson, UUID_RE } from '../_shared/security.ts';
 
 type Json = Record<string, unknown>;
 
@@ -36,8 +37,8 @@ async function sendEmail(params: {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  if (req.method !== 'POST') return jsonResponse({ ok: false, error: 'Método no permitido.' }, 405);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return jsonResponse(req, { ok: false, error: 'Método no permitido.' }, 405);
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -46,8 +47,8 @@ Deno.serve(async (req) => {
   const from = Deno.env.get('TPL_OWNER_EMAIL_FROM') || 'Tu Parcela Lista <propietarios@parcelalista.cl>';
   const replyTo = Deno.env.get('TPL_REPLY_TO') || 'tuparcelalista@gmail.com';
 
-  if (!supabaseUrl || !serviceKey) return jsonResponse({ ok: false, error: 'Configuración Supabase incompleta.' }, 500);
-  if (!resendKey) return jsonResponse({ ok: false, error: 'RESEND_API_KEY no configurada.' }, 500);
+  if (!supabaseUrl || !serviceKey) return jsonResponse(req, { ok: false, error: 'Configuración Supabase incompleta.' }, 500);
+  if (!resendKey) return jsonResponse(req, { ok: false, error: 'RESEND_API_KEY no configurada.' }, 500);
 
   const supabase = createClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -55,11 +56,12 @@ Deno.serve(async (req) => {
 
   let onboardingId: string | null = null;
   try {
-    const body = await req.json().catch(() => ({})) as Json;
+    await consumeRateLimit(supabase, req, 'activar-propietario', 8, 3600);
+    const body = await readJson(req, 16000) as Json;
     const publicacionId = clean(body.publicacion_id, 80);
     const requestedEmail = clean(body.email, 250).toLowerCase();
-    if (!/^[0-9a-f-]{36}$/i.test(publicacionId)) throw new Error('Identificador de publicación inválido.');
-    if (!requestedEmail.includes('@')) throw new Error('Correo inválido.');
+    if (!UUID_RE.test(publicacionId)) throw new Error('PUBLICACION_INVALIDA');
+    if (!EMAIL_RE.test(requestedEmail)) throw new Error('CORREO_INVALIDO');
 
     const { data: publication, error: publicationError } = await supabase
       .from('tpl_publicaciones')
@@ -96,7 +98,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing?.estado === 'completado') {
-      return jsonResponse({ ok: true, already_completed: true, estado: 'completado', agenda_url: `${siteUrl}/plataforma/tpl-business/` });
+      return jsonResponse(req, { ok: true, already_completed: true, estado: 'completado', agenda_url: `${siteUrl}/plataforma/tpl-business/` });
     }
     if (existing && Number(existing.intentos || 0) >= 5) throw new Error('Se alcanzó el máximo de reintentos automáticos.');
 
@@ -264,7 +266,7 @@ Deno.serve(async (req) => {
       console.warn('No fue posible registrar el evento de onboarding.', eventError);
     }
 
-    return jsonResponse({
+    return jsonResponse(req, {
       ok: true,
       estado: 'completado',
       publicacion_id: publicacionId,
@@ -288,6 +290,6 @@ Deno.serve(async (req) => {
         console.warn('No fue posible registrar el error de onboarding.', updateError);
       }
     }
-    return jsonResponse({ ok: false, error: message }, 400);
+    return jsonResponse(req, { ok: false, error: publicError(error) }, 400);
   }
 });

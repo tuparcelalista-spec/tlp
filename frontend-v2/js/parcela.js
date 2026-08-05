@@ -134,6 +134,7 @@
   }
 
   let currentParcel=null;
+  let canonicalValuation=null;
 
   async function init(){
     const id=params.get("id") || params.get("codigo") || params.get("parcela");
@@ -145,6 +146,14 @@
     const parcel=await loadParcel(id);
     if(!parcel){ $("not-found").hidden=false; return; }
     currentParcel=parcel;
+    try{
+      const identifier=parcel.canonicalId||parcel.codigo||parcel.id||id;
+      const canonical=await window.TPLDataService?.getCanonicalValuation?.(identifier);
+      canonicalValuation=canonical?.tiene_tasacion ? canonical.tasacion : null;
+    }catch(error){
+      console.warn('TPL Parcela: tasación canónica no disponible.',error);
+      canonicalValuation=null;
+    }
     const context=getContext();
   const images=(Array.isArray(parcel.imagenes)&&parcel.imagenes.length?parcel.imagenes:[parcel.imagen]).filter(Boolean).map(absoluteAsset);
   let imageIndex=0;
@@ -184,11 +193,11 @@
     return window.TPLMarketIntelligence?.analyze?.(parcel) || null;
   }
   function opportunityBand(score){
-    if(score>=95) return {key:'exceptional',label:'Oportunidad excepcional',seal:'Sello TPL Oro'};
-    if(score>=85) return {key:'excellent',label:'Muy buena compra',seal:'Sello TPL Oro'};
-    if(score>=70) return {key:'competitive',label:'Precio competitivo',seal:'Sello TPL Plata'};
-    if(score>=55) return {key:'caution',label:'Revisar condiciones',seal:'Evaluación TPL'};
-    return {key:'high',label:'Sobre referencia',seal:'Evaluación TPL'};
+    if(score>=85) return {key:'excellent',label:'Excelente valoración',seal:'Sello TPL Verde'};
+    if(score>=70) return {key:'very-good',label:'Muy buena valoración',seal:'Sello TPL'};
+    if(score>=50) return {key:'balanced',label:'Valoración TPL',seal:'Evaluación equilibrada'};
+    if(score>=30) return {key:'review',label:'Con oportunidades de mejora',seal:'Revisión recomendada'};
+    return {key:'critical',label:'Requiere atención',seal:'Condición crítica'};
   }
   function factorScore(value, fallback=45){
     if(positive(value)) return 100;
@@ -199,11 +208,16 @@
   }
   function buildOpportunity(){
     const a=marketAnalysis()||{};
-    const published=Number(parcel.precio||0);
-    const technical=Number(a.valorTplTasador||a.valor_tpl_tasador||a.technicalValue||a.tpl?.ideal||0);
-    const observed=Number(a.valorComunal||a.valor_comunal||a.observedCommunalValue||0);
-    const suggested=Number(a.valorTplTasadorComuna||a.valor_tpl_tasador_comuna||a.suggestedCommunalValue||(observed?Math.round((technical+observed)/2):technical)||published||0);
-    const urgency=Number(a.valorVentaApuro||a.valor_venta_apuro||a.urgencyValue||Math.round(suggested*.93));
+    const saved=canonicalValuation||{};
+    const result=saved.resultado||{};
+    const published=Number(saved.precio_publicado||parcel.precioNumero||priceNumber(parcel.precio)||0);
+    // Única fuente oficial: última tasación persistida en tpl_tasaciones.
+    const technical=Number(saved.valor_tpl_total||result.valor_tpl_total||result.valorTplTasador||result.valor_tpl_tasador||0);
+    const observedM2=Number(saved.referencia_comunal_m2||result.referencia_comunal_m2||result.marketReference?.medianM2||0);
+    const observed=Number(result.referencia_comunal_total||result.valorComunal||result.valor_comunal||(observedM2&&size?Math.round(observedM2*size):0)||0);
+    // No promediar silenciosamente. El Valor TPL público es el valor canónico guardado.
+    const suggested=technical||published||0;
+    const urgency=Number(result.valorVentaApuro||result.valor_venta_apuro||result.quick||result.agile||(suggested?Math.round(suggested*.93):0));
 
     let priceScore=60;
     if(published&&suggested){
@@ -267,8 +281,9 @@
 
     const factors=$('opportunity-factors');
     factors.innerHTML=result.factors.map(f=>{
-      const level=f.score>=85?'Excelente':f.score>=70?'Bueno':f.score>=55?'Aceptable':'Por confirmar';
-      return `<article class="factor-row is-${f.score>=85?'high':f.score>=70?'good':f.score>=55?'mid':'low'}"><div><span>${f.label}</span><small>${level}</small></div><strong>${Math.round(f.score)}/100</strong></article>`;
+      const level=f.score>=85?'Excelente':f.score>=70?'Muy bueno':f.score>=50?'Valoración TPL':f.score>=30?'Por mejorar':'Requiere atención';
+      const tone=f.score>=85?'excellent':f.score>=70?'very-good':f.score>=50?'balanced':f.score>=30?'review':'critical';
+      return `<article class="factor-row is-${tone}"><div><span>${f.label}</span><small>${level}</small></div><strong>${Math.round(f.score)}/100</strong></article>`;
     }).join('');
 
     const values=[result.observed,result.published,result.suggested,result.technical].filter(v=>v>0);
@@ -282,12 +297,16 @@
     $('price-published').textContent=result.published?formatMoney(result.published):'Consultar';
     $('price-suggested').textContent=result.suggested?formatMoney(result.suggested):'En análisis';
     $('price-technical').textContent=result.technical?formatMoney(result.technical):'En análisis';
+    const suggestedCard=$('price-suggested')?.closest('article');
+    const technicalCard=$('price-technical')?.closest('article');
+    if(suggestedCard){suggestedCard.querySelector('span')?.replaceChildren('Valor TPL oficial');suggestedCard.querySelector('small')?.replaceChildren('Última tasación canónica guardada en TPL.');}
+    if(technicalCard){technicalCard.querySelector('span')?.replaceChildren('Valor técnico registrado');technicalCard.querySelector('small')?.replaceChildren('Mismo valor oficial; se conserva por compatibilidad visual.');}
 
     const strongest=[...result.factors].sort((a,b)=>b.score-a.score).slice(0,2).map(f=>f.label.toLowerCase());
     $('opportunity-reading').textContent=`Sus principales fortalezas son ${strongest.join(' y ')}. La nota debe interpretarse junto con una visita, revisión documental y factibilidades del proyecto.`;
-    $('opportunity-source').textContent=result.a?.market
-      ? `Análisis TPL basado en ${result.a.market.sampleSize} propiedades comparables de ${parcel.comuna}. Confianza ${String(result.a.market.confidence||'referencial').replace('-',' ')}.`
-      : 'Análisis TPL basado en precio y atributos declarados. La referencia comunal se incorporará cuando exista una muestra validada.';
+    $('opportunity-source').textContent=canonicalValuation?.created_at
+      ? `Valor TPL oficial · última tasación ${new Date(canonicalValuation.created_at).toLocaleDateString('es-CL')}. La referencia comunal se muestra por separado y no modifica el valor oficial.`
+      : 'Aún no existe una tasación canónica guardada. La lectura mostrada es preliminar y no reemplaza el Tasador TPL.';
 
     const heroScore=$('hero-opportunity-score');
     const heroLabel=$('hero-opportunity-label');
@@ -296,7 +315,7 @@
     if(heroLabel) heroLabel.textContent=band.label;
     if(heroChip) heroChip.dataset.band=band.key;
     const mobileScore=$('mobile-close-score');
-    if(mobileScore) mobileScore.textContent=`Índice TPL ${score}/100 · ${band.label}`;
+    if(mobileScore) mobileScore.textContent=`Valoración TPL ${score}/100 · ${band.label}`;
     const conversionPrice=$('conversion-price-label');
     if(conversionPrice) conversionPrice.textContent=diff!==null&&diff<0?`${Math.abs(diff)}% bajo referencia TPL`:band.label;
   }
@@ -363,7 +382,7 @@
     const whatsapp=$("closing-whatsapp");
     if(whatsapp){
       const text=`Hola, quiero consultar por ${parcel.nombre||type} en ${parcel.comuna||""}. Vi la ficha en Tu Parcela Lista.`;
-      whatsapp.href=`https://wa.me/56964659162?text=${encodeURIComponent(text)}`;
+      whatsapp.href=`https://wa.me/56988508361?text=${encodeURIComponent(text)}`;
     }
     $("fact-distance").textContent=context.distance?`${context.distance} km desde tu ubicación`:parcel.distanciaConcepcion||"Por calcular";
     $("fact-commune").textContent=parcel.comuna||"Por confirmar";

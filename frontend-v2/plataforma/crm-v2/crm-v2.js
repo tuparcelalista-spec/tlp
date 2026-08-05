@@ -57,9 +57,36 @@
   const title = document.querySelector('#viewTitle');
   const topbar = document.querySelector('.topbar');
 
-  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
+  const esc = (value) => window.TPLSecurity?.escapeHtml
+    ? window.TPLSecurity.escapeHtml(value)
+    : String(value ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+
+  const safeUrl = (value, fallback = '') => window.TPLSecurity?.safeUrl
+    ? window.TPLSecurity.safeUrl(value, fallback)
+    : (/^https?:\/\//i.test(String(value || '')) ? String(value) : fallback);
+
+  const CRM_IDLE_LIMIT_MS = 30 * 60 * 1000;
+  let lastActivityAt = Date.now();
+  let idleTimer = null;
+
+  function touchActivity() { lastActivityAt = Date.now(); }
+
+  async function lockCrmForInactivity() {
+    try { await window.TPLDataService?.signOut?.(); } catch (_) {}
+    state.snapshot = null;
+    state.command = null;
+    renderLogin('La sesión se cerró por inactividad para proteger la información del CRM.');
+    statusBadge('Sesión cerrada por seguridad', 'warn');
+  }
+
+  function scheduleIdleGuard() {
+    clearInterval(idleTimer);
+    idleTimer = setInterval(() => {
+      if (Date.now() - lastActivityAt >= CRM_IDLE_LIMIT_MS) lockCrmForInactivity();
+    }, 60 * 1000);
+  }
 
   const fmtMoney = (value) => {
     const n = Number(value);
@@ -81,7 +108,8 @@
   const publicAsset = (value) => {
     const path = String(value || '').trim();
     if (!path) return '';
-    if (/^(https?:|data:|blob:)/i.test(path)) return path;
+    if (/^https?:/i.test(path)) return safeUrl(path, '');
+    if (/^blob:/i.test(path)) return path;
     return `../../${path.replace(/^\.\//, '').replace(/^\.\.\//, '')}`;
   };
 
@@ -565,20 +593,22 @@
   function valuationValues(record) {
     const valuation = latestValuation(record);
     const result = valuation?.resultado || valuation?.result || {};
-    const technical = Number(result.valorTplTasador ?? result.valor_tpl_tasador ?? result.ideal ?? result.recommended ?? result.market ?? 0);
-    const communal = Number(result.valorComunal ?? result.valor_comunal ?? result.marketReference?.medianValue ?? result.referencia_comunal_total ?? result.observedComparables?.mediana_total ?? 0);
-    const suggested = Number(result.valorTplTasadorComuna ?? result.valor_tpl_tasador_comuna ?? (communal ? Math.round((technical + communal) / 2) : technical));
-    const urgency = Number(result.valorVentaApuro ?? result.valor_venta_apuro ?? result.quick ?? result.agile ?? Math.round(suggested * .93));
+    // La columna valor_tpl_total es la fuente oficial. No se vuelve a promediar en el CRM.
+    const technical = Number(valuation?.valor_tpl_total ?? result.valor_tpl_total ?? result.valorTplTasador ?? result.valor_tpl_tasador ?? result.ideal ?? 0);
+    const area = Number(valuation?.superficie_m2 || record?.superficie_m2 || 0);
+    const communalM2 = Number(valuation?.referencia_comunal_m2 ?? result.referencia_comunal_m2 ?? result.marketReference?.medianM2 ?? 0);
+    const communal = Number(result.referencia_comunal_total ?? result.valorComunal ?? result.valor_comunal ?? (communalM2 && area ? Math.round(communalM2 * area) : 0) ?? 0);
+    const suggested = technical;
+    const urgency = Number(result.valorVentaApuro ?? result.valor_venta_apuro ?? result.quick ?? result.agile ?? (technical ? Math.round(technical * .93) : 0));
     return {
       valuation,
       technical,
       suggested,
       communal,
       urgency,
-      // aliases temporales para módulos antiguos
       ideal: technical,
       quick: urgency,
-      patient: Number(result.patient ?? result.patientPotential ?? Math.round(technical*1.07) ?? 0)
+      patient: Number(result.patient ?? result.patientPotential ?? (technical ? Math.round(technical * 1.07) : 0))
     };
   }
 
@@ -595,9 +625,9 @@
     return `<section class="crm-valuation-panel" aria-label="Resumen de tasación TPL">
       <header><div><small>ÚLTIMA TASACIÓN</small><h4>Lectura de valor</h4></div><span>${v.valuation?.created_at ? fmtDate(v.valuation.created_at) : 'Resultado vigente'}</span></header>
       <div class="crm-valuation-grid">
-        ${item('technical','TPL Tasador',v.technical,'Resultado técnico del motor TPL.')}
-        ${item('suggested','TPL Tasador Comunal',v.suggested,'Equilibra motor TPL y Base Comunal.',true)}
-        ${item('communal','Base Comunal',v.communal,'Referencia observada del segmento comparable.')}
+        ${item('technical','Valor TPL oficial',v.technical,'Última tasación canónica registrada en TPL.',true)}
+        ${item('suggested','Valor TPL vigente',v.suggested,'Mismo valor oficial utilizado por parcela.html y Proyecto.')}
+        ${item('communal','Referencia comunal',v.communal,'Dato comparativo separado; no modifica el Valor TPL oficial.')}
         ${item('urgency','Valor de Apuro',v.urgency,'Escenario orientativo para una venta más rápida.')}
       </div>
     </section>`;
@@ -1029,6 +1059,95 @@
 
   function lines(id){return String(document.querySelector(id)?.value||'').split(/\n+/).map(x=>x.trim()).filter(Boolean)}
 
+
+  function partnerProfileScore(row) {
+    const checks = [
+      row.nombre,
+      row.telefono || row.whatsapp,
+      row.correo || row.email,
+      row.comuna || row.region,
+      Array.isArray(row.servicios) && row.servicios.length,
+      row.descripcion || row.descripcion_servicios,
+      row.logo_url || row.logo,
+      row.sitio_web || row.instagram,
+      row.cobertura || row.comunas_cobertura,
+      row.certificaciones || row.documentos
+    ];
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }
+
+  function partnerState(row) {
+    const raw = String(row.estado || row.estado_partner || row.estado_revision || '').toLowerCase();
+    if (/aprob|activo|verific/.test(raw)) return {label:'Activo', tone:'good'};
+    if (/rechaz|suspend|bloque/.test(raw)) return {label:'Requiere atención', tone:'danger'};
+    if (/revision|pendiente/.test(raw)) return {label:'En revisión', tone:'warn'};
+    return {label:'Perfil en preparación', tone:'info'};
+  }
+
+  function partnerServices(row) {
+    const values = Array.isArray(row.servicios)
+      ? row.servicios.map((item) => typeof item === 'string' ? item : item?.servicio || item?.nombre).filter(Boolean)
+      : [];
+    return values.slice(0, 4);
+  }
+
+  function partnerCard(row) {
+    const id = row.id || row.partner_actor_id || row.actor_id || '';
+    const score = partnerProfileScore(row);
+    const stateInfo = partnerState(row);
+    const services = partnerServices(row);
+    const phone = row.whatsapp || row.telefono || '';
+    const email = row.correo || row.email || '';
+    const location = [row.comuna, row.region].filter(Boolean).join(' · ') || 'Cobertura por completar';
+    const businessUrl = appPath(`plataforma/tpl-business/index.html?partner=${encodeURIComponent(id)}`);
+    return `<article class="partner-ops-card">
+      <div class="partner-ops-head">
+        <div class="partner-avatar">${esc(String(row.nombre || 'P').trim().charAt(0).toUpperCase())}</div>
+        <div class="partner-ops-title"><small>${esc(location)}</small><h3>${esc(row.nombre || 'Partner sin nombre')}</h3><span class="partner-state ${stateInfo.tone}">${esc(stateInfo.label)}</span></div>
+        <div class="partner-score"><b>${score}%</b><span>perfil</span></div>
+      </div>
+      <div class="partner-progress"><i style="width:${score}%"></i></div>
+      <div class="partner-ops-grid">
+        <span><small>Contacto</small><b>${esc(phone || 'Pendiente')}</b></span>
+        <span><small>Correo</small><b>${esc(email || 'Pendiente')}</b></span>
+        <span><small>Servicios</small><b>${services.length || 0}</b></span>
+        <span><small>Continuidad</small><b>TPL Business</b></span>
+      </div>
+      <div class="partner-service-tags">${services.length ? services.map((name)=>`<span>${esc(name)}</span>`).join('') : '<span class="pending">Servicios por completar</span>'}</div>
+      <div class="partner-next-step"><strong>Próximo paso:</strong> ${score < 60 ? 'Completar perfil, cobertura y servicios.' : stateInfo.tone === 'warn' ? 'Revisar antecedentes y aprobar.' : 'Revisar oportunidades y proyectos activos.'}</div>
+      <div class="partner-card-actions">
+        <button class="nav-btn" data-detail-key="partners" data-detail-id="${esc(id)}">Ver ficha</button>
+        ${phone ? `<button class="nav-btn" data-copy-partner-contact="${esc(phone)}">Copiar contacto</button>` : ''}
+        <a class="primary-link" href="${businessUrl}">Abrir TPL Business</a>
+      </div>
+    </article>`;
+  }
+
+  function partnersView() {
+    const rows = arr('partners');
+    const serviceCount = rows.reduce((total,row) => total + partnerServices(row).length, 0);
+    const completeCount = rows.filter((row) => partnerProfileScore(row) >= 70).length;
+    const reviewCount = rows.filter((row) => partnerState(row).tone === 'warn').length;
+    return `
+      <div class="toolbar partner-toolbar">
+        <div><h2>Partners y empresas</h2><p class="muted">Gestiona cada empresa desde su ficha actual: perfil, contacto, servicios y continuidad en TPL Business.</p></div>
+        <div class="partner-toolbar-actions"><button class="primary" data-create-partner-link>Nueva ficha + link</button><button class="nav-btn" data-action="refresh">Actualizar</button></div>
+      </div>
+      <div class="metric-grid partner-metrics">
+        ${metric('Empresas', rows.length, 'fichas visibles en CRM')}
+        ${metric('Perfiles 70%+', completeCount, 'listos para operar')}
+        ${metric('En revisión', reviewCount, 'requieren decisión TPL')}
+        ${metric('Servicios', serviceCount, 'capacidades visibles')}
+      </div>
+      <section class="partner-crm-guide">
+        <strong>Lectura operativa</strong>
+        <span>Ficha mínima</span><span>Perfil completado</span><span>Revisión TPL</span><span>Oportunidades y proyectos</span>
+      </section>
+      <div class="partner-ops-list">
+        ${rows.map(partnerCard).join('') || '<div class="partner-empty"><strong>Aún no hay Partners.</strong><span>Crea una ficha mínima y envía el enlace para completar los antecedentes.</span></div>'}
+      </div>`;
+  }
+
   function genericView(id) {
     const def = viewDefs[id];
     const rows = arr(def.source);
@@ -1104,10 +1223,11 @@
     else if (view === 'revision') content.innerHTML = reviewView();
     else if (view === 'studio') content.innerHTML = studioView();
     else if (view === 'parcelas') content.innerHTML = parcelsView();
-    if (view === 'parcelas') requestAnimationFrame(applyParcelFilters);
+    else if (view === 'partners') content.innerHTML = partnersView();
     else if (view === 'casas') content.innerHTML = housesView();
     else if (viewDefs[view]) content.innerHTML = genericView(view);
     else content.innerHTML = '<div class="card"><p class="muted">Módulo no disponible.</p></div>';
+    if (view === 'parcelas') requestAnimationFrame(applyParcelFilters);
 
     document.querySelector('#ufUpdateForm')?.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -1138,6 +1258,15 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  async function verifyCrmAccess() {
+    const client = await window.TPLDataService.getClient?.();
+    if (!client) return true;
+    const { data, error } = await client.rpc('tpl_crm_access_check_v1');
+    if (error) throw error;
+    if (!data?.ok) throw new Error('Acceso CRM no autorizado');
+    return data;
+  }
+
   async function loadSnapshot() {
     if (state.loading) return;
     state.loading = true;
@@ -1151,6 +1280,9 @@
         renderLogin();
         return;
       }
+
+      await verifyCrmAccess();
+      touchActivity();
 
       try { state.command = await window.TPLDataService.getCrmCommandCenter(); } catch (commandError) { console.warn('CRM Command Center no disponible:', commandError); state.command = null; }
       const snapshot = await window.TPLDataService.getCrmSnapshot();
@@ -1233,6 +1365,65 @@
     if (newHouse) { openHouseDialog(); return; }
     const editHouse = event.target.closest('[data-edit-house]');
     if (editHouse) { openHouseDialog(detailFor('casas', editHouse.dataset.editHouse)); return; }
+    const createPartnerLink = event.target.closest('[data-create-partner-link]');
+    if (createPartnerLink) {
+      const nombre = prompt('Nombre comercial de la empresa o profesional:')?.trim();
+      if (!nombre) return;
+      const responsable = prompt('Nombre de la persona responsable:')?.trim() || '';
+      const correo = prompt('Correo que recibirá el enlace para completar la ficha:')?.trim().toLowerCase();
+      if (!correo || !correo.includes('@')) return alert('Ingresa un correo válido.');
+      const telefono = prompt('WhatsApp o teléfono:')?.trim() || '';
+      const tipo = prompt('¿A qué se dedica principalmente? Ej.: Pozos, cercos, construcción, topografía')?.trim() || '';
+      const region = prompt('Región o zona principal de trabajo:')?.trim() || '';
+      createPartnerLink.disabled = true;
+      const original = createPartnerLink.textContent;
+      createPartnerLink.textContent = 'Creando ficha…';
+      try {
+        const result = await window.TPLDataService.createPartnerCompletionLink({
+          nombre_comercial: nombre,
+          nombre_responsable: responsable,
+          correo,
+          telefono,
+          whatsapp: telefono,
+          tipo_servicio: tipo,
+          descripcion_servicios: tipo,
+          region,
+          metadata: { origen: 'crm', creado_por_tpl: true }
+        }, 30);
+        let copied = false;
+        try { await navigator.clipboard?.writeText(result.url); copied = true; } catch (_) {}
+        const expiry = result.expires_at ? new Intl.DateTimeFormat('es-CL',{dateStyle:'long'}).format(new Date(result.expires_at)) : '30 días';
+        alert(`${copied ? 'Link copiado y correo programado.' : 'Ficha creada y correo programado.'}
+
+Vigencia: ${expiry}
+
+${result.url}`);
+        await loadSnapshot();
+        render('partners');
+      } catch (error) {
+        console.error(error);
+        alert(error?.message || 'No fue posible crear la ficha Partner.');
+      } finally {
+        createPartnerLink.disabled = false;
+        createPartnerLink.textContent = original;
+      }
+      return;
+    }
+
+    const copyPartnerContact = event.target.closest('[data-copy-partner-contact]');
+    if (copyPartnerContact) {
+      const value = copyPartnerContact.dataset.copyPartnerContact || '';
+      try {
+        await navigator.clipboard.writeText(value);
+        const previous = copyPartnerContact.textContent;
+        copyPartnerContact.textContent = 'Contacto copiado';
+        setTimeout(() => { copyPartnerContact.textContent = previous; }, 1600);
+      } catch (_) {
+        prompt('Copia el contacto del Partner:', value);
+      }
+      return;
+    }
+
     const refresh = event.target.closest('[data-action="refresh"]');
     if (refresh) {
       await loadSnapshot();
@@ -1426,6 +1617,16 @@ ${url.href}`;
   });
 
   async function bootstrap() {
+    window.TPLSecurity?.stripSensitiveParams?.(['access_token','refresh_token','token','t']);
+    ['click','keydown','pointerdown','touchstart'].forEach((name) => document.addEventListener(name, touchActivity, { passive: true }));
+    scheduleIdleGuard();
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState !== 'visible' || !state.snapshot) return;
+      try {
+        const session = await window.TPLDataService.getSession();
+        if (!session) await lockCrmForInactivity();
+      } catch (_) { await lockCrmForInactivity(); }
+    });
     const today = document.querySelector('#today');
     if (today) today.textContent = new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium' }).format(new Date());
 

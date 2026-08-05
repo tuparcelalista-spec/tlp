@@ -1,3 +1,5 @@
+@import url("./tpl-brand-system.css?v=20260805-d1");
+@import url("./tpl-design-system.css?v=20260805-d2");
 :root{
   --tpl-blue:#123a63;--tpl-blue-deep:#0b2948;--tpl-yellow:#f4c542;--tpl-cream:#f7f4ec;--tpl-ink:#17324a;
 }

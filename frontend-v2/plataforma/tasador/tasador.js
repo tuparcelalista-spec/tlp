@@ -12,12 +12,12 @@ async function loadReports(){
   if(!data?.length)return read();
   return data.map(x=>{
    const result=x.resultado||{},input=x.entrada||{};
-   const recommended=Number(result.market||result.recommended||x.valor_tpl_total||0);
+   const recommended=Number(x.valor_tpl_total||result.valor_tpl_total||result.recommended||result.market||0);
    return {
     id:x.id,codigo:result.codigo||x.id,comuna:input.comuna||'',tipo:input.tipo||x.tipo||'propiedad',
     area:Number(x.superficie_m2||input.superficie||0),asking:Number(x.precio_publicado||input.precio||0),
     quick:Number(result.quick||recommended*.93||0),market:recommended,
-    patient:Number(result.patient||result.technical||recommended||0),
+    patient:Number(result.patient||result.patientPotential||(recommended?Math.round(recommended*1.07):0)),
     recommendedUf:Number(result.recommendedUf||0),ufClpUsed:Number(result.ufClpUsed||0),
     rate:Number(x.valor_tpl_m2||result.rate||0),status:'calculada',createdAt:x.created_at,
     property:input,result,source:'supabase'

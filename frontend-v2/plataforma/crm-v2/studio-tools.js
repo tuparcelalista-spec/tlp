@@ -90,9 +90,7 @@
       ['Comuna', prop.comuna || '—'], ['Sector', prop.sector || '—'], ['Rol', prop.rol_situacion || '—'],
       ['Agua', prop.agua || '—'], ['Electricidad', prop.electricidad || '—'], ['Acceso', prop.acceso || '—']
     ];
-    const win = window.open('', '_blank', 'noopener,noreferrer');
-    if (!win) return alert('El navegador bloqueó la vista previa. Habilita ventanas emergentes para el CRM.');
-    win.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe TPL · ${esc(title)}</title><style>
+    const reportHtml = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow,noarchive"><title>Informe TPL · ${esc(title)}</title><style>
       @page{size:A4;margin:13mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#10384e;background:#fff}.cover{min-height:260mm;display:flex;flex-direction:column;justify-content:flex-end;padding:22mm;background:linear-gradient(180deg,#063b5c22,#063b5cee),url('${esc(firstImage||'')}') center/cover;color:#fff;page-break-after:always}.brand{font-size:12px;letter-spacing:3px;font-weight:800}.cover h1{font-size:42px;line-height:1.05;margin:16px 0}.cover p{font-size:18px;max-width:620px}.page{padding:4mm 0}.kicker{font-size:11px;letter-spacing:2px;color:#b28600;font-weight:800}.page h2{font-size:28px;margin:7px 0 18px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.fact{border:1px solid #dce7ed;border-radius:12px;padding:14px}.fact span{display:block;color:#667d89;font-size:11px;text-transform:uppercase}.fact strong{display:block;margin-top:5px}.price{background:#063b5c;color:#fff;padding:20px;border-radius:16px;margin:18px 0}.price strong{font-size:30px}.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.gallery img{width:100%;height:190px;object-fit:cover;border-radius:10px}.note{background:#f5f9fb;border-left:4px solid #e3b207;padding:14px;margin:14px 0}.footer{margin-top:28px;padding-top:12px;border-top:1px solid #dce7ed;font-size:11px;color:#667d89}@media print{button{display:none}}
     </style></head><body>
       <section class="cover"><div class="brand">TU PARCELA LISTA · INFORME PREMIUM</div><h1>${esc(title)}</h1><p>${esc(prop.comuna||'Chile')} · ${prop.superficie_m2?Number(prop.superficie_m2).toLocaleString('es-CL')+' m²':''}</p></section>
@@ -106,8 +104,16 @@
       ${imgs.length?`<h2>Galería</h2><div class="gallery">${imgs.slice(0,6).map(i=>`<img src="${esc(i.url||i.public_url||i.archivo_url||'')}" alt="">`).join('')}</div>`:''}
       ${sections.contact?`<h2>Contacto</h2><div class="fact"><strong>${esc(actor.nombre||'')}</strong><br>${esc(actor.email||'')} · ${esc(actor.telefono||'')}</div>`:''}
       <div class="footer">Generado por TPL Studio · ${new Intl.DateTimeFormat('es-CL',{dateStyle:'long'}).format(new Date())}</div></section>
-      <script>setTimeout(()=>window.print(),500)<\/script></body></html>`);
-    win.document.close();
+      <script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
+    const reportBlob = new Blob([reportHtml], { type: 'text/html;charset=utf-8' });
+    const reportUrl = URL.createObjectURL(reportBlob);
+    const reportWindow = window.open(reportUrl, '_blank', 'noopener,noreferrer');
+    if (!reportWindow) {
+      URL.revokeObjectURL(reportUrl);
+      return alert('El navegador bloqueó la vista previa. Habilita ventanas emergentes para el CRM.');
+    }
+    // El documento ya fue entregado al navegador; liberamos la URL temporal sin conservar datos en historial.
+    window.setTimeout(() => URL.revokeObjectURL(reportUrl), 60_000);
     try {
       if (window.TPLStudioService?.saveCampaign) {
         const campaign = await window.TPLStudioService.saveCampaign({ name:`Informe · ${title}`, subjectType:current.type, subjectId:current.id, goal:'informe_comercial', channels:['pdf'], outputs:[] });

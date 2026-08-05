@@ -97,7 +97,42 @@ const saveDraftButton = document.getElementById('btn-save-draft');
 const saveBasicButton = document.getElementById('btn-save-basic');
 if (saveBasicButton) saveBasicButton.addEventListener('click', () => saveDraftButton?.click());
 
-let draftToken = new URLSearchParams(location.search).get('continuar') || localStorage.getItem('tpl_partner_draft_token') || '';
+const DRAFT_TOKEN_STORAGE_KEY = 'tpl_partner_draft_token_v2';
+const DRAFT_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const PENDING_SUBMISSION_KEY = 'tpl_partner_pending_submission_v2';
+
+function readStoredDraftToken() {
+  try {
+    const raw = localStorage.getItem(DRAFT_TOKEN_STORAGE_KEY) || localStorage.getItem('tpl_partner_draft_token');
+    if (!raw) return '';
+    if (/^[0-9a-f-]{36}$/i.test(raw)) return raw; // compatibilidad temporal
+    const parsed = JSON.parse(raw);
+    if (!parsed?.token || !/^[0-9a-f-]{36}$/i.test(parsed.token)) return '';
+    if (Date.now() - Number(parsed.savedAt || 0) > DRAFT_TOKEN_TTL_MS) {
+      localStorage.removeItem(DRAFT_TOKEN_STORAGE_KEY);
+      return '';
+    }
+    return parsed.token;
+  } catch { return ''; }
+}
+
+function storeDraftToken(token) {
+  if (!/^[0-9a-f-]{36}$/i.test(String(token || ''))) return;
+  localStorage.setItem(DRAFT_TOKEN_STORAGE_KEY, JSON.stringify({ token, savedAt: Date.now() }));
+  localStorage.removeItem(DRAFT_TOKEN_STORAGE_KEY); localStorage.removeItem('tpl_partner_draft_token');
+}
+
+function captureTokenFromUrl(paramName) {
+  const url = new URL(location.href);
+  const value = (url.searchParams.get(paramName) || '').trim();
+  if (value) {
+    url.searchParams.delete(paramName);
+    history.replaceState(null, document.title, `${url.pathname}${url.search}${url.hash}`);
+  }
+  return value;
+}
+
+let draftToken = captureTokenFromUrl('continuar') || readStoredDraftToken();
 let suggestedCases = [];
 
 function setStatus(message, type = 'info') {
@@ -120,15 +155,28 @@ function safeExtension(file) {
 
 function validateFile(file, label) {
   if (!ALLOWED_TYPES.has(file.type)) throw new Error(`${label}: formato no permitido.`);
+  if (!file.name || !/\.(jpe?g|png|webp)$/i.test(file.name)) throw new Error(`${label}: extensión no permitida.`);
+  if (file.size <= 0) throw new Error(`${label}: el archivo está vacío.`);
   if (file.size > MAX_FILE_SIZE) throw new Error(`${label}: supera el máximo de 5 MB.`);
 }
 
-function validateFormFiles() {
+async function verifyImageSignature(file, label) {
+  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  const jpeg = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF;
+  const png = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47 && bytes[4] === 0x0D && bytes[5] === 0x0A && bytes[6] === 0x1A && bytes[7] === 0x0A;
+  const webp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+  const matches = (file.type === 'image/jpeg' && jpeg) || (file.type === 'image/png' && png) || (file.type === 'image/webp' && webp);
+  if (!matches) throw new Error(`${label}: el contenido real del archivo no coincide con una imagen permitida.`);
+}
+
+async function validateFormFiles() {
   const logo = document.getElementById('logo_file').files[0];
   const gallery = [...document.getElementById('gallery_files').files];
   if (logo) validateFile(logo, 'Logo');
   if (gallery.length > MAX_GALLERY) throw new Error(`Puedes subir como máximo ${MAX_GALLERY} imágenes de trabajos.`);
   gallery.forEach((file, index) => validateFile(file, `Imagen ${index + 1}`));
+  if (logo) await verifyImageSignature(logo, 'Logo');
+  for (let index = 0; index < gallery.length; index += 1) await verifyImageSignature(gallery[index], `Imagen ${index + 1}`);
   return { logo, gallery };
 }
 
@@ -360,7 +408,7 @@ async function saveDraft() {
       p_campos_pendientes: pendingFields(payload)
     });
     draftToken = result.token;
-    localStorage.setItem('tpl_partner_draft_token', draftToken);
+    storeDraftToken(draftToken);
     const resumeUrl = `${location.origin}${location.pathname}?continuar=${encodeURIComponent(draftToken)}`;
     await navigator.clipboard?.writeText(resumeUrl).catch(()=>{});
     await callRpc('tpl_encolar_continuacion_partner_v1',{p_token:draftToken,p_base_url:`${location.origin}${location.pathname}`}).catch(()=>{});
@@ -412,13 +460,13 @@ form?.addEventListener('submit', async event => {
   submitButton.textContent = 'Creando postulación segura…';
 
   try {
-    const { logo, gallery } = validateFormFiles();
+    const { logo, gallery } = await validateFormFiles();
     const payload = buildPayload();
     if (!payload.actividades.length) throw new Error('Agrega al menos una actividad que puedas realizar.');
     if (countWords(payload.propuesta_corta) > 5) throw new Error('Resume lo que ofreces en máximo 5 palabras.');
     await callRpc('tpl_validar_envio_partner_publico_v2', { p_correo: payload.correo });
     const result = await callRpc('tpl_postular_partner_v2', { p_payload: payload });
-    localStorage.setItem('tpl_partner_pending_submission', JSON.stringify({
+    sessionStorage.setItem(PENDING_SUBMISSION_KEY, JSON.stringify({
       id: result.id, codigo: result.codigo, upload_token: result.upload_token, created_at: new Date().toISOString()
     }));
     const applicationId = result.id;
@@ -441,8 +489,8 @@ form?.addEventListener('submit', async event => {
       p_galeria_paths: galleryPaths
     });
 
-    localStorage.removeItem('tpl_partner_pending_submission');
-    if (draftToken) { await callRpc('tpl_marcar_borrador_partner_enviado_v1',{p_token:draftToken,p_postulacion_id:applicationId}).catch(()=>{}); localStorage.removeItem('tpl_partner_draft_token'); }
+    sessionStorage.removeItem(PENDING_SUBMISSION_KEY);
+    if (draftToken) { await callRpc('tpl_marcar_borrador_partner_enviado_v1',{p_token:draftToken,p_postulacion_id:applicationId}).catch(()=>{}); localStorage.removeItem(DRAFT_TOKEN_STORAGE_KEY); localStorage.removeItem('tpl_partner_draft_token'); }
     if (await startFlowPayment(result, payload)) return;
 
     form.style.display = 'none';

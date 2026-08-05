@@ -54,7 +54,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
 
-<link href="partner-form.css?v=20260804-2" rel="stylesheet"/>
+<link href="partner-form.css?v=20260804-3" rel="stylesheet"/>
+<link href="../css/tpl-brand-system.css" rel="stylesheet"/>
+<link href="../css/tpl-design-system.css" rel="stylesheet"/>
 <script defer="" src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
@@ -171,7 +173,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } .partners-hero h1 { font-size: 2rem;} }
 </style>
 
-</link></meta></meta><link rel="stylesheet" href="../css/tpl-premium-ui.css">
+<link rel="stylesheet" href="../css/tpl-premium-ui.css">
 </head>
 <body class="tpl-premium-ui">
 <!-- Google Tag Manager (noscript) -->
@@ -179,9 +181,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager (noscript) -->
 <header class="navbar">
 <div class="container navbar-inner">
-<a class="logo-container" href="../index.html" style="display: flex; align-items: center; gap: 12px; text-decoration: none; padding: 5px 0; z-index: 50; position: relative;" title="Tu Parcela Lista, inicio">
-<img alt="Tu Parcela Lista" class="brand-logo-img" src="../assets/logo-tu-parcela-lista.png" style="height: 75px; width: auto;"/>
-<img alt="Chile" height="24" src="https://flagcdn.com/h24/cl.png" srcset="https://flagcdn.com/h48/cl.png 2x"/>
+<a class="logo-container tpl-partner-brand" href="../index.html" title="Tu Parcela Lista, inicio" aria-label="Tu Parcela Lista, volver al inicio">
+<img alt="Tu Parcela Lista" class="tpl-partner-brand-wordmark" src="../assets/brand/tpl-wordmark.svg"/>
 </a>
 <div aria-label="Acciones principales" class="tpl-mobile-primary-actions">
 <a class="tpl-mobile-publish" href="../plataforma/publicar/index.html">Publicar</a>
@@ -189,13 +190,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <nav>
 <ul class="nav-links" id="nav-links">
-<li><a href="../index.html">Inicio</a></li><li><a href="./index.html">Red Partner</a></li>
-<li><a href="../index.html#parcelas-anchor">Parcelas</a></li>
+<li><a href="../index.html">Inicio</a></li><li><a href="../index.html#parcelas-anchor">Parcelas</a></li>
 <li><a href="../index.html#casas-section">Casas</a></li>
 <li><a href="../index.html#mejores-alternativas" style="color:var(--tpl-primary); font-weight:800;">⭐ Mejores Alternativas</a></li>
 <li><a class="nav-link-feature" href="../index.html#como-comprar">Cómo comprar</a></li>
 <li><a class="nav-link-publish" href="../plataforma/publicar/index.html">Publicar</a></li>
-<li><a href="./postular.html" style="color: #003f7a; font-weight: 700;"><i data-lucide="handshake" style="color: #003f7a; width: 18px; height: 18px; vertical-align: text-bottom; margin-right: 4px;"></i> Red de Partners</a></li>
+<li><a href="./postular.html" style="color: #003f7a; font-weight: 700;"><i data-lucide="handshake" style="color: #003f7a; width: 18px; height: 18px; vertical-align: text-bottom; margin-right: 4px;"></i> Partners</a></li>
 <li><a href="../index.html#quienes-somos">Quiénes Somos</a></li>
 </ul>
 </nav>
@@ -207,16 +207,25 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 </div>
 </header>
-<section class="partners-hero">
-<div class="container">
-<span class="partner-hero-kicker">TU ESPECIALIDAD ACÁ SIRVE</span>
-<h1>Convierte tu talento en nuevos clientes.</h1>
-<p>Cuéntanos qué actividad quieres ofrecer, cómo trabajas y cómo cobras. Obtén una presentación profesional y entra a la Red Partner TPL.</p>
-<div class="btn-group">
-<a class="btn-primary" href="#postulacion">Quiero mostrar mi talento</a>
-<a class="btn-secondary" href="#tpl-studio">Quiero que me conozcan más</a>
-</div>
-</div>
+<section class="partner-premium-hero" id="tpl-studio" aria-labelledby="partner-hero-title">
+  <div class="partner-premium-hero__media" role="img" aria-label="Profesional instalando terminaciones en una vivienda"></div>
+  <div class="partner-premium-hero__overlay"></div>
+  <div class="container partner-premium-hero__content">
+    <div class="partner-premium-hero__copy">
+      <span class="partner-hero-kicker">RED PARTNER · POTENCIADA POR TPL STUDIO</span>
+      <h1 id="partner-hero-title">Tu trabajo puede ser excelente. Hagamos que las personas correctas lo conozcan.</h1>
+      <p>TPL Studio convierte tu experiencia en una presencia profesional: perfil público, fotografía, video, contenido y campañas para ayudarte a generar confianza y llegar a nuevos clientes.</p>
+      <div class="partner-premium-hero__actions">
+        <a class="btn-primary" href="#postulacion">Crear mi perfil Partner</a>
+        <a class="btn-secondary" href="../plataforma/studio/index.html?origen=partner">Conocer TPL Studio</a>
+      </div>
+      <div class="partner-premium-hero__proof" aria-label="Beneficios principales">
+        <span>Perfil profesional</span>
+        <span>Más confianza</span>
+        <span>Oportunidades compatibles</span>
+      </div>
+    </div>
+  </div>
 </section>
 <section class="section-container" id="como-funciona">
 <h2 class="section-title">¿Cómo funciona la Red TPL?</h2>
@@ -269,10 +278,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <button style="background:#25D366; color:white; border:none; padding:10px 20px; border-radius:20px; font-weight:700;">Solicitar Cotización</button>
 </div>
-</section>
-<section class="section-container partner-studio" id="tpl-studio">
-<div><span class="partner-hero-kicker">POTENCIADO POR TPL STUDIO</span><h2>Tu trabajo puede ser excelente. Ahora hagamos que más personas lo conozcan.</h2><p>TPL Studio transforma tu experiencia en una presencia profesional con video, fotografía, contenido, landing premium y campañas para atraer clientes.</p></div>
-<a class="btn-primary" href="../plataforma/studio/index.html?origen=partner">Quiero impulsar mi negocio</a>
 </section>
 <div class="section-container" id="postulacion">
 <div class="form-container">
@@ -395,11 +400,32 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <button type="button" class="btn-add-row" id="add-activity">+ Agregar actividad</button>
 </div>
 
-<div class="partner-detail-block full-width">
-<h3>Tu proceso habitual de trabajo</h3>
-<p>Explica el recorrido normal desde el primer contacto hasta la entrega. El cliente podrá entender qué esperar antes de solicitar una propuesta.</p>
-<div id="service-stages-list" class="repeatable-list"></div>
+<div class="partner-detail-block full-width method-builder" id="method-builder">
+<div class="method-heading">
+  <div>
+    <span class="method-kicker">MÉTODO DE TRABAJO TPL</span>
+    <h3>¿Cómo desarrollas tus proyectos?</h3>
+    <p>Cuéntalo como se lo explicarías a un cliente. Mientras más claro sea tu proceso, mayores serán tus posibilidades de ser recomendado por TPL.</p>
+  </div>
+  <div class="method-score" aria-live="polite">
+    <span>Claridad del método</span>
+    <strong id="method-score-value">0%</strong>
+  </div>
+</div>
+<div class="input-group full-width">
+  <label for="metodo_relato">Explícanos tu proceso con tus propias palabras</label>
+  <textarea id="metodo_relato" maxlength="2500" placeholder="Ej: Primero visito el terreno, luego preparo el presupuesto, firmamos contrato, solicito un anticipo y comienzo la ejecución por etapas..." name="metodo_relato"></textarea>
+  <small class="field-help">No necesitas escribir perfecto. Puedes usar el botón “Ordenar en etapas” y luego revisar cada paso antes de guardar.</small>
+</div>
+<div class="method-toolbar">
+  <button type="button" class="btn-method-secondary" id="organize-method">✨ Ordenar en etapas</button>
+  <button type="button" class="btn-method-secondary" id="load-method-template">Usar plantilla sugerida</button>
+  <button type="button" class="btn-method-secondary" id="clear-method-template">Limpiar etapas</button>
+</div>
+<div id="method-suggestions" class="method-suggestions" hidden></div>
+<div id="service-stages-list" class="method-stage-list"></div>
 <button type="button" class="btn-add-row" id="add-service-stage">+ Agregar etapa</button>
+<p class="method-safe-note">TPL puede ayudarte a ordenar y detectar información poco clara, pero ninguna etapa se publica sin tu revisión.</p>
 </div>
 
 <div class="partner-detail-block full-width">
@@ -484,5 +510,21 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
 
-<section aria-labelledby="tpl-partners-title" class="tpl-seo-hub"><div class="tpl-seo-hub-inner"><h2 id="tpl-partners-title">Trabajos y servicios para proyectos de campo</h2><p>La Red de Partners TPL conecta personas que buscan trabajar en el campo con propietarios que necesitan servicios rurales. Puedes presentar experiencia en construcción, cercos, pozos, electricidad, transporte, mantención y otras especialidades.</p><div class="tpl-seo-links"><a href="#postular">Publicar mis servicios</a><a href="#oportunidades">Buscar trabajos en el campo</a><a href="../index.html#contacto">Contactar a Tu Parcela Lista</a></div></div></section></body>
+<section aria-labelledby="tpl-partners-title" class="tpl-seo-hub"><div class="tpl-seo-hub-inner"><h2 id="tpl-partners-title">Trabajos y servicios para proyectos de campo</h2><p>La Red de Partners TPL conecta personas que buscan trabajar en el campo con propietarios que necesitan servicios rurales. Puedes presentar experiencia en construcción, cercos, pozos, electricidad, transporte, mantención y otras especialidades.</p><div class="tpl-seo-links"><a href="#postular">Publicar mis servicios</a><a href="#oportunidades">Buscar trabajos en el campo</a><a href="../index.html#contacto">Contactar a Tu Parcela Lista</a></div></div></section><script>
+(function(){
+  const toggle=document.getElementById('nav-toggle');
+  const links=document.getElementById('nav-links');
+  if(!toggle||!links)return;
+  toggle.addEventListener('click',()=>{
+    const open=links.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded',String(open));
+    toggle.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');
+  });
+  links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+    links.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  }));
+})();
+</script>
+</body>
 </html>

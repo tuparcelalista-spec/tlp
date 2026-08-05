@@ -13,29 +13,42 @@
 <main class="owner-shell">
   <header class="owner-header">
     <a href="index.html" class="brand">Tu Parcela Lista</a>
-    <span>Mi Propiedad TPL</span>
+    <nav aria-label="Navegación privada"><a href="#diagnostico">Diagnóstico</a><a href="#update">Actualizar</a><a href="#timelineSection">Historial</a></nav>
   </header>
 
-  <section id="loading" class="panel center"><h1>Cargando tu propiedad…</h1><p>Estamos preparando su diagnóstico, historial y próximos pasos.</p></section>
+  <section id="loading" class="panel center"><h1>Preparando tu propiedad…</h1><p>Estamos actualizando diagnóstico, valoración y próximos pasos.</p></section>
   <section id="error" class="panel center" hidden><h1>Enlace no disponible</h1><p id="errorText"></p></section>
 
   <div id="app" hidden>
     <section class="hero panel">
       <div>
-        <small>GESTIÓN PRIVADA DE TU PROPIEDAD</small>
+        <small>PASAPORTE DIGITAL DE TU PROPIEDAD</small>
         <h1 id="title"></h1>
         <p id="location"></p>
-        <div class="status-row"><span id="propertyStatus" class="status-pill"></span><span id="planStatus" class="status-pill subtle"></span></div>
-        <div class="actions"><a id="publicLink" class="primary" target="_blank" rel="noopener">Ver anuncio publicado</a><button id="scrollUpdate">Actualizar información</button></div>
+        <div class="status-row"><span id="propertyStatus" class="status-pill"></span><span id="planStatus" class="status-pill subtle"></span><span id="dataFreshness" class="status-pill info"></span></div>
+        <p class="hero-copy">Mantén tus datos al día, mejora la confianza del anuncio y entra a TPL Business sin comenzar de nuevo.</p>
+        <div class="actions"><a id="publicLink" class="primary" target="_blank" rel="noopener">Ver anuncio</a><button id="scrollUpdate">Actualizar información</button><a id="businessTopLink" class="business-link" href="plataforma/tpl-business/">Entrar a TPL Business</a></div>
       </div>
       <div class="price"><small>Precio publicado</small><strong id="price"></strong><span id="updated"></span></div>
     </section>
 
-    <section class="metric-grid" aria-label="Indicadores de la propiedad">
-      <article class="metric panel"><small>INFORMACIÓN</small><strong id="informationScore">—</strong><span>Ficha completada</span></article>
-      <article class="metric panel"><small>ANUNCIO</small><strong id="listingScore">—</strong><span>Preparación comercial</span></article>
-      <article class="metric panel"><small>CONFIANZA</small><strong id="confidenceScore">—</strong><span>Precisión del diagnóstico</span></article>
-      <article class="metric panel"><small>PENDIENTES</small><strong id="pendingCount">0</strong><span>Acciones por resolver</span></article>
+    <section id="diagnostico" class="diagnostic-shell panel">
+      <div class="diagnostic-head">
+        <div><small>DIAGNÓSTICO TPL</small><h2>Estado actual de tu propiedad</h2><p id="diagnosticSummary">Estamos analizando la información más reciente.</p></div>
+        <div id="valuationBadge" class="valuation-badge tone-blue"><span>Valoración TPL</span><strong id="integralScore">—</strong><small id="integralLabel">En evaluación</small></div>
+      </div>
+      <div class="metric-grid" aria-label="Indicadores de la propiedad">
+        <article class="metric"><small>PROPIEDAD</small><strong id="propertyScore">—</strong><span>Condición y atributos</span></article>
+        <article class="metric"><small>ANUNCIO</small><strong id="listingScore">—</strong><span>Preparación para vender</span></article>
+        <article class="metric"><small>CONFIANZA</small><strong id="confidenceScore">—</strong><span>Calidad de la información</span></article>
+        <article class="metric"><small>PENDIENTES</small><strong id="pendingCount">0</strong><span>Datos o acciones abiertas</span></article>
+      </div>
+    </section>
+
+    <section class="three-grid">
+      <article class="panel insight-card strengths"><small>FORTALEZAS</small><h2>Lo que ya está bien</h2><div id="strengthsList" class="stack-list"></div></article>
+      <article class="panel insight-card pending"><small>INFORMACIÓN PENDIENTE</small><h2>Lo que conviene confirmar</h2><div id="pendingInfoList" class="stack-list"></div></article>
+      <article class="panel insight-card improvements"><small>OPORTUNIDADES</small><h2>Cómo puede mejorar</h2><div id="improvementsList" class="stack-list"></div></article>
     </section>
 
     <section class="grid">
@@ -45,6 +58,7 @@
         <div class="valuation"><strong id="tplValue">Información insuficiente</strong><span id="tplM2"></span></div>
         <p id="valuationText">Completa o corrige los antecedentes para mejorar la precisión del análisis.</p>
         <div id="valuationGap" class="notice"></div>
+        <p class="source-note">Los resultados distinguen entre información declarada, verificada y estimada.</p>
       </article>
       <article class="panel next-actions">
         <small>PRÓXIMOS PASOS</small>
@@ -53,45 +67,43 @@
       </article>
     </section>
 
-    <section class="grid">
-      <article class="panel">
-        <small>HISTORIAL DEL ACTIVO</small>
-        <h2>Todo lo que ha ocurrido</h2>
-        <div id="timeline" class="timeline"></div>
-      </article>
-      <article class="panel">
-        <small>MEJORAS DETECTADAS</small>
-        <h2>Servicios que podrían aportar</h2>
-        <div id="needsList" class="stack-list"></div>
-      </article>
+    <section id="offersSection" class="panel offers-panel">
+      <div class="section-title"><div><small>PROPUESTAS RECIBIDAS</small><h2>Ofertas y condiciones para tu propiedad</h2><p>Compara monto, mejoras y condiciones antes de responder.</p></div><span id="offersCount" class="auto-badge">0 ofertas</span></div>
+      <div id="offersList" class="offers-list"></div>
     </section>
 
-    <section class="panel commercial">
-      <div><small>¿TE URGE VENDER?</small><h2>Posiciona tu propiedad</h2><p>Creamos una landing exclusiva y la dirigimos al segmento que busca este estilo de propiedad.</p></div>
-      <div class="plans"><button data-plan="30000">Desde $30.000</button><button data-plan="50000">Desde $50.000</button><button data-plan="80000">Desde $80.000</button></div>
-      <p class="mini">Recibirás datos de visitas, clics, contactos y comportamiento del anuncio.</p>
+    <section id="timelineSection" class="grid">
+      <article class="panel"><small>HISTORIAL DEL ACTIVO</small><h2>Todo lo que ha ocurrido</h2><div id="timeline" class="timeline"></div></article>
+      <article class="panel"><small>SERVICIOS RELACIONADOS</small><h2>Solo según lo que esta propiedad necesita</h2><div id="needsList" class="stack-list"></div></article>
     </section>
 
-    <section id="update" class="panel">
-      <small>ACTUALIZA Y VALORIZA</small><h2>Revisa los datos de tu propiedad</h2>
+    <section id="update" class="panel update-panel">
+      <div class="section-title"><div><small>ACTUALIZA Y RECALCULA</small><h2>Revisa los datos de tu propiedad</h2></div><span class="auto-badge">El diagnóstico se actualiza al guardar</span></div>
       <form id="ownerForm">
         <div class="fields">
           <label>Título<input name="titulo"></label><label>Precio publicado<input name="precio_publicado" type="number" min="0"></label>
-          <label>Superficie m²<input name="superficie_m2" type="number" min="1"></label><label>Agua<input name="agua"></label>
-          <label>Electricidad<input name="electricidad"></label><label>Acceso<input name="acceso"></label>
-          <label>Topografía<input name="topografia"></label><label>Situación del rol<input name="rol_situacion"></label>
-          <label>Cierre perimetral<input name="cierre_perimetral"></label><label>Portón<input name="porton"></label>
+          <label>Superficie m²<input name="superficie_m2" type="number" min="1"></label>
+          <label>Agua<select name="agua"><option value="">Por confirmar</option><option value="si">Disponible</option><option value="no">No disponible</option><option value="pozo">Pozo</option><option value="apr">APR</option><option value="vertiente">Vertiente</option></select></label>
+          <label>Electricidad<select name="electricidad"><option value="">Por confirmar</option><option value="si">Disponible</option><option value="no">No disponible</option><option value="cercana">Cercana</option><option value="solar">Solar</option></select></label>
+          <label>Acceso<select name="acceso"><option value="">Por confirmar</option><option value="bueno">Bueno todo el año</option><option value="ripio">Ripio transitable</option><option value="mejorable">Requiere mejoras</option><option value="dificil">Difícil en invierno</option></select></label>
+          <label>Topografía<select name="topografia"><option value="">Por confirmar</option><option value="plana">Plana</option><option value="suave">Pendiente suave</option><option value="pendiente">Pendiente</option><option value="irregular">Irregular</option></select></label>
+          <label>Situación del rol<select name="rol_situacion"><option value="">Por confirmar</option><option value="propio">Rol propio</option><option value="en_tramite">En trámite</option><option value="derechos">Derechos</option><option value="otro">Otro</option></select></label>
+          <label>Cierre perimetral<select name="cierre_perimetral"><option value="">Por confirmar</option><option value="completo">Completo</option><option value="parcial">Parcial</option><option value="no">Sin cierre</option></select></label>
+          <label>Portón<select name="porton"><option value="">Por confirmar</option><option value="si">Sí</option><option value="no">No</option></select></label>
           <label class="wide">Descripción<textarea name="descripcion" rows="6"></textarea></label>
         </div>
         <h3>Datos privados del propietario o corredor</h3>
         <p class="mini">En planes gratuitos el WhatsApp público seguirá siendo +56 9 8850 8361.</p>
         <div class="fields"><label>Nombre<input name="contacto_nombre"></label><label>Correo<input name="contacto_email" type="email"></label><label>Teléfono / WhatsApp<input name="contacto_whatsapp" type="tel"></label><label>Tipo<select name="contacto_tipo"><option value="propietario">Propietario</option><option value="corredor">Corredor</option></select></label></div>
-        <label class="photo-box">Fotografías para revisión<input name="fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple><span>Las fotos no reemplazarán las actuales hasta verificar que correspondan a la propiedad.</span></label>
-        <div class="save-row"><button class="primary" type="submit">Guardar y recalcular</button><span id="formStatus"></span></div>
+        <label class="photo-box">Fotografías para revisión<input name="fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple><span>Las fotos se revisan antes de reemplazar las actuales.</span></label>
+        <div class="save-row"><button class="primary" type="submit">Guardar y recalcular</button><span id="formStatus" role="status"></span></div>
       </form>
     </section>
 
-    <section class="panel business"><div><small>TPL BUSINESS DUEÑOS</small><h2>Todo lo relacionado con tu propiedad, en un solo lugar</h2><p>Activa tu entorno para consultar informes, estadísticas, campañas, contactos e historial.</p></div><a href="plataforma/tpl-business/">Conocer TPL Business</a></section>
+    <section class="panel business premium-business">
+      <div><small>CONTINÚA EN TPL BUSINESS</small><h2>Tu propiedad ya está lista para transformarse en proyecto</h2><p>Usa la misma ficha para administrar informes, campañas, servicios, cotizaciones, avances y documentos sin volver a ingresar los datos.</p><ul><li>Diagnóstico e historial del activo</li><li>Solicitudes y servicios recomendados</li><li>Seguimiento de proyectos y avances</li></ul></div>
+      <a id="businessLink" href="plataforma/tpl-business/">Abrir mi entorno TPL Business</a>
+    </section>
   </div>
 </main>
 </body>

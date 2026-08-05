@@ -1,17 +1,16 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4';
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { corsHeaders } from '../_shared/cors.ts';
+import { consumeRateLimit, publicError, readJson, safeHttpUrl } from '../_shared/security.ts';
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-tpl-secret',
-};
 
 const escapeHtml = (value: unknown) => String(value ?? '')
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
 function button(label: string, href?: string) {
-  if (!href) return '';
-  return `<p style="margin:24px 0"><a href="${escapeHtml(href)}" style="background:#0b395d;color:#fff;padding:13px 18px;border-radius:8px;text-decoration:none;font-weight:700">${escapeHtml(label)}</a></p>`;
+  const safe = safeHttpUrl(href);
+  if (!safe) return '';
+  return `<p style="margin:24px 0"><a href="${escapeHtml(safe)}" style="background:#0b395d;color:#fff;padding:13px 18px;border-radius:8px;text-decoration:none;font-weight:700">${escapeHtml(label)}</a></p>`;
 }
 
 function render(template: string, payload: Record<string, unknown>) {
@@ -45,25 +44,29 @@ function render(template: string, payload: Record<string, unknown>) {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) });
+  if (req.method !== 'POST') return new Response(JSON.stringify({ ok:false,error:'METODO_NO_PERMITIDO' }), { status:405, headers:{ ...corsHeaders(req), 'Content-Type':'application/json' } });
   const secret = Deno.env.get('TPL_COMMUNICATIONS_SECRET') || '';
   if (!secret || req.headers.get('x-tpl-secret') !== secret) {
-    return new Response(JSON.stringify({ ok: false, error: 'NO_AUTORIZADO' }), { status: 401, headers: { ...cors, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: 'NO_AUTORIZADO' }), { status: 401, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
   }
 
   const url = Deno.env.get('SUPABASE_URL');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const resendKey = Deno.env.get('RESEND_API_KEY');
   if (!url || !serviceKey || !resendKey) {
-    return new Response(JSON.stringify({ ok: false, error: 'CONFIGURACION_INCOMPLETA' }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false, error: 'CONFIGURACION_INCOMPLETA' }), { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
   }
 
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const body = await req.json().catch(() => ({}));
+  try { await consumeRateLimit(admin, req, 'procesar-comunicaciones', 180, 3600); } catch (error) {
+    return new Response(JSON.stringify({ ok:false,error:publicError(error) }), { status:429, headers:{ ...corsHeaders(req), 'Content-Type':'application/json' } });
+  }
+  const body = await readJson(req, 8000).catch(() => ({}));
   const limit = Math.min(100, Math.max(1, Number(body?.limit || 20)));
   const worker = `edge-${crypto.randomUUID()}`;
   const { data: rows, error: claimError } = await admin.rpc('tpl_reclamar_comunicaciones_v1', { p_worker: worker, p_limite: limit });
-  if (claimError) return new Response(JSON.stringify({ ok: false, error: claimError.message }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
+  if (claimError) return new Response(JSON.stringify({ ok: false, error: claimError.message }), { status: 500, headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
 
   const from = Deno.env.get('TPL_EMAIL_FROM') || 'Tu Parcela Lista <notificaciones@parcelalista.cl>';
   const replyTo = Deno.env.get('TPL_REPLY_TO') || 'tuparcelalista@gmail.com';
@@ -92,5 +95,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, procesados: results.length, enviados: results.filter((x) => x.ok).length, errores: results.filter((x) => !x.ok).length, results }), { headers: { ...cors, 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify({ ok: true, procesados: results.length, enviados: results.filter((x) => x.ok).length, errores: results.filter((x) => !x.ok).length, results }), { headers: { ...corsHeaders(req), 'Content-Type': 'application/json' } });
 });
