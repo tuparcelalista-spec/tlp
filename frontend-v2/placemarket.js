@@ -1,6 +1,6 @@
 
-const SUPABASE_URL='https://qxavbqhyqaqalpzbhwmh.supabase.co';
-const SUPABASE_ANON_KEY=window.TPL_SUPABASE_ANON_KEY||document.querySelector('meta[name="tpl-supabase-anon"]')?.content||'';
+const SUPABASE_URL='https://hwyscirbycojwndyzozn.supabase.co';
+const SUPABASE_ANON_KEY=window.TPL_CONFIG?.supabasePublishableKey||window.TPL_SUPABASE_ANON_KEY||document.querySelector('meta[name="tpl-supabase-anon"]')?.content||'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k';
 const pageType=document.body.dataset.marketType||'todos';
 const grid=document.getElementById('market-grid');
 const queryInput=document.getElementById('market-query');

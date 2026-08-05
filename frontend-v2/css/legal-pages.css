@@ -1,0 +1,22 @@
+:root{--tpl-blue:#003f7a;--tpl-blue-dark:#082f53;--tpl-yellow:#f2cf4a;--tpl-ink:#10233f;--tpl-muted:#5d6b7e;--tpl-bg:#f4f7fb;--tpl-line:#dce5ef}
+body.tpl-institutional-page{background:var(--tpl-bg);color:var(--tpl-ink)}
+.tpl-institutional-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#062e53 0%,#07548e 64%,#087ab0 100%);color:#fff;padding:70px 22px 66px}
+.tpl-institutional-hero::after{content:"";position:absolute;right:-110px;top:-150px;width:390px;height:390px;border-radius:50%;background:rgba(242,207,74,.13)}
+.tpl-institutional-hero__inner{position:relative;z-index:1;width:min(1080px,100%);margin:auto}
+.tpl-institutional-hero__eyebrow{display:inline-flex;align-items:center;gap:9px;margin-bottom:14px;font-size:.76rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--tpl-yellow)}
+.tpl-institutional-hero h1{max-width:780px;margin:0;font-size:clamp(2.4rem,6vw,4.7rem);line-height:1;letter-spacing:-.045em}
+.tpl-institutional-hero p{max-width:720px;margin:20px 0 0;font-size:1.08rem;line-height:1.75;color:rgba(255,255,255,.85)}
+.tpl-institutional-main{width:min(1080px,calc(100% - 32px));margin:-30px auto 64px;position:relative;z-index:2}
+.tpl-institutional-card{background:#fff;border:1px solid var(--tpl-line);border-radius:24px;padding:clamp(24px,5vw,50px);box-shadow:0 22px 60px rgba(8,47,83,.12)}
+.tpl-institutional-card h2{margin:34px 0 10px;font-size:1.25rem;color:var(--tpl-blue-dark)}
+.tpl-institutional-card h2:first-child{margin-top:0}
+.tpl-institutional-card p,.tpl-institutional-card li{font-size:1rem;line-height:1.75;color:#34445a}
+.tpl-institutional-card ol,.tpl-institutional-card ul{padding-left:1.4rem}
+.tpl-institutional-card li+li{margin-top:10px}
+.tpl-institutional-note{margin-top:28px;padding:18px 20px;border-left:5px solid var(--tpl-yellow);border-radius:0 14px 14px 0;background:#fff9df;color:#34445a}
+.tpl-institutional-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;padding-top:24px;border-top:1px solid var(--tpl-line)}
+.tpl-institutional-actions a{display:inline-flex;align-items:center;justify-content:center;padding:12px 17px;border-radius:999px;text-decoration:none;font-weight:850}
+.tpl-institutional-actions .primary{background:var(--tpl-blue);color:#fff}
+.tpl-institutional-actions .secondary{background:#eef4f9;color:var(--tpl-blue-dark)}
+.tpl-footer .tpl-footer-contact{color:rgba(255,255,255,.82);text-decoration:none;font-weight:700}
+@media(max-width:760px){.tpl-institutional-hero{padding:54px 18px 56px}.tpl-institutional-main{width:min(100% - 22px,1080px);margin-top:-24px}.tpl-institutional-card{border-radius:19px}.tpl-nav{display:none}.tpl-mobile-actions{display:flex}}

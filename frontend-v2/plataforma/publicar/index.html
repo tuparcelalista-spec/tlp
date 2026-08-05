@@ -7,19 +7,19 @@
 <meta name="robots" content="index,follow">
 <meta name="description" content="Publica tu parcela, campo o casa con terreno en Tu Parcela Lista y obtén una tasación gratuita. Descubre cuánto vale tu propiedad, su valor recomendado TPL y una estrategia de venta según tu nivel de urgencia.">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="publicar.css?v=20260731-fix3">
+<link rel="stylesheet" href="publicar.css?v=20260804-ecosistema1">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cómo saber cuánto vale mi parcela?","acceptedAnswer":{"@type":"Answer","text":"El Tasador TPL analiza superficie, ubicación, conectividad, servicios, documentación y características de la propiedad para entregar una referencia comercial."}},{"@type":"Question","name":"¿La tasación de parcelas es gratis?","acceptedAnswer":{"@type":"Answer","text":"Sí. Tu Parcela Lista permite obtener una referencia de tasación gratuita al completar los antecedentes necesarios de la propiedad."}},{"@type":"Question","name":"¿Qué factores influyen en el valor de un terreno?","acceptedAnswer":{"@type":"Answer","text":"Entre otros factores influyen la superficie, ubicación, distancia a centros urbanos y rutas, acceso, agua, electricidad, documentación y topografía."}}]}</script>
 <link rel="stylesheet" href="../../css/tpl-premium-ui.css">
 </head>
 <body class="tpl-premium-ui">
 <header class="topbar">
   <a class="brand" href="../../index.html"><img src="../../assets/logo-tu-parcela-lista.png" alt="Tu Parcela Lista"><span>Publicador TPL</span></a>
-  <div class="top-actions"><a href="../tasador/index.html">Mis tasaciones</a><button id="saveDraftTop" type="button">Guardar</button></div>
+  <div class="top-actions"><a href="../tasador/index.html">Mis tasaciones</a><button id="saveDraftTop" class="save-secondary" type="button">Guardar para después</button></div>
 </header>
 
 <main class="wizard-shell">
   <aside class="step-sidebar" aria-label="Progreso de publicación">
-    <div class="sidebar-title"><strong>Tu publicación</strong><span id="progressText">Paso 1 de 7</span></div>
+    <div class="sidebar-title"><strong>Diagnóstico de tu propiedad</strong><span id="progressText">Comenzando el análisis</span></div>
     <nav id="stepNav">
       <button class="step-link is-active" data-step="0"><b>1</b><span><strong>Propiedad</strong><small>Tipo y ubicación</small></span></button>
       <button class="step-link" data-step="1"><b>2</b><span><strong>Características</strong><small>Superficie y servicios</small></span></button>
@@ -29,15 +29,15 @@
       <button class="step-link" data-step="5"><b>6</b><span><strong>Contacto</strong><small>Datos del responsable</small></span></button>
       <button class="step-link" data-step="6"><b>7</b><span><strong>Revisión</strong><small>Enviar a TPL</small></span></button>
     </nav>
-    <div class="draft-status" id="draftStatus">Borrador automático activo</div>
+    <div class="draft-status" id="draftStatus">Borrador automático activo</div><small class="draft-help">Agrega tu correo para recuperar el avance desde otro dispositivo.</small>
   </aside>
 
   <section class="wizard-panel">
-    <div class="mobile-progress"><div><span id="mobileStepLabel">Paso 1 de 7</span><strong id="mobileStepName">Propiedad</strong></div><div class="progress-track"><span id="progressBar"></span></div></div>
+    <div class="mobile-progress"><div><span id="mobileStepLabel">Precisión inicial</span><strong id="mobileStepName">Conocer tu propiedad</strong></div><div class="progress-track"><span id="progressBar"></span></div></div><section class="valuation-motivation" id="valuationMotivation"><div><span>Precisión estimada del diagnóstico</span><strong id="diagnosticPrecision">12%</strong></div><p id="diagnosticMotivationText">Completa bien los antecedentes y podrás comparar el valor esperado con la estimación TPL.</p></section>
 
     <form id="publisherForm" novalidate>
       <section class="wizard-step is-active" data-step="0">
-        <div class="step-head"><span class="eyebrow">Comencemos</span><h1>¿Qué propiedad quieres publicar?</h1><p>Solo pediremos la información necesaria. Podrás volver y editar cualquier paso.</p></div>
+        <div class="step-head"><span class="eyebrow">Diagnóstico inteligente TPL</span><h1>Descubre si tu propiedad está valorizada como esperas</h1><p>Mientras más precisos sean los antecedentes, más útil será la comparación entre tu precio esperado y la estimación TPL. Publicar será el siguiente paso natural.</p></div>
         <div class="choice-grid property-type-grid">
           <label class="choice-card"><input type="radio" name="tipo" value="parcela" checked><span class="choice-line-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 24c6-10 13-15 22-16-1 9-6 16-15 19-3 1-5 0-7-3Z"/><path d="M7 27c4-6 9-10 16-14"/></svg></span><strong>Parcela</strong><small>Terreno sin vivienda</small></label>
           <label class="choice-card"><input type="radio" name="tipo" value="parcela_casa"><span class="choice-line-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 16 13 7l10 9"/><path d="M6 14v12h14V14M11 26v-7h5v7"/><path d="M22 10h6M25 7v6"/></svg></span><strong>Parcela con casa</strong><small>Terreno con vivienda existente</small></label>
@@ -149,7 +149,7 @@
       </section>
 
       <section class="wizard-step" data-step="2">
-        <div class="step-head"><span class="eyebrow">Precio y tasación</span><h2>Define un valor con respaldo</h2><p>El tasador funciona como referencia orientativa; tú decides el precio final.</p></div>
+        <div class="step-head"><span class="eyebrow">Ya podemos evaluar tu propiedad</span><h2>Compara tu expectativa con una referencia TPL</h2><p>Completar bien los campos anteriores mejora la confianza del diagnóstico. Tú siempre decides el precio final.</p></div>
 <section class="detail-panel sales-strategy">
           <div class="detail-panel-head"><strong>Estrategia y urgencia de venta</strong><small>Cuéntanos tu plazo y nivel de urgencia antes de calcular. Esto nos ayuda a recomendar una estrategia de venta adecuada.</small></div>
           <div class="urgency-grid">
@@ -168,7 +168,7 @@
                 <div class="price-layout">
           <div class="price-form">
             <label><span>Precio que tienes en mente</span><div class="money-input"><b>$</b><input id="precio" inputmode="numeric" placeholder="25.000.000"></div></label>
-            <button class="primary" id="calculateBtn" type="button">Calcular tasación TPL</button>
+            <button class="primary" id="calculateBtn" type="button">Descubrir valor estimado TPL</button>
           </div>
           <article class="valuation-card" id="valuationCard">
             <span class="valuation-kicker">Resultado orientativo</span>
@@ -321,12 +321,12 @@
   </form>
 </dialog>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="../../js/core/tpl-data-service.js?v=20260801-onboarding1"></script>
+<script src="../../js/core/tpl-data-service.js?v=20260804-ecosistema1"></script>
 <script src="tpl-land-engine.js?v=20260731-fix3"></script>
 <script src="tpl-tasador-supabase.js?v=20260731-fix3"></script>
 <script src="tpl-house-engine.js"></script>
 <script src="tpl-market-observed.js"></script>
 <script src="tpl-report-generator.js"></script>
-<script src="publicar.js?v=20260801-onboarding1"></script>
+<script src="publicar.js?v=20260804-ecosistema1"></script>
 </body>
 </html>

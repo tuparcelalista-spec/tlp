@@ -166,6 +166,45 @@
   }
 
 
+  async function savePublisherDraft(payload, token = null) {
+    if (!payload || typeof payload !== 'object') throw new Error('Borrador inválido.');
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_guardar_borrador_publicador_v1', {
+      p_payload: payload,
+      p_token: token || null
+    });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible guardar el borrador.');
+    return data;
+  }
+
+  async function loadPublisherDraft(token) {
+    if (!token) return null;
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_recuperar_borrador_publicador_v1', { p_token: token });
+    if (error) throw error;
+    return data?.ok ? data : null;
+  }
+
+  async function revokePublisherDraft(token) {
+    if (!token) return { ok: true };
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_revocar_borrador_publicador_v1', { p_token: token });
+    if (error) throw error;
+    return data || { ok: true };
+  }
+
+
+  async function getPublicationEcosystemStatus(publicationId, propertyId) {
+    if (!publicationId || !propertyId) return null;
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_estado_ecosistema_publicacion_v1', {
+      p_publicacion_id: publicationId,
+      p_propiedad_id: propertyId
+    });
+    if (error) throw error;
+    return data || null;
+  }
 
   async function activateFreeOwner(payload) {
     if (!payload?.publicacion_id || !payload?.email) {
@@ -535,6 +574,32 @@
     return data || {};
   }
 
+
+  async function getCanonicalValuation(identifier) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_tasacion_canonica_activo_v1', {
+      p_identificador: String(identifier || '').trim()
+    });
+    if (error) throw error;
+    return data || { ok: false, error: 'SIN_RESPUESTA' };
+  }
+
+  async function getCrmValuationHistory(propertyId) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_historial_tasaciones_v1', {
+      p_propiedad_id: propertyId
+    });
+    if (error) throw error;
+    return data || { ok: true, versiones: [] };
+  }
+
+  async function getCrmOperationalInbox() {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_bandeja_operativa_v1');
+    if (error) throw error;
+    return data || { items: [], totales: {} };
+  }
+
   async function approvePublication(publicacionId, publish = true) {
     const client = await getClient();
     const { data, error } = await client.rpc('tpl_aprobar_publicacion_v1', {
@@ -551,6 +616,30 @@
     const { data, error } = await client.rpc('tpl_crm_guardar_casa_v1', { p_payload: payload || {} });
     if (error) throw error;
     if (!data?.ok) throw new Error('Supabase no confirmó la casa.');
+    return data;
+  }
+
+
+  async function generateOwnerLink(propertyId, days = 30) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_crm_generar_link_propietario_v1', { p_propiedad_id: propertyId, p_dias: days });
+    if (error) throw error;
+    if (!data?.ok || !data?.token) throw new Error(data?.error || 'No fue posible generar el enlace.');
+    return data;
+  }
+
+  async function getOwnerProperty(token) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_propietario_resumen_por_token_v1', { p_token: token });
+    if (error) throw error;
+    return data;
+  }
+
+  async function updateOwnerProperty(token, payload) {
+    const client = await getClient();
+    const { data, error } = await client.rpc('tpl_propietario_actualizar_por_token_v1', { p_token: token, p_payload: payload || {} });
+    if (error) throw error;
+    if (!data?.ok) throw new Error(data?.error || 'No fue posible actualizar la propiedad.');
     return data;
   }
 
@@ -583,12 +672,19 @@
     signIn,
     signOut,
     publishProperty,
+    savePublisherDraft,
+    loadPublisherDraft,
+    revokePublisherDraft,
+    getPublicationEcosystemStatus,
     activateFreeOwner,
     listPublishedProperties,
     getPublishedPropertyById,
     createPublicOpportunity,
     getCrmSnapshot,
     getCrmCommandCenter,
+    getCrmOperationalInbox,
+    getCanonicalValuation,
+    getCrmValuationHistory,
     getUfConfig,
     updateUfConfig,
     getTasadorReferences,
@@ -607,6 +703,9 @@
     listMyValuations,
     approvePublication,
     saveCrmHouse,
+    generateOwnerLink,
+    getOwnerProperty,
+    updateOwnerProperty,
     trackEvent,
     emit: localEmit,
     getPendingBackups,

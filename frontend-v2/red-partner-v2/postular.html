@@ -54,7 +54,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
 
-<link href="partner-form.css?v=20260731-1" rel="stylesheet"/>
+<link href="partner-form.css?v=20260804-2" rel="stylesheet"/>
 <script defer="" src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
@@ -193,7 +193,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <li><a href="../index.html#parcelas-anchor">Parcelas</a></li>
 <li><a href="../index.html#casas-section">Casas</a></li>
 <li><a href="../index.html#mejores-alternativas" style="color:var(--tpl-primary); font-weight:800;">⭐ Mejores Alternativas</a></li>
-<li><a class="nav-link-feature" href="../como-comprar.html">Cómo comprar</a></li>
+<li><a class="nav-link-feature" href="../index.html#como-comprar">Cómo comprar</a></li>
 <li><a class="nav-link-publish" href="../plataforma/publicar/index.html">Publicar</a></li>
 <li><a href="./postular.html" style="color: #003f7a; font-weight: 700;"><i data-lucide="handshake" style="color: #003f7a; width: 18px; height: 18px; vertical-align: text-bottom; margin-right: 4px;"></i> Red de Partners</a></li>
 <li><a href="../index.html#quienes-somos">Quiénes Somos</a></li>
@@ -286,39 +286,40 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <div class="form-grid">
 <div class="input-group">
 <label>Nombre Comercial / Empresa</label>
-<input id="nombre_comercial" placeholder="Ej: Constructora Nogales" required="" type="text"/>
+<input id="nombre_comercial" placeholder="Ej: Constructora Nogales" required="" type="text" name="nombre_comercial"/>
 </div>
 <div class="input-group">
 <label>Nombre del Responsable</label>
-<input id="nombre_responsable" placeholder="Ej: Juan Pérez" required="" type="text"/>
+<input id="nombre_responsable" placeholder="Ej: Juan Pérez" required="" type="text" name="nombre_responsable"/>
 </div>
 <div class="input-group">
 <label>Teléfono (Llamadas)</label>
-<input id="telefono" placeholder="+569..." required="" type="tel"/>
+<input id="telefono" placeholder="+569..." required="" type="tel" name="telefono"/>
 </div>
 <div class="input-group">
 <label>WhatsApp</label>
-<input id="whatsapp" placeholder="+569..." required="" type="tel"/>
+<input id="whatsapp" placeholder="+569..." required="" type="tel" name="whatsapp"/>
 </div>
 <div class="input-group full-width">
 <label>Correo Electrónico</label>
-<input id="correo" placeholder="contacto@empresa.cl" required="" type="email"/>
+<input id="correo" placeholder="contacto@empresa.cl" required="" type="email" name="correo"/>
 </div>
 <div class="input-group full-width">
 <label>¿Con qué talento o actividad quieres llegar a tus próximos clientes?</label>
-<textarea id="descripcion_servicios" minlength="40" placeholder="Ej: Construyo casas de madera y acompaño al cliente desde la visita inicial hasta la entrega final..." required=""></textarea>
+<textarea id="descripcion_servicios" minlength="40" placeholder="Ej: Construyo casas de madera y acompaño al cliente desde la visita inicial hasta la entrega final..." required="" name="descripcion_servicios"></textarea>
 <small class="field-help">Escríbelo con tus propias palabras. Usaremos esta información para tu perfil, currículum y landing.</small>
 </div>
 <div class="input-group">
 <label for="propuesta_corta">¿Qué ofreces en máximo 5 palabras?</label>
-<input id="propuesta_corta" maxlength="60" placeholder="Ej: Pozos profundos con garantía" required type="text"/>
+<input id="propuesta_corta" maxlength="60" placeholder="Ej: Pozos profundos con garantía" required type="text" name="propuesta_corta"/>
 <small class="field-help"><span id="propuesta-word-count">0</span>/5 palabras. Será el mensaje principal de tu perfil.</small>
 </div>
 <div class="input-group">
 <label for="diferenciacion">¿Qué te diferencia de otros proveedores?</label>
-<textarea id="diferenciacion" minlength="30" maxlength="400" placeholder="Ej: Visito el terreno antes de cotizar, explico cada costo y entrego evidencia fotográfica semanal." required></textarea>
+<textarea id="diferenciacion" minlength="30" maxlength="400" placeholder="Ej: Visito el terreno antes de cotizar, explico cada costo y entrego evidencia fotográfica semanal." required name="diferenciacion"></textarea>
 <small class="field-help">Evita frases genéricas. Explica una práctica concreta, garantía, especialidad o forma de atención.</small>
 </div>
+<div class="input-group full-width partner-choice-strip"><strong>Tú decides cuánto avanzar hoy</strong><p>Completa al menos quién eres, a qué se dedica tu empresa, qué hace y dónde trabaja. Luego puedes guardar y salir o continuar construyendo un perfil más completo.</p><div><button type="button" id="btn-save-basic" class="btn-save-draft">Guardar lo básico y continuar después</button><a href="#partner-details" class="btn-continue-profile">Seguir completando ahora</a></div></div>
 <div class="input-group full-width profile-score-card" aria-live="polite">
 <div><strong>Completitud de tu perfil</strong><span id="profile-score-label">0%</span></div>
 <div class="profile-score-track"><span id="profile-score-bar"></span></div>
@@ -326,19 +327,19 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <div class="input-group">
 <label>Logo de Empresa o Fotografía Personal</label>
-<input accept="image/jpeg,image/png,image/webp" id="logo_file" required="" type="file"/>
+<input accept="image/jpeg,image/png,image/webp" id="logo_file" type="file" name="logo_file"/>
 </div>
 <div class="input-group">
 <label>Imágenes de Trabajos (Opcional)</label>
-<input accept="image/jpeg,image/png,image/webp" id="gallery_files" multiple="" type="file"/>
-<small class="field-help">Máximo 5 imágenes JPG, PNG o WebP de hasta 5 MB cada una.</small>
+<input accept="image/jpeg,image/png,image/webp" id="gallery_files" multiple="" type="file" name="gallery_files"/>
+<small class="field-help">Máximo 5 imágenes JPG, PNG o WebP de hasta 5 MB cada una. Si guardas y continúas después, deberás seleccionarlas nuevamente por seguridad.</small>
 </div>
 </div>
-<h3 style="font-size: 1.2rem; margin-top: 30px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px;">3. Actividades, etapas y forma de pago</h3>
+<h3 id="partner-details" style="font-size: 1.2rem; margin-top: 30px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px;">3. Actividades, etapas y forma de pago</h3>
 <div class="form-grid">
 <div class="input-group">
 <label>Tipo de Servicio Principal</label>
-<select id="tipo_servicio" required="">
+<select id="tipo_servicio" required="" name="tipo_servicio">
 <option disabled="" selected="" value="">Selecciona tu rubro general...</option>
 <option value="Construcción">Construcción</option>
 <option value="Instalaciones (Pozos, Fosas, Cercos)">Instalaciones Básicas</option>
@@ -351,11 +352,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <div class="input-group">
 <label>Especialidades (Separadas por coma)</label>
-<input id="especialidades" placeholder="Ej: Radieres, Cercos, Piscinas" required="" type="text"/>
+<input id="especialidades" placeholder="Ej: Radieres, Cercos, Piscinas" type="text" name="especialidades"/>
 </div>
 <div class="input-group">
 <label>Región Base</label>
-<select id="region" required="">
+<select id="region" required="" name="region">
 <option disabled="" selected="" value="">Selecciona una región...</option>
 <option value="Metropolitana">Metropolitana</option>
 <option value="Valparaíso">Valparaíso</option>
@@ -371,15 +372,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </div>
 <div class="input-group">
 <label>Comunas Atendidas</label>
-<input id="comunas_atendidas" placeholder="Ej: Concepción, Yumbel, Florida" required="" type="text"/>
+<input id="comunas_atendidas" placeholder="Ej: Concepción, Yumbel, Florida" required="" type="text" name="comunas_atendidas"/>
 </div>
 <div class="input-group">
 <label>Años de Experiencia</label>
-<input id="anos_experiencia" min="0" placeholder="Ej: 5" required="" type="number"/>
+<input id="anos_experiencia" min="0" placeholder="Ej: 5" required="" type="number" name="anos_experiencia"/>
 </div>
 <div class="input-group">
 <label>Disponibilidad Actual</label>
-<select id="disponibilidad" required="">
+<select id="disponibilidad" required="" name="disponibilidad">
 <option value="Inmediata">Inmediata</option>
 <option value="En 1 semana">En 1 semana</option>
 <option value="En 1 mes">En 1 mes o más</option>
@@ -404,10 +405,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <div class="partner-detail-block full-width">
 <h3>Tu último trabajo, explicado por etapas</h3>
 <div class="form-grid">
-<div class="input-group"><label for="ultimo_trabajo_nombre">Nombre o tipo de trabajo</label><input id="ultimo_trabajo_nombre" placeholder="Ej: Instalación de pozo profundo" required type="text"/></div>
-<div class="input-group"><label for="ultimo_trabajo_ubicacion">Comuna o sector</label><input id="ultimo_trabajo_ubicacion" placeholder="Ej: Florida, Biobío" required type="text"/></div>
-<div class="input-group"><label for="ultimo_trabajo_duracion">Duración total</label><input id="ultimo_trabajo_duracion" placeholder="Ej: 8 días" required type="text"/></div>
-<div class="input-group"><label for="ultimo_trabajo_resultado">Resultado principal</label><input id="ultimo_trabajo_resultado" placeholder="Ej: Pozo operativo y probado" required type="text"/></div>
+<div class="input-group"><label for="ultimo_trabajo_nombre">Nombre o tipo de trabajo</label><input id="ultimo_trabajo_nombre" placeholder="Ej: Instalación de pozo profundo" type="text" name="ultimo_trabajo_nombre"/></div>
+<div class="input-group"><label for="ultimo_trabajo_ubicacion">Comuna o sector</label><input id="ultimo_trabajo_ubicacion" placeholder="Ej: Florida, Biobío" type="text" name="ultimo_trabajo_ubicacion"/></div>
+<div class="input-group"><label for="ultimo_trabajo_duracion">Duración total</label><input id="ultimo_trabajo_duracion" placeholder="Ej: 8 días" type="text" name="ultimo_trabajo_duracion"/></div>
+<div class="input-group"><label for="ultimo_trabajo_resultado">Resultado principal</label><input id="ultimo_trabajo_resultado" placeholder="Ej: Pozo operativo y probado" type="text" name="ultimo_trabajo_resultado"/></div>
 </div>
 <div id="last-job-stages-list" class="repeatable-list structured-stages"></div>
 <button type="button" class="btn-add-row" id="add-last-job-stage">+ Agregar etapa del último trabajo</button>
@@ -423,46 +424,63 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <label><input type="checkbox" value="Crédito directo evaluado"/> Crédito directo evaluado</label>
 </div>
 <div class="form-grid">
-<div class="input-group"><label for="porcentaje_anticipo">Anticipo habitual (%)</label><input id="porcentaje_anticipo" min="0" max="100" value="0" type="number"/></div>
-<div class="input-group"><label for="garantia_servicio">Garantía ofrecida</label><input id="garantia_servicio" maxlength="160" placeholder="Ej: 6 meses por fallas de instalación" type="text"/></div>
-<div class="input-group full-width"><label for="condiciones_pago">Explica tus condiciones de pago</label><textarea id="condiciones_pago" maxlength="500" placeholder="Ej: 30% al iniciar, 40% al completar la obra gruesa y 30% contra entrega."></textarea></div>
+<div class="input-group"><label for="porcentaje_anticipo">Anticipo habitual (%)</label><input id="porcentaje_anticipo" min="0" max="100" value="0" type="number" name="porcentaje_anticipo"/></div>
+<div class="input-group"><label for="garantia_servicio">Garantía ofrecida</label><input id="garantia_servicio" maxlength="160" placeholder="Ej: 6 meses por fallas de instalación" type="text" name="garantia_servicio"/></div>
+<div class="input-group full-width"><label for="condiciones_pago">Explica tus condiciones de pago</label><textarea id="condiciones_pago" maxlength="500" placeholder="Ej: 30% al iniciar, 40% al completar la obra gruesa y 30% contra entrega." name="condiciones_pago"></textarea></div>
 </div>
 </div>
 
 <h3 style="font-size: 1.2rem; margin-top: 30px; color: var(--text); border-bottom: 2px solid var(--border); padding-bottom: 10px;">4. Términos y Condiciones</h3>
 <div class="checkbox-group">
-<input id="emite_factura" type="checkbox"/>
+<input id="emite_factura" type="checkbox" name="emite_factura"/>
 <label for="emite_factura">Emito Boleta de Honorarios o Factura</label>
 </div>
 <div class="checkbox-group">
-<input checked="" id="acepta_proyectos_tpl" type="checkbox"/>
+<input checked="" id="acepta_proyectos_tpl" type="checkbox" name="acepta_proyectos_tpl"/>
 <label for="acepta_proyectos_tpl">Acepto recibir proyectos y oportunidades derivadas por TPL</label>
 </div>
 <div class="checkbox-group">
-<input id="trabaja_bajo_marca_tpl" type="checkbox"/>
+<input id="trabaja_bajo_marca_tpl" type="checkbox" name="trabaja_bajo_marca_tpl"/>
 <label for="trabaja_bajo_marca_tpl">Me interesa trabajar temporalmente bajo la marca "Tu Parcela Lista" (Marca Blanca)</label>
 </div>
 <div aria-label="Consentimientos obligatorios" class="legal-consents">
 <div class="checkbox-group">
-<input id="acepta_terminos" required="" type="checkbox"/>
-<label for="acepta_terminos">Acepto los <a href="../terminos.html" rel="noopener" target="_blank">Términos de la Red Partner</a>.</label>
+<input id="acepta_terminos" required="" type="checkbox" name="acepta_terminos"/>
+<label for="acepta_terminos">Acepto los <a href="terminos-red-partner.html" rel="noopener" target="_blank">Términos de la Red Partner</a>.</label>
 </div>
 <div class="checkbox-group">
-<input id="acepta_privacidad" required="" type="checkbox"/>
-<label for="acepta_privacidad">Acepto la <a href="../politica-privacidad.html" rel="noopener" target="_blank">Política de Privacidad</a> y el tratamiento de mis datos.</label>
+<input id="acepta_privacidad" required="" type="checkbox" name="acepta_privacidad"/>
+<label for="acepta_privacidad">Acepto la <a href="privacidad-red-partner.html" rel="noopener" target="_blank">Política de Privacidad</a> y el tratamiento de mis datos.</label>
 </div>
 <div class="checkbox-group">
-<input id="autoriza_contacto" required="" type="checkbox"/>
+<input id="autoriza_contacto" required="" type="checkbox" name="autoriza_contacto"/>
 <label for="autoriza_contacto">Autorizo a Tu Parcela Lista a contactarme para revisar esta postulación.</label>
 </div>
 </div>
-<p class="plan-notice">Tu postulación no tiene cobro inicial. Al ser aprobada recibirás un enlace de bienvenida para ingresar a TPL Business y conocer las herramientas disponibles.</p>
+<p class="plan-notice">Tu postulación no tiene cobro inicial. Los planes mostrados representan interés comercial y no generan un cobro automático. Si eres aprobado, TPL te contactará antes de activar cualquier servicio pagado.</p>
+<section class="partner-case-section" aria-labelledby="case-title">
+<h3 id="case-title">Caso práctico de tu servicio</h3>
+<p>Queremos entender cómo trabajas en una situación real. Responde con tus palabras; después TPL podrá ordenar la información en una ficha clara para el cliente.</p>
+<div class="input-group full-width">
+<label for="caso_escenario">Caso sugerido</label>
+<select id="caso_escenario" name="caso_escenario"><option value="">Selecciona primero tu tipo de servicio…</option></select>
+</div>
+<div class="input-group full-width">
+<label for="caso_respuesta">¿Cómo resolverías este caso?</label>
+<textarea id="caso_respuesta" minlength="80" maxlength="2500" placeholder="Explica qué preguntarías al cliente, qué solución propondrías, etapas, precio o forma de cobro, anticipo, plazos, traslado, qué incluye, qué no incluye y garantía." name="caso_respuesta"></textarea>
+<small class="field-help">No necesitas escribir de forma perfecta. Lo importante es explicar honestamente cómo trabajas.</small>
+</div>
+</section>
 <div aria-live="polite" class="form-status" id="form-status" role="status"></div>
+<div class="partner-form-actions">
+<button class="btn-save-draft" id="btn-save-draft" type="button">Guardar y continuar después</button>
 <button class="btn-submit" id="btn-submit" type="submit">Enviar postulación a revisión</button>
+</div>
+<p class="draft-help" id="draft-help">Al guardar recibirás un enlace recuperable que también puedes enviarte por correo.</p>
 </form>
 </div>
 </div>
-<script src="postular.js?v=20260731-1" type="module"></script>
+<script src="postular.js?v=20260804-2" type="module"></script>
 
 
 

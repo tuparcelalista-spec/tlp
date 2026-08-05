@@ -9,6 +9,7 @@
     loading: false,
     uf: null,
     command: null,
+    operationalInbox: { items: [], totales: {} },
     universalQuery: '',
     recentValuations: new Map(),
     handledTasaciones: new Set(),
@@ -28,7 +29,7 @@
     ['Centro de Operaciones', [
       ['inicio', 'Resumen ejecutivo'],
       ['operaciones', 'Proyectos y operaciones'],
-      ['revision', 'Bandeja de revisión'],
+      ['revision', 'Bandeja operativa'],
       ['tareas', 'Tareas y prioridades']
     ]],
     ['Personas', [
@@ -346,32 +347,47 @@
   }
 
   function reviewView() {
-    const rows = arr('publicaciones_revision');
+    const inbox = state.operationalInbox || { items: [], totales: {} };
+    const rows = Array.isArray(inbox.items) ? inbox.items : [];
+    const totals = inbox.totales || {};
+    const priorityOrder = { urgente: 0, alta: 1, media: 2, baja: 3 };
+    const sorted = [...rows].sort((a,b) =>
+      (priorityOrder[a.prioridad] ?? 9) - (priorityOrder[b.prioridad] ?? 9) ||
+      new Date(a.fecha_relevante || 0) - new Date(b.fecha_relevante || 0)
+    );
+    const icon = (type) => ({
+      publicacion:'🏷️', tarea:'✅', partner:'🏢', borrador_partner:'🧩',
+      borrador_publicador:'📝', actualizacion_propietario:'📷', comunicacion:'✉️', informe:'📊'
+    }[type] || '•');
     return `
       <div class="toolbar">
         <div>
-          <h2>Publicaciones por revisar</h2>
-          <p class="muted">Nada llega al catálogo público hasta que TPL lo aprueba.</p>
+          <small>CENTRO DE OPERACIONES</small>
+          <h2>Bandeja operativa única</h2>
+          <p class="muted">Todo lo que requiere acción: propiedades, fotografías, borradores, empresas, mensajes e informes.</p>
         </div>
         <button class="primary" data-action="refresh">Actualizar</button>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Código</th><th>Tipo</th><th>Estado</th><th>Recibida</th><th>Acción</th></tr></thead>
-          <tbody>
-            ${rows.map((r) => `
-              <tr>
-                <td>${esc(r.codigo || r.id)}</td>
-                <td>${esc(r.tipo)}</td>
-                <td>${pill(r.estado)}</td>
-                <td>${fmtDate(r.created_at)}</td>
-                <td>
-                  <button class="primary small" data-approve="${esc(r.id)}">Aprobar y publicar</button>
-                  <button class="nav-btn detail-btn" data-detail-key="publicaciones_revision" data-detail-id="${esc(r.id)}">Ver</button><button class="studio-mini-btn" data-studio-key="publicaciones_revision" data-studio-id="${esc(r.id)}">Material premium</button>
-                </td>
-              </tr>`).join('') || '<tr><td colspan="5">No hay publicaciones pendientes.</td></tr>'}
-          </tbody>
-        </table>
+      <div class="metric-grid operational-metrics">
+        ${metric('Pendientes', totals.total || sorted.length, 'acciones abiertas')}
+        ${metric('Prioridad alta', Number(totals.altas || 0) + Number(totals.urgentes || 0), 'resolver primero')}
+        ${metric('Propiedades', totals.propiedades || 0, 'borradores o actualizaciones')}
+        ${metric('Empresas', totals.partners || 0, 'postulaciones o perfiles')}
+      </div>
+      <div class="operational-inbox">
+        ${sorted.map((r) => `
+          <article class="operational-item priority-${esc(r.prioridad || 'media')}">
+            <div class="operational-icon" aria-hidden="true">${icon(r.tipo)}</div>
+            <div class="operational-copy">
+              <div class="operational-heading"><strong>${esc(r.titulo || 'Pendiente')}</strong>${pill(r.prioridad)}</div>
+              <p>${esc(r.detalle || 'Revisar registro')}</p>
+              <small>${esc(String(r.tipo || '').replaceAll('_',' '))} · ${fmtDate(r.fecha_relevante)}</small>
+            </div>
+            <div class="operational-actions">
+              ${r.tipo === 'publicacion' ? `<button class="primary small" data-approve="${esc(r.referencia_id)}">Aprobar y publicar</button>` : ''}
+              <button class="nav-btn" data-view="${esc(r.destino || 'inicio')}">Abrir módulo</button>
+            </div>
+          </article>`).join('') || '<div class="card empty"><h3>Todo al día</h3><p class="muted">No hay acciones operativas pendientes.</p></div>'}
       </div>`;
   }
 
@@ -1000,6 +1016,7 @@
                 <button class="report-premium-btn" data-premium-report="${esc(r.id)}" ${propertyHasValuation(r)?'':'disabled title="Primero debes tasar esta propiedad"'}>Informe Premium</button>
                 <details class="catalog-more"><summary>Más acciones</summary><div>
                   <button class="nav-btn detail-btn" data-preview-key="parcelas" data-preview-id="${esc(r.id)}">Vista CRM</button>
+                  <button class="owner-link-btn" data-owner-link="${esc(r.id)}">Link formulario</button>
                   <button class="studio-mini-btn" data-studio-key="parcelas" data-studio-id="${esc(r.id)}">TPL Studio</button>
                 </div></details>
               </div>
@@ -1152,6 +1169,7 @@
       }
 
       try { state.command = await window.TPLDataService.getCrmCommandCenter(); } catch (commandError) { console.warn('CRM Command Center no disponible:', commandError); state.command = null; }
+      try { state.operationalInbox = await window.TPLDataService.getCrmOperationalInbox(); } catch (inboxError) { console.warn('Bandeja operativa no disponible:', inboxError); state.operationalInbox = { items: [], totales: {} }; }
       const snapshot = await window.TPLDataService.getCrmSnapshot();
       state.snapshot = snapshot;
       try { state.uf = await window.TPLDataService.getUfConfig(); } catch (error) { console.warn('CRM TPL: UF no disponible.', error); state.uf = null; }
@@ -1268,6 +1286,29 @@
       const record = detailFor('parcelas', tasarFull.dataset.crmTasarFull);
       if (!record) return alert('No pudimos recuperar la parcela.');
       openCrmTasador(record, { full: true, openReport: true, mode: 'precisa' });
+      return;
+    }
+
+    const ownerLink = event.target.closest('[data-owner-link]');
+    if (ownerLink) {
+      ownerLink.disabled = true;
+      const original = ownerLink.textContent;
+      ownerLink.textContent = 'Generando…';
+      try {
+        const result = await window.TPLDataService.generateOwnerLink(ownerLink.dataset.ownerLink, 30);
+        const url = new URL(appPath('mi-parcela.html'), window.location.origin);
+        url.searchParams.set('t', result.token);
+        await navigator.clipboard.writeText(url.href);
+        ownerLink.textContent = '¡Link copiado!';
+        alert(`Enlace seguro copiado. Vence el ${new Intl.DateTimeFormat('es-CL',{dateStyle:'long'}).format(new Date(result.expires_at))}.`);
+      } catch (error) {
+        console.error(error);
+        alert(error?.message || 'No fue posible generar el enlace.');
+        ownerLink.textContent = original;
+      } finally {
+        ownerLink.disabled = false;
+        setTimeout(() => { ownerLink.textContent = original; }, 2200);
+      }
       return;
     }
 

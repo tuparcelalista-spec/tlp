@@ -6,6 +6,10 @@
 
   function getClient() {
     if (client) return client;
+    if (window.tplCoreSupabase?.auth && window.TPLDataService?.config?.url === config?.supabaseUrl) {
+      client = window.tplCoreSupabase;
+      return client;
+    }
     if (!config?.supabaseUrl || !config?.supabaseAnonKey || !window.supabase?.createClient) {
       throw new Error('TPL Business no pudo inicializar la conexión segura.');
     }

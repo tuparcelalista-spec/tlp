@@ -7,6 +7,10 @@ const on=(selector,event,handler)=>{const el=typeof selector==='string'?$(select
 const KEY='tpl_frontend_v2_publicador_draft_v1';
 const REPORTS_KEY='tpl_frontend_v2_tasaciones_v1';
 const SUBMISSIONS_KEY='tpl_frontend_v2_publicaciones_v1';
+const REMOTE_DRAFT_TOKEN_KEY='tpl_publicador_remote_draft_token_v1';
+let remoteDraftToken=new URLSearchParams(location.search).get('draft')||localStorage.getItem(REMOTE_DRAFT_TOKEN_KEY)||'';
+let remoteDraftSaving=false;
+let remoteDraftLastSaved='';
 const stepNames=['Propiedad','Características','Precio y tasación','Fotografías','Descripción','Contacto','Revisión'];
 let current=0;
 let photos=[];
@@ -138,6 +142,39 @@ function data(){
   valuation,photoNames:photos.map(p=>p.name),updatedAt:new Date().toISOString()
  };
 }
+
+function diagnosticPrecision(){
+ const d=data(); let points=0,total=15;
+ if(d.tipo)points++;
+ if(d.region)points++;
+ if(d.comuna)points++;
+ if(Number(d.superficie)>0)points++;
+ if(d.terreno?.rol)points++;
+ if(d.terreno?.agua)points++;
+ if(d.terreno?.luz)points++;
+ if(d.terreno?.acceso)points++;
+ if(d.terreno?.topografia)points++;
+ if(d.coords||d.distanciaComuna!==null)points++;
+ if(Number(d.precio)>0)points++;
+ if(d.estrategia?.urgencia)points++;
+ if(d.titulo)points++;
+ if((d.descripcion||'').trim().length>=120)points++;
+ if(d.contacto?.email&&d.contacto?.telefono)points++;
+ if(d.casa){total++;if(Number(d.casa.superficie)>0)points++;}
+ return Math.max(8,Math.min(100,Math.round(points/total*100)));
+}
+function updateDiagnosticMotivation(){
+ const precision=diagnosticPrecision();
+ const number=$('#diagnosticPrecision'),text=$('#diagnosticMotivationText');
+ if(number)number.textContent=`${precision}%`;
+ if(!text)return;
+ if(precision<35)text.textContent='Completa ubicación, superficie y servicios para habilitar una primera comparación de valor.';
+ else if(precision<60)text.textContent='Vas bien. Con acceso, agua, electricidad y topografía mejorará mucho la estimación.';
+ else if(precision<80)text.textContent='Ya tenemos información suficiente para una tasación preliminar. Sigue para aumentar su precisión.';
+ else if(precision<95)text.textContent='Excelente. Ya podemos comparar tu expectativa de precio con una referencia TPL bien fundamentada.';
+ else text.textContent='Diagnóstico muy completo. Tu ficha está bien preparada para tasar, publicar y alimentar el CRM.';
+}
+
 function fill(d){
  if(!d)return;
  const set=(sel,val)=>{const el=$(sel);if(el&&val!==undefined&&val!==null)el.value=val};
@@ -167,6 +204,7 @@ function fill(d){
  valuation=null;
  resetValuationDisplay();
  toggleHouseFields();
+ updateDiagnosticMotivation();
 }
 function normalizeCoords(lat,lng){
  const a=Number(lat),b=Number(lng);
@@ -247,10 +285,57 @@ function initMapPicker(){
  if(link)link.addEventListener('change',()=>{const parsed=coordsFromMapsValue(link.value);if(parsed){coords=parsed;mapPendingCoords=parsed;paintCoordinates(parsed,{updateLink:false});if(parcelMap)setMapMarker(parsed)}else if(link.value.trim()){const s=$('#geoStatus');if(s){s.textContent='Enlace guardado. Si quieres precisar el punto, usa “Ubicar en mapa”.';s.classList.remove('location-selected')}}saveDraft()});
  if(coords){mapPendingCoords={...coords};paintCoordinates(coords,{updateLink:false,status:false})}
 }
-function saveDraft(show=false){
- writeJSON(KEY,data());
- $('#draftStatus').textContent=`Guardado ${new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}`;
- if(show) $('#draftStatus').textContent='Borrador guardado correctamente';
+function localDraftPayload(){
+ const payload=data();
+ payload.photoNames=photos.map(p=>p.name);
+ delete payload.valuation;
+ return payload;
+}
+function validDraftEmail(){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valueOf('#email'))}
+function recoveryUrl(token){const url=new URL(location.href);url.searchParams.set('draft',token);url.hash='';return url.toString()}
+async function saveRemoteDraft({show=false}={}){
+ if(remoteDraftSaving||!validDraftEmail()||!window.TPLDataService?.savePublisherDraft)return null;
+ const snapshot=JSON.stringify(localDraftPayload());
+ if(!show&&snapshot===remoteDraftLastSaved)return null;
+ remoteDraftSaving=true;
+ try{
+  const result=await window.TPLDataService.savePublisherDraft(localDraftPayload(),remoteDraftToken||null);
+  remoteDraftToken=result.token||remoteDraftToken;
+  remoteDraftLastSaved=snapshot;
+  if(remoteDraftToken){
+   localStorage.setItem(REMOTE_DRAFT_TOKEN_KEY,remoteDraftToken);
+   const url=new URL(location.href);url.searchParams.set('draft',remoteDraftToken);history.replaceState(null,'',url);
+  }
+  const status=$('#draftStatus');if(status)status.textContent=`Guardado en TPL ${new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}`;
+  return result;
+ }catch(error){console.warn('Borrador remoto pendiente:',error);return null}
+ finally{remoteDraftSaving=false}
+}
+async function saveDraft(show=false){
+ writeJSON(KEY,localDraftPayload());
+ const status=$('#draftStatus');if(status)status.textContent=`Guardado ${new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}`;
+ const remote=await saveRemoteDraft({show});
+ if(show){
+  if(remote?.token){
+   const link=recoveryUrl(remote.token);
+   try{await navigator.clipboard.writeText(link)}catch{}
+   if(status)status.textContent='Borrador guardado en TPL · enlace copiado';
+   alert('Borrador guardado. Copiamos un enlace privado para continuar desde otro dispositivo.');
+  }else if(validDraftEmail()){
+   if(status)status.textContent='Borrador local guardado · sincronización pendiente';
+  }else{
+   if(status)status.textContent='Borrador local guardado · agrega tu correo para recuperarlo en otro dispositivo';
+  }
+ }
+ return remote;
+}
+async function restoreRemoteDraft(){
+ if(!remoteDraftToken||!window.TPLDataService?.loadPublisherDraft)return null;
+ try{
+  const result=await window.TPLDataService.loadPublisherDraft(remoteDraftToken);
+  if(result?.payload){writeJSON(KEY,result.payload);return result.payload}
+ }catch(error){console.warn('No fue posible recuperar el borrador remoto.',error)}
+ return null;
 }
 function validateStep(step){
  const pane=$(`.wizard-step[data-step="${step}"]`);
@@ -272,9 +357,12 @@ function showStep(next){
  current=Math.max(0,Math.min(6,next));
  $$('.wizard-step').forEach((el,i)=>el.classList.toggle('is-active',i===current));
  $$('.step-link').forEach((el,i)=>{el.classList.toggle('is-active',i===current);el.classList.toggle('is-done',i<current)});
- $('#progressText').textContent=`Paso ${current+1} de 7`;
- $('#mobileStepLabel').textContent=`Paso ${current+1} de 7`;
+ const precision=diagnosticPrecision();
+ const journeyLabels=['Conociendo tu propiedad','Mejorando la precisión','Listo para comparar valor','Preparando evidencia','Fortaleciendo el anuncio','Vinculando responsable','Activando el ecosistema'];
+ $('#progressText').textContent=journeyLabels[current];
+ $('#mobileStepLabel').textContent=`Precisión estimada ${precision}%`;
  $('#mobileStepName').textContent=stepNames[current];
+ updateDiagnosticMotivation();
  $('#stepCounter').textContent=`${current+1} / 7`;
  $('#progressBar').style.width=`${((current+1)/7)*100}%`;
  $('#prevBtn').disabled=current===0;
@@ -813,6 +901,7 @@ async function submit(e){
   }
 
   localStorage.removeItem(KEY);
+  if(remoteDraftToken){try{await window.TPLDataService?.revokePublisherDraft?.(remoteDraftToken)}catch{}localStorage.removeItem(REMOTE_DRAFT_TOKEN_KEY);remoteDraftToken='';}
 
   // La tasación del publicador se convierte en la fuente canónica de la propiedad recién creada.
   if(valuation && window.TPLTasadorSupabase?.canonical && window.TPLDataService?.registerTerritorialAnalysis){
@@ -839,10 +928,15 @@ async function submit(e){
    onboarding={ok:false,error:onboardingError?.message||'Activación pendiente'};
   }
 
+  let ecosystem=null;
+  try{
+   ecosystem=await window.TPLDataService.getPublicationEcosystemStatus?.(result.publicacion_id,result.propiedad_id);
+  }catch(ecosystemError){console.warn('Publicación guardada; verificación del ecosistema pendiente:',ecosystemError)}
+
   if(status){
    const needs=Number(result.necesidades_detectadas||0);
    status.textContent=onboarding?.ok
-    ? `Publicación ${result.codigo} recibida · Plan Gratis activado · correos enviados${needs?` · ${needs} necesidad${needs===1?'':'es'} detectada${needs===1?'':'s'}`:''}.`
+    ? `Publicación ${result.codigo} recibida · Plan Gratis activado · correos enviados${needs?` · ${needs} necesidad${needs===1?'':'es'} detectada${needs===1?'':'s'}`:''}${ecosystem?.ok?' · Ficha Maestra y CRM conectados':''}.`
     : `Publicación ${result.codigo} recibida correctamente. El acceso y los correos quedaron pendientes de reintento; la publicación no se perdió.`;
   }
   if(btn)btn.textContent='Enviada correctamente ✓';
@@ -933,8 +1027,8 @@ const buyReportBtn=$('#buyProfessionalReportBtn');if(buyReportBtn)buyReportBtn.o
 const reportOrderForm=$('#reportOrderForm');if(reportOrderForm)reportOrderForm.addEventListener('submit',submitReportOrder);
 const closeReportOrder=$('#closeReportOrder');if(closeReportOrder)closeReportOrder.onclick=()=>$('#reportOrderDialog')?.close();
 const cancelReportOrder=$('#cancelReportOrder');if(cancelReportOrder)cancelReportOrder.onclick=()=>$('#reportOrderDialog')?.close();
-const form=$('#publisherForm');if(form){form.addEventListener('input',()=>{clearTimeout(window.__tplDraftTimer);window.__tplDraftTimer=setTimeout(saveDraft,450)});form.onsubmit=submit;}
+const form=$('#publisherForm');if(form){form.addEventListener('input',()=>{updateDiagnosticMotivation();clearTimeout(window.__tplDraftTimer);window.__tplDraftTimer=setTimeout(saveDraft,450)});form.onsubmit=submit;}
 $$('input[name="tipo"]').forEach(el=>el.addEventListener('change',toggleHouseFields));
 const luzDetalle=$('#luzDetalle'),distanciaPosteWrap=$('#distanciaPosteWrap');const syncPoleDistance=()=>{if(distanciaPosteWrap)distanciaPosteWrap.hidden=!/factibilidad|postación|postacion/i.test(luzDetalle?.value||'')};on('#luzDetalle','change',syncPoleDistance);syncPoleDistance();
-(async()=>{await initTerritory();fill(readJSON(KEY,null));toggleHouseFields();showStep(0)})();
+(async()=>{await initTerritory();const remote=await restoreRemoteDraft();fill(remote||readJSON(KEY,null));toggleHouseFields();showStep(0)})();
 })();

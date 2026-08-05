@@ -109,3 +109,13 @@
 .report-order-consent{grid-template-columns:auto 1fr!important;align-items:start;font-weight:500!important;font-size:.9rem;line-height:1.45}.report-order-consent input{width:auto;margin-top:3px}
 .report-order-status{min-height:1.2em;font-size:.9rem;font-weight:700}.report-order-status.is-error{color:#a42a2a}.report-order-status.is-success{color:#14733c}
 .report-preview-watermark{position:relative}.report-preview-watermark::before{content:'VISTA PREVIA · NO VÁLIDO COMO INFORME EMITIDO';position:sticky;top:10px;display:block;z-index:3;margin:10px auto -42px;width:max-content;max-width:90%;padding:7px 12px;border-radius:999px;background:rgba(255,244,198,.94);color:#6b5210;font-size:.72rem;font-weight:800;letter-spacing:.04em;text-align:center}
+
+
+/* Diagnóstico motivacional TPL */
+.valuation-motivation{margin:0 0 18px;padding:14px 16px;border:1px solid rgba(17,71,120,.16);border-radius:16px;background:linear-gradient(135deg,#f7fbff,#fffdf4);box-shadow:0 8px 22px rgba(17,71,120,.06)}
+.valuation-motivation>div{display:flex;justify-content:space-between;gap:16px;align-items:center}
+.valuation-motivation span{font-size:.82rem;font-weight:700;color:#36536d}
+.valuation-motivation strong{font-size:1.3rem;color:#0f4c81}
+.valuation-motivation p{margin:7px 0 0;color:#52677a;font-size:.9rem;line-height:1.45}
+.save-secondary{opacity:.82}
+.ecosystem-confirmation{margin-top:12px;padding:12px 14px;border-radius:14px;background:#effaf3;color:#235b35;font-size:.9rem}

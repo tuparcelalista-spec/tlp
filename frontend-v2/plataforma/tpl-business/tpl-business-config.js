@@ -1,11 +1,13 @@
 (function (window) {
   'use strict';
 
+  const runtimeConfig = window.TPL_CONFIG || {};
+
   window.tplBusiness = Object.freeze({
     infrastructure: Object.freeze({
-      supabaseUrl: 'https://qxavbqhyqaqalpzbhwmh.supabase.co',
-      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
-      storageKey: 'sb-qxavbqhyqaqalpzbhwmh-auth-token',
+      supabaseUrl: runtimeConfig.supabaseUrl || 'https://hwyscirbycojwndyzozn.supabase.co',
+      supabaseAnonKey: runtimeConfig.supabasePublishableKey || 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
+      storageKey: runtimeConfig.supabaseStorageKey || 'sb-hwyscirbycojwndyzozn-auth-token',
       clientInfo: 'tu-parcela-lista-tpl-business',
       portalPath: window.location.pathname.startsWith('/frontend-v2/')
         ? '/frontend-v2/plataforma/tpl-business/'

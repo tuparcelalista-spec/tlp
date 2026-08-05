@@ -1,2 +1,79 @@
-.vercel
-.env*
+# =========================
+# Dependencias
+# =========================
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+
+# =========================
+# Variables de entorno
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Vercel
+# =========================
+.vercel/
+
+# =========================
+# Supabase temporales
+# =========================
+supabase/.temp/
+
+# =========================
+# Auditorías
+# =========================
+AUDITORIA-*.md
+AUDITORIA-*.txt
+
+# =========================
+# Documentación temporal
+# =========================
+IMPLEMENTACION-*
+INSTRUCCIONES-*
+LEEME-*
+
+# =========================
+# Reportes
+# =========================
+INFORME-*.md
+
+# =========================
+# Pruebas
+# =========================
+*-contract-tests.mjs
+
+# =========================
+# Sistema
+# =========================
+.DS_Store
+Thumbs.db
+# Auditorías
+AUDITORIA-*.md
+AUDITORIA-*.txt
+
+# Documentación temporal
+IMPLEMENTACION-*
+INSTRUCCIONES-*
+LEEME-*
+
+# Pruebas temporales
+*-contract-tests.mjs
+
+# Temporales Supabase
+supabase/.temp/
+
+# Variables privadas
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Sistema
+Thumbs.db
+.DS_Store

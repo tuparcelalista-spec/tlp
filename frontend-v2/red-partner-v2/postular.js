@@ -14,9 +14,19 @@ function addRepeatableRow(containerId, placeholder, value = '') {
   if (!container) return;
   const row = document.createElement('div');
   row.className = 'repeatable-row';
-  row.innerHTML = `<span class="row-number"></span><input type="text" maxlength="140" placeholder="${placeholder}"><button type="button" aria-label="Eliminar">×</button>`;
-  row.querySelector('input').value = value;
-  row.querySelector('button').addEventListener('click', () => { row.remove(); renumber(container); });
+  const number = document.createElement('span');
+  number.className = 'row-number';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 140;
+  input.placeholder = placeholder;
+  input.value = value;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.setAttribute('aria-label', 'Eliminar');
+  remove.textContent = '×';
+  remove.addEventListener('click', () => { row.remove(); renumber(container); updateProfileScore(); });
+  row.append(number, input, remove);
   container.appendChild(row);
   renumber(container);
 }
@@ -27,9 +37,29 @@ function addStructuredStage(value = {}) {
   if (!container) return;
   const row = document.createElement('div');
   row.className = 'repeatable-row structured';
-  row.innerHTML = `<span class="row-number"></span><input data-field="etapa" type="text" maxlength="140" placeholder="Etapa: visita, cotización, ejecución…"><input data-field="duracion" type="text" maxlength="60" placeholder="Duración"><input data-field="evidencia" type="text" maxlength="180" placeholder="Qué se entregó o verificó"><button type="button" aria-label="Eliminar">×</button>`;
-  for (const input of row.querySelectorAll('input')) input.value = value[input.dataset.field] || '';
-  row.querySelector('button').addEventListener('click', () => { row.remove(); renumber(container); updateProfileScore(); });
+  const number = document.createElement('span');
+  number.className = 'row-number';
+  const fields = [
+    ['etapa', 140, 'Etapa: visita, cotización, ejecución…'],
+    ['duracion', 60, 'Duración'],
+    ['evidencia', 180, 'Qué se entregó o verificó']
+  ];
+  row.appendChild(number);
+  for (const [field, maxLength, placeholder] of fields) {
+    const input = document.createElement('input');
+    input.dataset.field = field;
+    input.type = 'text';
+    input.maxLength = maxLength;
+    input.placeholder = placeholder;
+    input.value = value[field] || '';
+    row.appendChild(input);
+  }
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.setAttribute('aria-label', 'Eliminar');
+  remove.textContent = '×';
+  remove.addEventListener('click', () => { row.remove(); renumber(container); updateProfileScore(); });
+  row.appendChild(remove);
   container.appendChild(row); renumber(container);
 }
 function structuredStageValues() {
@@ -63,6 +93,12 @@ proposalInput?.addEventListener('input', () => {
 
 const submitButton = document.getElementById('btn-submit');
 const statusBox = document.getElementById('form-status');
+const saveDraftButton = document.getElementById('btn-save-draft');
+const saveBasicButton = document.getElementById('btn-save-basic');
+if (saveBasicButton) saveBasicButton.addEventListener('click', () => saveDraftButton?.click());
+
+let draftToken = new URLSearchParams(location.search).get('continuar') || localStorage.getItem('tpl_partner_draft_token') || '';
+let suggestedCases = [];
 
 function setStatus(message, type = 'info') {
   statusBox.textContent = message;
@@ -90,8 +126,7 @@ function validateFile(file, label) {
 function validateFormFiles() {
   const logo = document.getElementById('logo_file').files[0];
   const gallery = [...document.getElementById('gallery_files').files];
-  if (!logo) throw new Error('Debes seleccionar un logo o fotografía principal.');
-  validateFile(logo, 'Logo');
+  if (logo) validateFile(logo, 'Logo');
   if (gallery.length > MAX_GALLERY) throw new Error(`Puedes subir como máximo ${MAX_GALLERY} imágenes de trabajos.`);
   gallery.forEach((file, index) => validateFile(file, `Imagen ${index + 1}`));
   return { logo, gallery };
@@ -117,7 +152,8 @@ async function callRpc(name, body) {
       CONSENTIMIENTOS_REQUERIDOS: 'Debes aceptar los consentimientos obligatorios.',
       DESCRIPCION_MUY_CORTA: 'Describe tus servicios con al menos 40 caracteres.',
       CORREO_INVALIDO: 'Revisa el correo electrónico.',
-      WHATSAPP_INVALIDO: 'Revisa el número de WhatsApp.'
+      WHATSAPP_INVALIDO: 'Revisa el número de WhatsApp.',
+      LIMITE_INTENTOS_PARTNER: 'Se alcanzó el límite de intentos para este correo. Inténtalo nuevamente mañana o contacta a TPL.'
     };
     const friendly = Object.entries(messages).find(([key]) => raw.includes(key))?.[1] || 'No fue posible enviar la postulación. Revisa los datos e inténtalo nuevamente.';
     throw new Error(friendly);
@@ -204,6 +240,12 @@ function buildPayload() {
     porcentaje_anticipo: Number(document.getElementById('porcentaje_anticipo')?.value || 0),
     garantia_servicio: document.getElementById('garantia_servicio')?.value.trim() || 'No informada',
     condiciones_pago: document.getElementById('condiciones_pago')?.value.trim() || '',
+    caso_practico: {
+      codigo: document.getElementById('caso_escenario')?.value || '',
+      titulo: document.getElementById('caso_escenario')?.selectedOptions?.[0]?.textContent || '',
+      escenario: document.getElementById('caso_escenario')?.selectedOptions?.[0]?.dataset?.scenario || '',
+      respuesta: document.getElementById('caso_respuesta')?.value.trim() || ''
+    },
     ultimo_trabajo: {
       nombre: document.getElementById('ultimo_trabajo_nombre')?.value.trim() || '',
       ubicacion: document.getElementById('ultimo_trabajo_ubicacion')?.value.trim() || '',
@@ -213,6 +255,141 @@ function buildPayload() {
     }
   };
 }
+
+
+function pendingFields(payload) {
+  const required = [
+    ['nombre_comercial','Nombre de empresa'],['nombre_responsable','Responsable'],['correo','Correo'],
+    ['whatsapp','WhatsApp'],['descripcion_servicios','Descripción'],['tipo_servicio','Tipo de servicio'],
+    ['region','Región'],['comunas_atendidas','Cobertura'],['diferenciacion','Diferenciación']
+  ];
+  return required.filter(([key]) => {
+    const value = payload[key];
+    return Array.isArray(value) ? !value.length : !String(value || '').trim();
+  }).map(([,label]) => label);
+}
+
+function replaceRepeatableRows(containerId, values, placeholder) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.replaceChildren();
+  const list = Array.isArray(values) && values.length ? values : [''];
+  for (const value of list) addRepeatableRow(containerId, placeholder, value);
+}
+
+function replaceStructuredStages(values) {
+  const container = document.getElementById('last-job-stages-list');
+  if (!container) return;
+  container.replaceChildren();
+  const list = Array.isArray(values) && values.length ? values : [{}];
+  for (const value of list) addStructuredStage(value);
+}
+
+function fillSimplePayload(payload = {}) {
+  const map = ['nombre_comercial','nombre_responsable','telefono','whatsapp','correo','descripcion_servicios','propuesta_corta','diferenciacion','tipo_servicio','region','anos_experiencia','disponibilidad','porcentaje_anticipo','garantia_servicio','condiciones_pago'];
+  for (const id of map) {
+    const node = document.getElementById(id);
+    if (node && payload[id] !== undefined && payload[id] !== null) node.value = payload[id];
+  }
+  if (Array.isArray(payload.especialidades)) document.getElementById('especialidades').value = payload.especialidades.join(', ');
+  if (Array.isArray(payload.comunas_atendidas)) document.getElementById('comunas_atendidas').value = payload.comunas_atendidas.join(', ');
+  for (const id of ['emite_factura','acepta_proyectos_tpl','trabaja_bajo_marca_tpl','acepta_terminos','acepta_privacidad','autoriza_contacto']) {
+    const node = document.getElementById(id);
+    if (node && payload[id] !== undefined) node.checked = Boolean(payload[id]);
+  }
+  replaceRepeatableRows('activities-list', payload.actividades, 'Ej: Construcción de radier');
+  replaceRepeatableRows('service-stages-list', payload.etapas_servicio, 'Ej: Visita y evaluación inicial');
+  replaceStructuredStages(payload.ultimo_trabajo?.etapas);
+  for (const input of document.querySelectorAll('#payment-options input')) {
+    input.checked = Array.isArray(payload.modalidades_pago) && payload.modalidades_pago.includes(input.value);
+  }
+  const plan = document.getElementById('plan_solicitado');
+  if (plan && payload.plan_solicitado) plan.value = payload.plan_solicitado;
+  const nestedMap = {
+    ultimo_trabajo_nombre: payload.ultimo_trabajo?.nombre,
+    ultimo_trabajo_ubicacion: payload.ultimo_trabajo?.ubicacion,
+    ultimo_trabajo_duracion: payload.ultimo_trabajo?.duracion,
+    ultimo_trabajo_resultado: payload.ultimo_trabajo?.resultado,
+    caso_respuesta: payload.caso_practico?.respuesta
+  };
+  for (const [id, value] of Object.entries(nestedMap)) {
+    const node = document.getElementById(id);
+    if (node && value !== undefined && value !== null) node.value = value;
+  }
+  updateProfileScore();
+}
+
+async function loadSuggestedCases() {
+  const type = document.getElementById('tipo_servicio')?.value || '';
+  const select = document.getElementById('caso_escenario');
+  if (!select) return;
+  if (!type) { select.innerHTML='<option value="">Selecciona primero tu tipo de servicio…</option>'; return; }
+  try {
+    suggestedCases = await callRpc('tpl_casos_sugeridos_servicio_v1',{p_tipo_servicio:type});
+    select.replaceChildren();
+    const initial = document.createElement('option');
+    initial.value = '';
+    initial.textContent = 'Selecciona un caso…';
+    select.appendChild(initial);
+    for (const item of Array.isArray(suggestedCases) ? suggestedCases : []) {
+      const option = document.createElement('option');
+      option.value = String(item.codigo || '');
+      option.textContent = String(item.titulo || 'Caso práctico');
+      option.dataset.scenario = String(item.escenario || '');
+      select.appendChild(option);
+    }
+  } catch (error) { console.warn('No fue posible cargar casos sugeridos', error); }
+}
+document.getElementById('tipo_servicio')?.addEventListener('change', loadSuggestedCases);
+document.getElementById('caso_escenario')?.addEventListener('change', event => {
+  const scenario=event.target.selectedOptions[0]?.dataset?.scenario || '';
+  const help=document.getElementById('draft-help'); if(help && scenario) help.textContent=scenario;
+});
+
+async function saveDraft() {
+  const email = document.getElementById('correo')?.value.trim();
+  if (!email) { setStatus('Ingresa tu correo para guardar el avance.', 'error'); return; }
+  saveDraftButton.disabled = true;
+  saveDraftButton.textContent = 'Guardando…';
+  try {
+    const payload = buildPayload();
+    const result = await callRpc('tpl_guardar_borrador_partner_v1', {
+      p_token: draftToken || null,
+      p_payload: payload,
+      p_paso: 1,
+      p_campos_pendientes: pendingFields(payload)
+    });
+    draftToken = result.token;
+    localStorage.setItem('tpl_partner_draft_token', draftToken);
+    const resumeUrl = `${location.origin}${location.pathname}?continuar=${encodeURIComponent(draftToken)}`;
+    await navigator.clipboard?.writeText(resumeUrl).catch(()=>{});
+    await callRpc('tpl_encolar_continuacion_partner_v1',{p_token:draftToken,p_base_url:`${location.origin}${location.pathname}`}).catch(()=>{});
+    setStatus(`Avance guardado (${result.porcentaje}%). Copiamos el enlace para continuar después.`, 'success');
+  } catch (error) { setStatus(error.message || 'No fue posible guardar el avance.', 'error'); }
+  finally { saveDraftButton.disabled=false; saveDraftButton.textContent='Guardar y continuar después'; }
+}
+saveDraftButton?.addEventListener('click', saveDraft);
+
+async function restoreDraft() {
+  if (!draftToken) return;
+  try {
+    const result = await callRpc('tpl_cargar_borrador_partner_v1',{p_token:draftToken});
+    if (!result?.ok) return;
+    fillSimplePayload(result.payload || {});
+    await loadSuggestedCases();
+    if (result.payload?.caso_practico?.codigo) {
+      const caseSelect = document.getElementById('caso_escenario');
+      caseSelect.value = result.payload.caso_practico.codigo;
+      const scenario = caseSelect.selectedOptions[0]?.dataset?.scenario || result.payload.caso_practico.escenario || '';
+      const help = document.getElementById('draft-help');
+      if (help && scenario) help.textContent = scenario;
+    }
+    const pending = Array.isArray(result.campos_pendientes) && result.campos_pendientes.length
+      ? ` Te faltan: ${result.campos_pendientes.join(', ')}.` : '';
+    setStatus(`Recuperamos tu borrador (${result.porcentaje || 0}% completado).${pending} Por seguridad, vuelve a seleccionar fotografías o documentos.`, 'success');
+  } catch (error) { console.warn('Borrador no recuperado', error); }
+}
+restoreDraft();
 
 for (const card of document.querySelectorAll('.plan-card')) {
   card.addEventListener('click', () => {
@@ -238,16 +415,20 @@ form?.addEventListener('submit', async event => {
     const { logo, gallery } = validateFormFiles();
     const payload = buildPayload();
     if (!payload.actividades.length) throw new Error('Agrega al menos una actividad que puedas realizar.');
-    if (!payload.etapas_servicio.length) throw new Error('Agrega al menos una etapa de tu servicio.');
-    if (!payload.modalidades_pago.length) throw new Error('Selecciona al menos una modalidad de pago.');
     if (countWords(payload.propuesta_corta) > 5) throw new Error('Resume lo que ofreces en máximo 5 palabras.');
-    if (payload.ultimo_trabajo.etapas.length < 3) throw new Error('Explica al menos 3 etapas de tu último trabajo.');
+    await callRpc('tpl_validar_envio_partner_publico_v2', { p_correo: payload.correo });
     const result = await callRpc('tpl_postular_partner_v2', { p_payload: payload });
+    localStorage.setItem('tpl_partner_pending_submission', JSON.stringify({
+      id: result.id, codigo: result.codigo, upload_token: result.upload_token, created_at: new Date().toISOString()
+    }));
     const applicationId = result.id;
     const uploadToken = result.upload_token;
+    if (payload.caso_practico.respuesta && payload.caso_practico.respuesta.length >= 80) {
+      await callRpc('tpl_guardar_caso_postulacion_partner_v1',{p_postulacion_id:applicationId,p_upload_token:uploadToken,p_caso:payload.caso_practico});
+    }
 
-    setStatus(`Postulación ${result.codigo} creada. Subiendo imágenes…`, 'info');
-    const logoPath = await uploadFile(logo, applicationId, uploadToken, `logo.${safeExtension(logo)}`);
+    setStatus(`Postulación ${result.codigo} creada. Procesando archivos…`, 'info');
+    const logoPath = logo ? await uploadFile(logo, applicationId, uploadToken, `logo.${safeExtension(logo)}`) : null;
     const galleryPaths = [];
     for (let index = 0; index < gallery.length; index += 1) {
       galleryPaths.push(await uploadFile(gallery[index], applicationId, uploadToken, `galeria-${index + 1}.${safeExtension(gallery[index])}`));
@@ -260,11 +441,21 @@ form?.addEventListener('submit', async event => {
       p_galeria_paths: galleryPaths
     });
 
+    localStorage.removeItem('tpl_partner_pending_submission');
+    if (draftToken) { await callRpc('tpl_marcar_borrador_partner_enviado_v1',{p_token:draftToken,p_postulacion_id:applicationId}).catch(()=>{}); localStorage.removeItem('tpl_partner_draft_token'); }
     if (await startFlowPayment(result, payload)) return;
 
     form.style.display = 'none';
     const success = document.getElementById('success-msg');
-    success.innerHTML = `<strong>Postulación recibida correctamente</strong>Tu código de seguimiento es <b>${result.codigo}</b>. Revisaremos tus antecedentes. Recibirás un correo cuando la revisión cambie de estado. Si tu perfil es aprobado, podrás ingresar a TPL Business, completar tu perfil y activar herramientas de TPL Studio.`;
+    success.replaceChildren();
+    const title = document.createElement('strong');
+    title.textContent = 'Postulación recibida correctamente';
+    const message = document.createElement('p');
+    message.append('Tu código de seguimiento es ');
+    const code = document.createElement('b');
+    code.textContent = result.codigo;
+    message.append(code, '. Revisaremos tus antecedentes. Recibirás un correo cuando la revisión cambie de estado. Si tu perfil es aprobado, podrás ingresar a TPL Business y completar tu perfil.');
+    success.append(title, message);
     success.style.display = 'block';
     window.scrollTo({ top: document.getElementById('postulacion').offsetTop - 30, behavior: 'smooth' });
   } catch (error) {

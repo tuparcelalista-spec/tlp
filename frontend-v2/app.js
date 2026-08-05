@@ -2627,11 +2627,11 @@ document.addEventListener("DOMContentLoaded", () => {
       );
                   // Guardar en Supabase Cotizaciones usando RPC
       try {
-        const res = await fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
+        const res = await fetch('https://hwyscirbycojwndyzozn.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
           method: 'POST',
           headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'apikey': 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
+            'Authorization': 'Bearer sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
@@ -2684,11 +2684,11 @@ document.addEventListener("DOMContentLoaded", () => {
       
               try {
           const data = getCotizacionData();
-          const res = await fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
+          const res = await fetch('https://hwyscirbycojwndyzozn.supabase.co/rest/v1/rpc/crear_proyecto_completo', {
             method: 'POST',
             headers: {
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+              'apikey': 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
+              'Authorization': 'Bearer sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
@@ -3438,11 +3438,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (email && email.includes('@')) {
         const oldHtml = btnAi.innerHTML;
         btnAi.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Generando Orden de Pago...';
-        fetch('https://qxavbqhyqaqalpzbhwmh.supabase.co/rest/v1/cotizaciones_proyectos', {
+        fetch('https://hwyscirbycojwndyzozn.supabase.co/rest/v1/cotizaciones_proyectos', {
           method: 'POST',
           headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4YXZicWh5cWFxYWxwemJod21oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5Nzc4MTIsImV4cCI6MjA5OTU1MzgxMn0.7-z6nCdXzurbVbkWQrL7hylblqj7SFPK8oyndLOeZEA',
+            'apikey': 'sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
+            'Authorization': 'Bearer sb_publishable_p2F_lxf_oWyjQcPq_cQw1Q_rr7E3h4k',
             'Content-Type': 'application/json',
             'Prefer': 'return=minimal'
           },

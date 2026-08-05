@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mi Propiedad TPL | Tu Parcela Lista</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="css/mi-parcela.css">
+  <script src="js/core/tpl-data-service.js" defer></script>
+  <script src="js/mi-parcela.js" defer></script>
+</head>
+<body>
+<main class="owner-shell">
+  <header class="owner-header">
+    <a href="index.html" class="brand">Tu Parcela Lista</a>
+    <span>Mi Propiedad TPL</span>
+  </header>
+
+  <section id="loading" class="panel center"><h1>Cargando tu propiedad…</h1><p>Estamos preparando su diagnóstico, historial y próximos pasos.</p></section>
+  <section id="error" class="panel center" hidden><h1>Enlace no disponible</h1><p id="errorText"></p></section>
+
+  <div id="app" hidden>
+    <section class="hero panel">
+      <div>
+        <small>GESTIÓN PRIVADA DE TU PROPIEDAD</small>
+        <h1 id="title"></h1>
+        <p id="location"></p>
+        <div class="status-row"><span id="propertyStatus" class="status-pill"></span><span id="planStatus" class="status-pill subtle"></span></div>
+        <div class="actions"><a id="publicLink" class="primary" target="_blank" rel="noopener">Ver anuncio publicado</a><button id="scrollUpdate">Actualizar información</button></div>
+      </div>
+      <div class="price"><small>Precio publicado</small><strong id="price"></strong><span id="updated"></span></div>
+    </section>
+
+    <section class="metric-grid" aria-label="Indicadores de la propiedad">
+      <article class="metric panel"><small>INFORMACIÓN</small><strong id="informationScore">—</strong><span>Ficha completada</span></article>
+      <article class="metric panel"><small>ANUNCIO</small><strong id="listingScore">—</strong><span>Preparación comercial</span></article>
+      <article class="metric panel"><small>CONFIANZA</small><strong id="confidenceScore">—</strong><span>Precisión del diagnóstico</span></article>
+      <article class="metric panel"><small>PENDIENTES</small><strong id="pendingCount">0</strong><span>Acciones por resolver</span></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <small>INFORME BÁSICO GRATUITO</small>
+        <h2>Referencia actual de valor</h2>
+        <div class="valuation"><strong id="tplValue">Información insuficiente</strong><span id="tplM2"></span></div>
+        <p id="valuationText">Completa o corrige los antecedentes para mejorar la precisión del análisis.</p>
+        <div id="valuationGap" class="notice"></div>
+      </article>
+      <article class="panel next-actions">
+        <small>PRÓXIMOS PASOS</small>
+        <h2>Qué recomendamos hacer ahora</h2>
+        <div id="tasksList" class="stack-list"></div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <small>HISTORIAL DEL ACTIVO</small>
+        <h2>Todo lo que ha ocurrido</h2>
+        <div id="timeline" class="timeline"></div>
+      </article>
+      <article class="panel">
+        <small>MEJORAS DETECTADAS</small>
+        <h2>Servicios que podrían aportar</h2>
+        <div id="needsList" class="stack-list"></div>
+      </article>
+    </section>
+
+    <section class="panel commercial">
+      <div><small>¿TE URGE VENDER?</small><h2>Posiciona tu propiedad</h2><p>Creamos una landing exclusiva y la dirigimos al segmento que busca este estilo de propiedad.</p></div>
+      <div class="plans"><button data-plan="30000">Desde $30.000</button><button data-plan="50000">Desde $50.000</button><button data-plan="80000">Desde $80.000</button></div>
+      <p class="mini">Recibirás datos de visitas, clics, contactos y comportamiento del anuncio.</p>
+    </section>
+
+    <section id="update" class="panel">
+      <small>ACTUALIZA Y VALORIZA</small><h2>Revisa los datos de tu propiedad</h2>
+      <form id="ownerForm">
+        <div class="fields">
+          <label>Título<input name="titulo"></label><label>Precio publicado<input name="precio_publicado" type="number" min="0"></label>
+          <label>Superficie m²<input name="superficie_m2" type="number" min="1"></label><label>Agua<input name="agua"></label>
+          <label>Electricidad<input name="electricidad"></label><label>Acceso<input name="acceso"></label>
+          <label>Topografía<input name="topografia"></label><label>Situación del rol<input name="rol_situacion"></label>
+          <label>Cierre perimetral<input name="cierre_perimetral"></label><label>Portón<input name="porton"></label>
+          <label class="wide">Descripción<textarea name="descripcion" rows="6"></textarea></label>
+        </div>
+        <h3>Datos privados del propietario o corredor</h3>
+        <p class="mini">En planes gratuitos el WhatsApp público seguirá siendo +56 9 8850 8361.</p>
+        <div class="fields"><label>Nombre<input name="contacto_nombre"></label><label>Correo<input name="contacto_email" type="email"></label><label>Teléfono / WhatsApp<input name="contacto_whatsapp" type="tel"></label><label>Tipo<select name="contacto_tipo"><option value="propietario">Propietario</option><option value="corredor">Corredor</option></select></label></div>
+        <label class="photo-box">Fotografías para revisión<input name="fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple><span>Las fotos no reemplazarán las actuales hasta verificar que correspondan a la propiedad.</span></label>
+        <div class="save-row"><button class="primary" type="submit">Guardar y recalcular</button><span id="formStatus"></span></div>
+      </form>
+    </section>
+
+    <section class="panel business"><div><small>TPL BUSINESS DUEÑOS</small><h2>Todo lo relacionado con tu propiedad, en un solo lugar</h2><p>Activa tu entorno para consultar informes, estadísticas, campañas, contactos e historial.</p></div><a href="plataforma/tpl-business/">Conocer TPL Business</a></section>
+  </div>
+</main>
+</body>
+</html>
