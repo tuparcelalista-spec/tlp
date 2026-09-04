@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPL Business · Tu propiedad</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- El cliente real de Supabase del proyecto, con sesion persistente. -->
+  <script src="../../js/core/tpl-data-service.js?v=20260902-business"></script>
+
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/business.css?v=20260902">
+</head>
+<body>
+
+  <div id="app-shell">
+    <aside id="app-sidebar">
+      <div id="app-sidebar-header">
+        <span class="marca">Tu Parcela Lista</span>
+        <span class="marca__sub">Business</span>
+      </div>
+
+      <div class="propiedad-activa" id="propiedad-activa" hidden>
+        <span class="propiedad-activa__label">Tu propiedad</span>
+        <strong id="propiedad-activa-nombre">—</strong>
+        <span id="propiedad-activa-valor" class="propiedad-activa__valor"></span>
+      </div>
+
+      <!-- Barra de tareas: no es solo navegacion. Cada punto lleva su estado,
+           para que al entrar se vea de un vistazo qué falta por decidir. -->
+      <nav id="app-sidebar-nav" aria-label="Tus tareas">
+        <a href="#informe" class="nav-item" data-vista="informe">
+          <span class="nav-item__txt">Tu informe de valor</span>
+          <span class="nav-item__estado" data-estado="informe">listo</span>
+        </a>
+        <a href="#studio" class="nav-item" data-vista="studio">
+          <span class="nav-item__txt">TPL Studio · tu plan</span>
+          <span class="nav-item__estado" data-estado="studio">por revisar</span>
+        </a>
+        <a href="#landing" class="nav-item" data-vista="landing">
+          <span class="nav-item__txt">Tu página de venta</span>
+          <span class="nav-item__estado" data-estado="landing">sin crear</span>
+        </a>
+        <a href="#campanas" class="nav-item" data-vista="campanas">
+          <span class="nav-item__txt">Campañas en Google</span>
+          <span class="nav-item__estado" data-estado="campanas">sin activar</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-pie">
+        <button type="button" id="btn-salir" class="btn-salir">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <main id="app-main">
+      <div id="app-content-wrapper">
+        <div id="app-content" aria-live="polite">
+          <p class="cargando">Cargando tu propiedad…</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <script type="module" src="core/boot.js?v=20260902"></script>
+</body>
+</html>

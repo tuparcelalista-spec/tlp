@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publicar Propiedad V2 | Tu Parcela Lista</title>
+  <link rel="stylesheet" href="css/style.css?v=20260903-fotos">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+  <header class="v2-header">
+    <div class="header-container">
+      <a class="header-brand" href="../../index.html" aria-label="Tu Parcela Lista, ir al inicio">
+        <img src="../../assets/logo-tu-parcela-lista.webp" width="46" height="37" alt="Tu Parcela Lista">
+        <span>Tu Parcela Lista</span>
+      </a>
+      <span class="header-title">Publicar una propiedad</span>
+      <nav class="header-nav" aria-label="Navegación">
+        <a href="../../index.html">Buscar parcelas</a>
+        <a href="../../como-comprar.html">Cómo comprar</a>
+        <a href="../../red-partner-v2/index.html">Red Partner</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="v2-container wizard-shell">
+    <div class="wizard-layout">
+      
+      <!-- Progress Sidebar -->
+      <aside class="wizard-sidebar">
+        <ul class="progress-steps">
+          <li class="step-item active" data-step="1">
+            <span class="step-number">1</span>
+            <div class="step-text">
+              <strong>Ubicación</strong>
+              <small>Dónde está tu propiedad</small>
+            </div>
+          </li>
+          <li class="step-item" data-step="2">
+            <span class="step-number">2</span>
+            <div class="step-text">
+              <strong>Características</strong>
+              <small>Terreno y servicios</small>
+            </div>
+          </li>
+          <li class="step-item" data-step="3">
+            <span class="step-number">3</span>
+            <div class="step-text">
+              <strong>Multimedia</strong>
+              <small>Fotos e Inteligencia</small>
+            </div>
+          </li>
+          <li class="step-item" data-step="4">
+            <span class="step-number">4</span>
+            <div class="step-text">
+              <strong>Tasador & Estrategia</strong>
+              <small>Valor, Precio y Contacto</small>
+            </div>
+          </li>
+        </ul>
+        <div class="draft-status mt-20" id="draftStatus" style="font-size: 13px; color: var(--success); padding-top: 20px; border-top: 1px solid var(--border);">
+          Borrador automático activo
+        </div>
+      </aside>
+
+      <!-- Form Content -->
+      <section class="wizard-content">
+        <form id="publicadorV2Form" novalidate>
+
+          <!-- PASO 1: Ubicación -->
+          <div class="wizard-pane active" id="pane-1">
+            <h2>Ubicación de tu propiedad</h2>
+            <p class="subtitle">Con la ubicación calculamos las distancias a ciudades y servicios, que influyen directamente en el valor de tu propiedad.</p>
+
+            <div class="choice-grid property-type-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+              <label class="choice-card" style="border: 2px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; text-align: center;">
+                <input type="radio" name="tipo" value="parcela" checked>
+                <strong style="display:block; margin-top:10px;">Parcelas</strong>
+                <small>Terreno rural sin vivienda</small>
+              </label>
+              <label class="choice-card" style="border: 2px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; text-align: center;">
+                <input type="radio" name="tipo" value="parcela_casa">
+                <strong style="display:block; margin-top:10px;">Parcelas y casas</strong>
+                <small>Terreno rural con vivienda</small>
+              </label>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="region">Región</label>
+                <select id="region" required>
+                  <option value="">Cargando regiones...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="comuna">Comuna</label>
+                <select id="comuna" required disabled>
+                  <option value="">Selecciona región primero</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="localidad">Sector o Localidad</label>
+                <input type="text" id="localidad" placeholder="Ej. Río Claro, camino interior">
+              </div>
+              <div class="form-group">
+                <label for="ubicacionTexto">Ruta o referencia</label>
+                <input type="text" id="ubicacionTexto" placeholder="Ej. Ruta N-48-O, km 12">
+              </div>
+            </div>
+
+            <div class="form-group map-group">
+              <label>Ubicación en el Mapa</label>
+              <small>Marca el punto exacto. Con esto calcularemos automáticamente la distancia al centro urbano y destinos turísticos.</small>
+              <div id="v2Map" class="v2-map" style="margin-top: 10px;"></div>
+              <input type="hidden" id="lat" required>
+              <input type="hidden" id="lng" required>
+            </div>
+            
+            <label class="tpl-check">
+              <input id="publicApproximate" type="checkbox" checked>
+              <span>
+                <strong>Mostrar solo una ubicación aproximada</strong>
+                <small>Quienes vean el aviso no verán el punto exacto. Tú y TPL sí.</small>
+              </span>
+            </label>
+          </div>
+
+          <!-- PASO 2: Características -->
+          <div class="wizard-pane" id="pane-2">
+            <h2>Características del Terreno</h2>
+            <p class="subtitle">Solo pedimos antecedentes que aportan a la tasación automática y a la negociación.</p>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="superficie">Superficie del terreno (m²)</label>
+                <input type="number" id="superficie" placeholder="Ej. 5000" min="100" required>
+              </div>
+              <div class="form-group">
+                <label for="suelo">Tipo de suelo</label>
+                <select id="suelo">
+                  <option value="">Selecciona</option><option>Arenoso</option><option>Humedal</option><option>Arcilloso</option><option>Rocoso</option><option>Muy fértil</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="info-note">
+              <strong>Lo calculamos por ti</strong>
+              <p>A partir del punto que marcaste en el mapa estimamos distancias, entorno y demanda de la zona. No necesitas completar nada más para eso.</p>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="rolDetalle">Situación del Rol</label>
+                <select id="rolDetalle">
+                  <option value="">Selecciona</option><option>Rol propio</option><option>Rol compartido</option><option>En trámite</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="condominio">¿Está en condominio/loteo?</label>
+                <select id="condominio">
+                  <option value="">Selecciona</option><option>Sí</option><option>No</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="background: #fdf4ff; border-left: 4px solid #d946ef; padding: 15px; border-radius: 4px; margin-bottom: 25px; margin-top: 15px;">
+              <strong>Construcciones y Equipamiento (Opcional)</strong>
+              <p style="font-size: 13px; margin-top: 5px; color: #a21caf;">Si la parcela tiene casa, llena estos datos para que el motor la tase correctamente.</p>
+              
+              <div class="form-grid dual" style="margin-top:15px;">
+                <div class="form-group">
+                  <label for="supCasa">Superficie Casa (m²)</label>
+                  <input type="number" id="supCasa" placeholder="Ej. 120">
+                </div>
+                <div class="form-group">
+                  <label for="matCasa">Materialidad Casa</label>
+                  <select id="matCasa">
+                    <option value="">Selecciona</option><option value="ligera">Madera / Ligera</option><option value="estandar">Estándar / Metalcon</option><option value="solida">Sólida / Albañilería</option><option value="premium">Premium</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid dual" style="margin-top:15px;">
+                <div class="form-group">
+                  <label for="regCasa">Recepción Final (Regularizada)</label>
+                  <select id="regCasa">
+                    <option value="">Selecciona</option><option value="si">Sí, regularizada</option><option value="no">No regularizada</option><option value="tramite">En trámite</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="antCasa">Antigüedad (Años)</label>
+                  <input type="number" id="antCasa" placeholder="Ej. 5">
+                </div>
+              </div>
+
+              <div class="form-grid dual" style="margin-top:15px;">
+                <div class="form-group">
+                  <label for="piscinaCasa">Piscina</label>
+                  <select id="piscinaCasa">
+                    <option value="no">No</option><option value="si">Sí</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="quinchoCasa">Quincho Techado</label>
+                  <select id="quinchoCasa">
+                    <option value="no">No</option><option value="si">Sí</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-grid dual" style="margin-top:15px;">
+                <div class="form-group">
+                  <label for="cabanaCasa">Cabaña / Casa de Visitas</label>
+                  <select id="cabanaCasa">
+                    <option value="no">No</option><option value="si">Sí</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="riegoCasa">Riego Automático</label>
+                  <select id="riegoCasa">
+                    <option value="no">No</option><option value="si">Sí</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="form-grid dual" style="margin-top:15px; display:none;" id="piscinaSpecs">
+                <div class="form-group">
+                  <label for="piscinaMat">Material Piscina</label>
+                  <select id="piscinaMat">
+                    <option value="fibra">Fibra de Vidrio</option><option value="hormigon">Hormigón</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="piscinaM2">Tamaño Piscina (m²)</label>
+                  <input type="number" id="piscinaM2" placeholder="Ej. 32">
+                </div>
+              </div>
+
+              <!-- El quincho y la cabaña se valorizan por metro cuadrado, igual
+                   que la piscina. Marcarlos sin superficie no permite calcular
+                   nada: el campo aparece solo cuando se responde "Sí". -->
+              <div class="form-grid dual" style="margin-top:15px; display:none;" id="quinchoSpecs">
+                <div class="form-group">
+                  <label for="quinchoM2">Superficie del quincho (m²)</label>
+                  <input type="number" id="quinchoM2" placeholder="Ej. 25">
+                </div>
+              </div>
+
+              <div class="form-grid dual" style="margin-top:15px; display:none;" id="cabanaSpecs">
+                <div class="form-group">
+                  <label for="cabanaM2">Superficie de la cabaña (m²)</label>
+                  <input type="number" id="cabanaM2" placeholder="Ej. 30">
+                </div>
+              </div>
+
+              <script>
+                [['piscinaCasa','piscinaSpecs'], ['quinchoCasa','quinchoSpecs'], ['cabanaCasa','cabanaSpecs']]
+                  .forEach(function(par) {
+                    var control = document.getElementById(par[0]);
+                    var bloque = document.getElementById(par[1]);
+                    if (!control || !bloque) return;
+                    control.addEventListener('change', function(e) {
+                      bloque.style.display = e.target.value === 'si' ? 'grid' : 'none';
+                    });
+                  });
+              </script>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="aguaDetalle">Agua</label>
+                <select id="aguaDetalle">
+                  <option value="">Selecciona</option><option>Factibilidad</option><option>Puntera</option><option>Pozo</option><option>APR</option><option>Sin factibilidad</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="luzDetalle">Electricidad</label>
+                <select id="luzDetalle">
+                  <option value="">Selecciona</option><option>Conectada</option><option>Empalme instalado</option><option>Factibilidad</option><option>Sistema solar</option><option>Sin electricidad</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="topografia">Topografía General</label>
+                <select id="topografia">
+                  <option value="">Selecciona</option><option>Plana</option><option>Pendiente suave</option><option>Pendiente pronunciada</option><option>Irregular</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="vegetacion">Vegetación predominante</label>
+                <select id="vegetacion">
+                  <option value="">Selecciona</option><option>Pradera despejada</option><option>Bosque nativo</option><option>Plantación forestal</option><option>Matorral</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Estos tres campos alimentan la detección automática de
+                 necesidades del motor TPL (cerco, portón, mejora de camino).
+                 Sin ellos esas partidas nunca se sugieren. -->
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="acceso">Acceso al terreno</label>
+                <select id="acceso">
+                  <option value="">Selecciona</option>
+                  <option>Camino público pavimentado</option>
+                  <option>Camino público de ripio</option>
+                  <option>Servidumbre de paso</option>
+                  <option>Camino por mejorar</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cierre">Cierre perimetral</label>
+                <select id="cierre">
+                  <option value="">Selecciona</option>
+                  <option>Cerrado completo</option>
+                  <option>Cerrado parcial</option>
+                  <option>Sin cierre</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="porton">Portón de acceso</label>
+                <select id="porton">
+                  <option value="">Selecciona</option>
+                  <option>Con portón</option>
+                  <option>Sin portón</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="distanciaRuta">Distancia a ruta principal (km)</label>
+                <input type="number" id="distanciaRuta" min="0" max="200" step="0.5" placeholder="Ej: 3">
+              </div>
+            </div>
+
+            <h3 style="font-size: 16px; margin: 25px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px;">Atributos Especiales & Mejoras</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; font-size: 14px;">
+              <label><input type="checkbox" id="rioDirecto"> Río dentro o acceso directo</label>
+              <label><input type="checkbox" id="esteroNatural"> Estero o vertiente natural</label>
+              <label><input type="checkbox" id="orillaLago"> Orilla o acceso a lago</label>
+              <label><input type="checkbox" id="termasNaturales"> Aguas termales cercanas</label>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border); padding: 20px; border-radius: 8px;">
+              <strong style="display: block; margin-bottom: 10px;">Si un comprador paga el precio acordado, ¿estarías dispuesto a evaluar alguna mejora (ej. cerco, limpieza) para facilitar el cierre?</strong>
+              <div style="display: flex; gap: 20px;">
+                <label><input type="radio" name="aceptaEvaluarMejoras" value="si"> <strong>Sí</strong>, lo evaluaría</label>
+                <label><input type="radio" name="aceptaEvaluarMejoras" value="no"> <strong>No por ahora</strong></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- PASO 3: Multimedia & AI -->
+          <div class="wizard-pane" id="pane-3">
+            <h2>Fotografías y Descripción Inteligente</h2>
+            <p class="subtitle">El Asistente TPL te ayudará a redactar un anuncio atractivo automáticamente.</p>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+              <label>Seleccionar Fotografías</label>
+              <!-- El input va FUERA del dropzone a propósito: el manejador
+                   reescribe el contenido del dropzone para mostrar el conteo, y
+                   cuando el input vivía dentro se destruía junto con los
+                   archivos ya elegidos. Las fotos se perdían antes de publicar. -->
+              <div class="file-dropzone" id="dropzone">
+                <span class="icon">📷</span>
+                <p>Haz clic o arrastra tus fotos aquí</p>
+                <small>Muestra lo mejor de tu propiedad (JPG, PNG o WEBP, hasta 8 MB cada una)</small>
+              </div>
+              <input type="file" id="fotos" multiple accept="image/jpeg,image/png,image/webp" hidden>
+              <p id="fotosResumen" class="fotos-resumen" hidden></p>
+              <div id="previewGrid" class="preview-grid"></div>
+            </div>
+
+            <div class="form-group mt-20">
+              <label for="videoUrl">Video de YouTube (Opcional)</label>
+              <input type="url" id="videoUrl" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+          </div>
+
+          <!-- PASO 4: Tasador TPL & Estrategia -->
+          <div class="wizard-pane" id="pane-4">
+            <h2>Expectativa vs. Tasador TPL</h2>
+            <p class="subtitle">Nuestro motor ha calculado un valor de referencia basado en el mercado comunal y tus atributos.</p>
+
+            <div class="form-grid dual" style="margin-bottom: 30px;">
+              <div class="form-group">
+                <label for="precio">Precio que tienes en mente ($)</label>
+                <div class="input-icon">
+                  <span>$</span>
+                  <input type="number" id="precio" placeholder="45000000" min="0" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="color: transparent;">Acción</label>
+                <button type="button" id="btnTasador" style="width: 100%; padding: 10px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                  🔍 Calcular Valor TPL
+                </button>
+              </div>
+            </div>
+
+            <!-- UI rescatada de V1 para la Tasación -->
+            <article id="tasadorResult" style="display: none; background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+              <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 1px;">Resultado orientativo</span>
+              <h3 id="valuationMain" style="font-size: 24px; color: #0f172a; margin: 10px 0 20px;">Valor TPL Recomendado: $0</h3>
+              <p id="tasadorAviso" hidden style="margin:-10px 0 18px;padding:10px 12px;background:#fff5f5;border:1px solid #f3c9c9;border-radius:8px;color:#a33a3a;font-size:14px;"></p>
+              
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 20px 0; margin-bottom: 20px; text-align: center;">
+                <div>
+                  <small style="color: #64748b; display: block;">Venta í gil</small>
+                  <strong id="quickValue" style="font-size: 18px; color: #ef4444;">$0</strong>
+                </div>
+                <div style="border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
+                  <small style="color: #64748b; display: block;">Valor TPL Recomendado</small>
+                  <strong id="marketValue" style="font-size: 18px; color: #3b82f6;">$0</strong>
+                </div>
+                <div>
+                  <small style="color: #64748b; display: block;">Mercado Potencial</small>
+                  <strong id="patientValue" style="font-size: 18px; color: #22c55e;">$0</strong>
+                </div>
+              </div>
+              <!-- Desglose terreno / vivienda / obras. Solo se muestra cuando
+                   la propiedad declara vivienda: en una parcela pelada seria
+                   una fila de ceros sin significado. -->
+              <div id="tasadorDesglose" hidden style="border-bottom:1px solid #e2e8f0;padding-bottom:16px;margin-bottom:16px;">
+                <span style="font-size:12px;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:1px;">Cómo se compone</span>
+                <ul id="tasadorDesgloseLista" style="list-style:none;padding:0;margin:10px 0 0;font-size:14px;color:#334155;"></ul>
+              </div>
+
+              <p style="font-size: 13px; color: #64748b; text-align: center;">Calculado en base a superficie, ubicación, distancias urbanas y características declaradas.</p>
+
+              <div style="border-top:1px solid #e2e8f0;margin-top:20px;padding-top:20px;text-align:center;">
+                <p style="font-size:14px;color:#334155;margin:0 0 14px;">¿Quieres que un asesor revise esta tasación contigo antes de publicar?</p>
+                <button type="button" id="btnAsesoria" style="background:#0f172a;color:#fff;border:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer;">Recibir asesoría</button>
+              </div>
+            </article>
+
+            <h3 style="font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 20px;">Redacción Inteligente (IA)</h3>
+            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; padding: 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+              <div>
+                <strong style="color: #be185d;">¿Te ayudamos a redactar?</strong>
+                <p style="font-size: 13px; color: #831843; margin-top: 5px;">Escribimos el título y la descripción usando los datos que ya ingresaste. Podrás editarlos antes de publicar.</p>
+              </div>
+              <button type="button" id="btnAiDraft" style="background: #be185d; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;">Redactar por mí</button>
+            </div>
+            <p id="aiAviso" hidden style="margin:10px 0 0;padding:10px 12px;background:#fff5f5;border:1px solid #f3c9c9;border-radius:8px;color:#a33a3a;font-size:14px;"></p>
+
+            <div class="form-group mt-20">
+              <label for="titulo">Título de la publicación</label>
+              <input type="text" id="titulo" placeholder="Ej. Parcela plana con agua y luz..." maxlength="85">
+            </div>
+
+            <div class="form-group">
+              <label for="descripcion">Descripción</label>
+              <textarea id="descripcion" rows="6" placeholder="Describe el entorno, tranquilidad..."></textarea>
+            </div>
+
+            <h3 style="font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-bottom: 20px; margin-top: 30px;">Datos del Contacto Final</h3>
+            
+            <div class="choice-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+              <label style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; text-align: center;">
+                <input type="radio" name="responsable" value="propietario" checked> <strong>Soy el propietario</strong>
+              </label>
+              <label style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; cursor: pointer; text-align: center;">
+                <input type="radio" name="responsable" value="corredor"> <strong>Soy corredor / tercero</strong>
+              </label>
+            </div>
+
+            <div class="form-grid dual">
+              <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" required>
+              </div>
+              <div class="form-group">
+                <label for="whatsapp">Teléfono / WhatsApp</label>
+                <input type="tel" id="whatsapp" required>
+              </div>
+              <div class="form-group">
+                <label for="correo">Correo Electrónico</label>
+                <input type="email" id="correo" required>
+              </div>
+              <!-- El RUT es el identificador que usa el CRM para no duplicar
+                   actores: si esta persona ya publicó antes, se reconoce. -->
+              <div class="form-group">
+                <label for="rut">RUT <span style="font-weight:400;color:#64748b;">(opcional)</span></label>
+                <input type="text" id="rut" placeholder="12.345.678-9" autocomplete="off">
+              </div>
+              <div class="form-group">
+                <label for="urgencia">Nivel de apuro real</label>
+                <select id="urgencia">
+                  <option value="sin_apuro">Sin apuro, espero buen precio</option>
+                  <option value="algo_apuro">Algo de apuro</option>
+                  <option value="apurado">Apurado, necesito vender pronto</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions Footer -->
+          <div class="wizard-actions">
+            <button type="button" id="btnPrev" class="btn btn-outline" style="visibility: hidden;">Atrás</button>
+            <button type="button" id="btnNext" class="btn btn-primary">Continuar</button>
+            <button type="submit" id="btnSubmit" class="btn btn-success" style="display: none;">Enviar a Revisión TPL</button>
+          </div>
+
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <!-- Scripts V2 -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  
+  <!-- Inyección de Motor Tasador Original y Asistente IA de V1 -->
+  <script src="../../js/core/tpl-data-service.js?v=20260901-limit"></script>
+  <script src="../../js/core/valuation-engine.js?v=20260901-motor-unico"></script>
+  <!-- Motor de vivienda y obras adicionales. Ya existia y solo lo cargaba el
+       publicador antiguo, asi que aqui la casa no sumaba nada al valor. -->
+  <script src="../publicar/tpl-house-engine.js?v=20260902-casa"></script>
+  <script type="module" src="../../js/core/ai-assistant.js"></script>
+
+  <script type="module" src="js/main.js?v=20260903-fotos2"></script>
+</body>
+</html>

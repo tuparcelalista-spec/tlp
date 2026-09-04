@@ -1,0 +1,79 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TPL Studio Mark II | TPL Business</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="tpl-header">
+  <a class="tpl-brand" href="../../../index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="../../../assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="../../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../../como-comprar.html">Cómo comprar</a>
+    <a href="../../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../index.html">TPL Business</a>
+    <a class="tpl-publish" href="../../../plataforma/publicar-v2/index.html">Publicar</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="../../../index.html#resultados">Parcelas</a>
+    <a class="tpl-publish" href="../../../plataforma/publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="../../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../../como-comprar.html">Cómo comprar</a>
+    <a href="../../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../index.html">TPL Business</a>
+  </nav>
+</header>
+  <main>
+    <section class="hero">
+      <div><span class="eyebrow">TPL STUDIO MARK II</span><h1>Tu director de crecimiento digital.</h1><p>Studio utiliza la información existente del CRM para preparar tu marca, Landing, contenido, campañas y recomendaciones. Nada se publica sin tu aprobación.</p></div>
+      <div class="profile-select"><label>Vista de actor<select id="actorSelect"></select></label><span id="roleBadge"></span></div>
+    </section>
+
+    <section class="summary" id="summary"></section>
+
+    <div class="layout">
+      <aside id="studioNav"></aside>
+      <section id="studioContent" class="workspace"></section>
+    </div>
+  </main>
+  <dialog id="approvalDialog"><form method="dialog"><header class="tpl-header">
+  <a class="tpl-brand" href="../../../index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="../../../assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="../../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../../como-comprar.html">Cómo comprar</a>
+    <a href="../../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../index.html">TPL Business</a>
+    <a class="tpl-publish" href="../../../plataforma/publicar-v2/index.html">Publicar</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="../../../index.html#resultados">Parcelas</a>
+    <a class="tpl-publish" href="../../../plataforma/publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="../../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../../como-comprar.html">Cómo comprar</a>
+    <a href="../../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../index.html">TPL Business</a>
+  </nav>
+</header><pre id="approvalPreview"></pre><footer><button value="cancel" class="secondary">Volver</button><button value="default" id="approveAction">Aprobar borrador</button>
+
+</footer></form></dialog>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../../../js/core/tpl-data-service.js?v=20260901-limit"></script>
+  <script src="../../../js/core/tpl-brain.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>
+
+

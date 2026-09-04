@@ -1,0 +1,95 @@
+/* ============================================================
+   TPL GLOBAL DESIGN TOKENS
+   Unifies the Public Site (index-v3) and CRM (crm-tpl-v1)
+   ============================================================ */
+
+:root {
+  /* --- BRAND COLORS (TPL Core) --- */
+  /* Blue scale (from public site & CRM blend) */
+  --c-primary-dark: #002b54;   /* Public --blue */
+  --c-primary: #073a5a;        /* CRM --c-primary */
+  --c-primary-light: #005aa0;  /* Public --blue-3 / CRM light */
+
+  /* Orange/Gold scale (from public site) */
+  --c-brand-orange: #db5b24;
+  --c-brand-gold: #d4af37;
+
+  /* Accent (CRM specific actions) */
+  --c-accent: #3eb8a0;
+  --c-accent-light: #5dd4bc;
+
+  /* --- SEMANTIC COLORS --- */
+  --c-success: #16a34a;
+  --c-warning: #d97706;
+  --c-danger: #dc2626;
+  --c-info: #2563eb;
+
+  /* --- NEUTRALS & SURFACES --- */
+  --c-bg: #f4f7fa;             /* Public --soft */
+  --c-surface: #ffffff;
+  --c-surface-hover: #f0f2f5;
+  --c-border: #dde3ea;         /* Public --line */
+  --c-border-light: #eef0f3;
+  
+  /* Text */
+  --c-text: #1a202c;           /* Public --ink */
+  --c-text-secondary: #5a6678;
+  --c-text-muted: #64748b;     /* Public --muted */
+
+  /* --- TYPOGRAPHY --- */
+  /* We define both Inter and Lora at the ecosystem level */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Lora', Georgia, serif;
+  
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.875rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+  
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* --- SPACING & SIZING --- */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-12: 3rem;
+
+  /* --- RADIUS --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* --- SHADOWS --- */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg: 0 12px 40px rgba(0, 30, 60, 0.08); /* From public --shadow-soft */
+  --shadow-xl: 0 20px 50px rgba(0, 30, 60, 0.14); /* From public --shadow-hover */
+
+  /* --- TRANSITIONS --- */
+  --transition-fast: 150ms ease;
+  --transition-base: 280ms cubic-bezier(0.25, 1, 0.5, 1); /* From public --transition */
+
+  /* --- LEGACY ALIASES (Do not remove until fully refactored) --- */
+  --blue: var(--c-primary-dark);
+  --blue-2: var(--c-primary);
+  --blue-3: var(--c-primary-light);
+  --orange: var(--c-brand-orange);
+  --ink: var(--c-text);
+  --muted: var(--c-text-muted);
+  --line: var(--c-border);
+  --soft: var(--c-bg);
+  --white: var(--c-surface);
+  --font-family: var(--font-sans);
+}

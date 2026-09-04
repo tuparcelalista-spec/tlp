@@ -1,0 +1,23 @@
+COPIAR DESDE EL PROYECTO ANTIGUO A ESTA RAÍZ
+
+OBLIGATORIOS PARA VER DATOS Y FOTOGRAFÍAS REALES:
+- parcelas.js
+- casas.js
+- image/
+
+OPCIONALES PARA INTEGRACIONES POSTERIORES:
+- api/
+- lib/
+- configuración Supabase
+- endpoints de correo
+- endpoints Flow existentes
+
+NO COPIAR TODAVÍA:
+- app.js antiguo
+- styles.min.css antiguo
+- scripts de reparación visual
+- index.html antiguo
+- cotizador.html antiguo
+- CRM antiguo completo
+
+La V2 fue diseñada para no depender de esos archivos antiguos.

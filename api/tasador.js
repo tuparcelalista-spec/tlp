@@ -1,0 +1,1 @@
+export default async function handler(req, res) { return res.status(200).json({ valor_recomendado: 0, error: "Use local engine" }); }

@@ -1,0 +1,167 @@
+:root{--blue:#073b6f;--blue2:#0c5da5;--ink:#122033;--muted:#6b7788;--line:#dce5ef;--bg:#f4f7fb;--white:#fff;--yellow:#f4c542;--good:#198754;--radius:22px;--shadow:0 18px 50px rgba(7,59,111,.10)}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}.topbar{height:78px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:#fff;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:900}.brand img{width:56px;height:56px;object-fit:contain}.back{color:var(--blue);text-decoration:none;font-weight:850}.shell{max-width:1320px;margin:auto;padding:34px 24px 60px}.hero{max-width:850px;margin-bottom:28px}.eyebrow{display:inline-block;color:var(--blue2);font-size:.78rem;font-weight:900;text-transform:uppercase;letter-spacing:.12em}.hero h1{font-family:Georgia,serif;color:var(--blue);font-size:clamp(2.1rem,4vw,3.5rem);line-height:1.02;margin:8px 0}.hero p{color:var(--muted);font-size:1.05rem;line-height:1.6}.layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:24px;align-items:start}.card{background:#fff;border:1px solid var(--line);border-radius:28px;padding:28px;box-shadow:var(--shadow)}h2{color:var(--blue);margin:4px 0 20px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}label{display:grid;gap:7px}label span{font-weight:850}input,select,textarea{width:100%;border:1px solid #cfdbe8;border-radius:14px;padding:13px 14px;background:#fff;color:var(--ink);outline:none}input:focus,select:focus,textarea:focus{border-color:var(--blue2);box-shadow:0 0 0 4px rgba(12,93,165,.1)}.house-toggle{display:flex;align-items:center;gap:12px;margin:24px 0;padding:18px;border:1px solid var(--line);border-radius:18px;background:#f8fbff}.house-toggle input{width:auto}.house-toggle label{display:flex;flex-direction:column}.house-toggle small,.full small{color:var(--muted)}.extras{margin:20px 0;border:1px solid var(--line);border-radius:16px;padding:14px}.extras summary{cursor:pointer;font-weight:900;color:var(--blue)}.works-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}.primary,.secondary{display:flex;justify-content:center;align-items:center;width:100%;border:0;border-radius:14px;padding:14px 18px;font-weight:900;text-decoration:none}.primary{background:var(--blue);color:#fff;margin-top:24px}.secondary{background:#edf5ff;color:var(--blue);margin-top:18px}.result-card{position:sticky;top:24px}.main-price{padding:20px 0;border-bottom:1px solid var(--line)}.main-price small{display:block;color:var(--muted)}.main-price strong{display:block;color:var(--blue);font-size:2.3rem;margin-top:4px}.strategies{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}.strategies>div{padding:14px;background:#f6f9fc;border-radius:14px}.strategies small{display:block;color:var(--muted)}.breakdown h3{color:var(--blue)}.breakdown-row{display:flex;justify-content:space-between;gap:16px;padding:9px 0;border-bottom:1px dashed var(--line)}.note{font-size:.84rem;color:var(--muted);line-height:1.5}@media(max-width:900px){.layout{grid-template-columns:1fr}.result-card{position:static}}@media(max-width:640px){.grid,.works-grid{grid-template-columns:1fr}.shell{padding:24px 14px}.card{padding:20px}.topbar{padding:0 14px}.brand span{display:none}}
+/* Tasador TPL — modos rápido/preciso */
+.mode-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:0 0 24px}.mode-card{display:grid;gap:5px;text-align:left;border:1px solid var(--line);border-radius:22px;padding:20px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 10px 30px rgba(7,59,111,.06);transition:.2s}.mode-card:hover{transform:translateY(-2px)}.mode-card.is-active{border:2px solid var(--blue2);background:#eef6ff}.mode-card>span{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--blue2);font-weight:900}.mode-card strong{font-size:1.12rem;color:var(--blue)}.mode-card small{color:var(--muted);line-height:1.4}.section-heading{display:flex;gap:12px;align-items:flex-start;margin:4px 0 20px}.section-heading h2{margin:0 0 4px}.section-heading p{margin:0;color:var(--muted);font-size:.9rem}.step-pill{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--yellow);color:var(--blue);font-weight:950;flex:0 0 auto}.precise-fields{margin-top:28px;padding-top:24px;border-top:1px solid var(--line)}.feature-fieldset{border:1px solid var(--line);border-radius:18px;padding:16px;margin:20px 0}.feature-fieldset legend{padding:0 8px;font-weight:900;color:var(--blue)}.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.check-grid label{display:flex;align-items:center;gap:9px;padding:11px;border-radius:12px;background:#f8fbff}.check-grid input{width:auto}.coordinates-card{border:1px solid #d9e8f6;background:#f4f9ff;border-radius:18px;padding:18px;margin-top:18px}.coordinates-card p{margin:4px 0 14px;color:var(--muted);line-height:1.45}.ghost{border:1px solid var(--blue2);background:#fff;color:var(--blue);border-radius:12px;padding:10px 14px;font-weight:850;cursor:pointer}.market-reference{display:grid;gap:4px;padding:15px;margin:16px 0;border-radius:16px;background:#fff8df;border:1px solid #f0dd9b}.market-reference small,.market-reference span{color:#6f6242}.market-reference strong{color:var(--blue);font-size:1.2rem}.premium-btn{width:100%;border:0;border-radius:14px;padding:14px 18px;background:var(--yellow);color:#1b3148;font-weight:950;cursor:pointer;margin-top:10px}.premium-dialog{width:min(900px,94vw);max-height:90vh;border:0;border-radius:26px;padding:0;box-shadow:0 30px 90px rgba(0,0,0,.25)}.premium-dialog::backdrop{background:rgba(5,24,43,.62);backdrop-filter:blur(5px)}.premium-head{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line)}.premium-head>div{display:grid;gap:4px}.premium-head button{border:0;background:#eef3f8;border-radius:50%;width:38px;height:38px;font-size:1.5rem;cursor:pointer}.premium-content{padding:24px;overflow:auto;max-height:75vh}.premium-content section{margin-bottom:22px}.premium-content h2,.premium-content h3{color:var(--blue)}.premium-content table{width:100%;border-collapse:collapse}.premium-content td{padding:9px 8px;border-bottom:1px solid var(--line)}.premium-content td:first-child{width:42%;font-weight:850;color:#496174}.premium-value{padding:20px;border-radius:18px;background:var(--blue);color:#fff}.premium-value small,.premium-value strong,.premium-value span{display:block}.premium-value strong{font-size:2.1rem;margin:5px 0}.muted{color:var(--muted);line-height:1.55}.near-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.near-item{padding:12px;border:1px solid var(--line);border-radius:13px;background:#f8fbfd}.near-item strong,.near-item span{display:block}.near-item span{margin-top:4px;color:var(--muted);font-size:.88rem}
+@media(max-width:640px){.mode-picker,.check-grid,.near-grid{grid-template-columns:1fr}.coordinates-grid{grid-template-columns:1fr}}
+
+.score-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 20px}
+.score-summary>article{padding:14px;border:1px solid var(--line);border-radius:14px;background:#f8fbfd}
+.score-summary span,.score-summary small{display:block}
+.score-summary span{font-size:.78rem;font-weight:850;color:#52677a;text-transform:uppercase;letter-spacing:.04em}
+.score-summary strong{display:block;margin-top:5px;color:var(--blue);font-size:1.15rem}
+.score-summary small{margin-top:3px;color:var(--muted);line-height:1.35}
+.premium-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 16px}
+.premium-score-grid article{padding:16px;border:1px solid var(--line);border-radius:15px;background:#f8fbfd}
+.premium-score-grid small,.premium-score-grid strong,.premium-score-grid span{display:block}
+.premium-score-grid strong{font-size:1.45rem;color:var(--blue);margin:3px 0}
+.score-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+.score-detail-grid>div{padding:11px;border:1px solid var(--line);border-radius:12px}
+.score-detail-grid span,.score-detail-grid strong,.score-detail-grid small{display:block}
+.score-detail-grid span{font-weight:800;color:#40566a}
+.score-detail-grid strong{margin-top:3px;color:var(--blue)}
+.score-detail-grid small{margin-top:3px;color:var(--muted)}
+label small{color:var(--muted);line-height:1.35}
+@media(max-width:700px){.score-summary,.premium-score-grid,.score-detail-grid{grid-template-columns:1fr}}
+
+/* Motor TPL v2 */
+.immediate-value-btn{width:100%;margin-top:14px;border:1px solid #e2b8b8;background:#fff8f8;color:#9b1c1c;border-radius:14px;padding:12px 14px;font-weight:800;text-align:left}
+.immediate-value-btn:hover{background:#fff1f1}
+.immediate-value-panel{border:1px solid #efc7c7;background:#fffafa;border-radius:18px;padding:22px}
+.immediate-value-panel>small{display:block;color:#8b1f1f;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.immediate-value-panel>strong{display:block;color:#b42318;font-size:clamp(2rem,6vw,3.5rem);margin:8px 0}
+.immediate-value-panel p{color:#6f3c3c;line-height:1.6;margin:0}
+
+.uf-equivalent{display:block;margin-top:.35rem;font-size:.78rem;color:var(--muted,#64748b);font-weight:600}
+
+/* Auditoría visual Tasador TPL — ubicación asistida */
+.location-card{display:grid;gap:16px;background:linear-gradient(180deg,#f7fbff 0%,#eef6fc 100%);border-color:#cfe0ef}
+.location-intro{display:grid;gap:4px}.location-intro strong{font-size:1.15rem;color:var(--blue)}.location-intro p{margin:2px 0 0}.location-kicker{font-size:.72rem;text-transform:uppercase;letter-spacing:.11em;color:var(--blue2);font-weight:950}
+.location-methods{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.location-method{display:grid;gap:3px;text-align:left;padding:13px 14px;border:1px solid #cbdbea;border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}.location-method span{font-weight:900;color:var(--blue)}.location-method small{color:var(--muted);line-height:1.3}.location-method.is-active{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(12,93,165,.09);background:#fafdff}
+.location-panel{border-radius:16px;overflow:hidden}.tasador-map{height:330px;min-height:280px;border:1px solid #c9d9e7;border-radius:16px;background:#dce8f1}.map-help{margin:8px 2px 0!important;font-size:.82rem}.location-link-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.location-link-row .ghost{white-space:nowrap}
+.location-status{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #d3e0eb}.location-status>div{display:grid;gap:2px}.location-status strong{font-size:.9rem;color:#52677a}.location-status small{color:var(--muted)}.location-dot{width:10px;height:10px;border-radius:50%;background:#aab8c6;box-shadow:0 0 0 5px rgba(170,184,198,.18)}.location-status.is-ready{border-color:#b8dfca;background:#f4fbf7}.location-status.is-ready strong{color:var(--good)}.location-status.is-ready .location-dot{background:var(--good);box-shadow:0 0 0 5px rgba(25,135,84,.13)}.maps-preview-link{justify-self:start;color:var(--blue2);font-weight:850;text-decoration:none;font-size:.88rem}.maps-preview-link:hover{text-decoration:underline}
+.leaflet-container{font-family:Inter,system-ui,sans-serif}.leaflet-control-attribution{font-size:9px}
+@media(max-width:700px){.location-methods{grid-template-columns:1fr}.location-method{grid-template-columns:120px 1fr;align-items:center}.location-method small{margin:0}.location-link-row{grid-template-columns:1fr}.tasador-map{height:290px}}
+
+/* Escenarios de valor TPL */
+.valuation-cards{display:grid;gap:14px;margin:18px 0}.valuation-card{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 12px 30px rgba(20,44,70,.08)}.valuation-card::before{content:"";position:absolute;inset:0 auto 0 0;width:6px}.valuation-card small{display:block;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.valuation-card strong{display:block;font-size:clamp(1.8rem,4vw,2.55rem);line-height:1.05;margin:7px 0 9px}.valuation-card p{margin:0;color:var(--muted);font-size:.89rem;line-height:1.5}.valuation-card__tag{display:inline-flex;border-radius:999px;padding:5px 9px;margin-bottom:10px;font-size:.72rem;font-weight:900}.valuation-card--tpl{background:linear-gradient(145deg,#edf6ff,#fff);border-color:#a9cceb}.valuation-card--tpl::before{background:#0c5da5}.valuation-card--tpl small,.valuation-card--tpl strong{color:#073b6f}.valuation-card--tpl .valuation-card__tag{background:#d9ebff;color:#073b6f}.valuation-card--agile{background:linear-gradient(145deg,#fff8df,#fff);border-color:#ecd27a}.valuation-card--agile::before{background:#d99b00}.valuation-card--agile small,.valuation-card--agile strong{color:#7b5200}.valuation-card--agile .valuation-card__tag{background:#fff0b5;color:#6d4800}.valuation-card--patient{background:linear-gradient(145deg,#eaf8f0,#fff);border-color:#9fd2b5}.valuation-card--patient::before{background:#198754}.valuation-card--patient small,.valuation-card--patient strong{color:#12643f}.valuation-card--patient .valuation-card__tag{background:#d8f1e3;color:#12643f}.tpl-value-formula{display:grid;gap:7px;margin:14px 0 18px;padding:15px 16px;border:1px solid #cbd9e8;border-radius:16px;background:#f7faff}.tpl-value-formula strong{color:var(--blue)}.tpl-value-formula span{color:var(--muted);font-size:.88rem;line-height:1.45}.tpl-value-formula.is-market{background:#eef8ff;border-color:#9fc9eb}.tpl-value-formula.is-technical{background:#f4f6f8;border-color:#d4dbe3}.market-reference{border-left:5px solid #6f42c1;background:#f6f0ff}.market-reference strong{color:#52308f}.valuation-weight{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px}.valuation-weight b{border-radius:999px;padding:4px 8px;background:#fff;border:1px solid currentColor;font-size:.75rem}@media(min-width:1080px){.valuation-cards{grid-template-columns:1fr}.valuation-card--tpl{padding:24px}}
+
+body.is-crm-embed .public-header,body.is-crm-embed .public-footer{display:none!important}body.is-crm-embed main{padding-top:18px}body.is-crm-embed .hero-mini{display:none}body.is-crm-embed .tasador-shell{max-width:1080px;margin:0 auto}
+
+/* Tres motores TPL */
+.asset-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0}.asset-card{border:1px solid #d9e3eb;background:#fff;border-radius:18px;padding:18px;text-align:left;display:grid;gap:5px;cursor:pointer;transition:.2s}.asset-card:hover,.asset-card.is-active{border-color:#075985;box-shadow:0 12px 30px rgba(3,47,74,.12);transform:translateY(-1px)}.asset-card span{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#a16207}.asset-card strong{font-size:1.05rem;color:#082f49}.asset-card small{color:#526473;line-height:1.45}.asset-card.is-active{background:#f3f8fb}.asset-mode-note{margin:-4px 0 16px;padding:12px 14px;border-radius:12px;background:#eef6fa;color:#0c4a6e;font-size:.92rem}.is-house-only [data-terrain-only]{display:none!important}@media(max-width:760px){.asset-picker{grid-template-columns:1fr}}
+
+/* Mapa operativo CRM/Tasador */
+.tasador-map-shell{position:relative}.tasador-map{position:relative;z-index:1}.tasador-map .leaflet-control-zoom{border:0!important;box-shadow:0 6px 18px rgba(15,23,42,.2)!important}.tasador-map .leaflet-control-zoom a{width:36px!important;height:36px!important;line-height:36px!important;font-size:21px!important;color:#073b6f!important}.tpl-map-pin-wrap{background:transparent!important;border:0!important}.tpl-map-pin{display:block;width:28px;height:28px;border-radius:50% 50% 50% 0;background:#0c5da5;border:4px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.35);transform:rotate(-45deg)}.tpl-map-pin:after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#ffd54a;margin:6px}.map-overlay-help{position:absolute;z-index:500;left:12px;bottom:12px;max-width:290px;padding:9px 11px;border-radius:11px;background:rgba(255,255,255,.94);box-shadow:0 7px 22px rgba(15,23,42,.18);pointer-events:none}.map-overlay-help strong,.map-overlay-help span{display:block}.map-overlay-help strong{color:#073b6f;font-size:.82rem}.map-overlay-help span{color:#52677a;font-size:.72rem;line-height:1.35;margin-top:2px}
+
+/* Ficha Inteligente CRM: mostrar solo antecedentes faltantes */
+.crm-smart-completion{margin:0 0 24px;padding:20px;border:1px solid #a9cceb;border-radius:20px;background:linear-gradient(145deg,#edf6ff,#fff);box-shadow:0 12px 30px rgba(7,59,111,.08)}.crm-smart-completion__head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}.crm-smart-completion__head span{font-size:.74rem;font-weight:950;text-transform:uppercase;letter-spacing:.1em;color:#0c5da5}.crm-smart-completion__head strong{color:#073b6f;font-size:1.08rem}.crm-smart-completion p{margin:8px 0;color:#52677a;line-height:1.5}.crm-completion-meter{height:9px;border-radius:99px;background:#dbe8f4;overflow:hidden;margin:14px 0 16px}.crm-completion-meter span{display:block;height:100%;width:0;background:linear-gradient(90deg,#0c5da5,#198754);transition:width .35s ease}.crm-known-data,.crm-missing-data{padding:13px 0;border-top:1px solid rgba(7,59,111,.12)}.crm-known-data strong,.crm-missing-data strong{display:block;color:#073b6f;margin-bottom:8px}.crm-known-data>div,.crm-missing-data>div{display:flex;flex-wrap:wrap;gap:7px}.crm-known-data span,.crm-missing-data span{border-radius:999px;padding:6px 9px;font-size:.76rem;font-weight:800}.crm-known-data span{background:#e5f5ec;color:#12643f}.crm-missing-data span{background:#fff3cd;color:#715300}.is-crm-smart-missing .mode-picker,.is-crm-smart-missing .asset-picker,.is-crm-smart-missing .hero{display:none!important}.is-crm-smart-missing .is-empty-grid{display:none}.is-crm-smart-missing .form-card>button.primary{position:sticky;bottom:12px;z-index:20;box-shadow:0 12px 28px rgba(7,59,111,.25)}@media(max-width:640px){.crm-smart-completion__head{display:grid}.crm-known-data>div,.crm-missing-data>div{display:grid;grid-template-columns:1fr 1fr}}
+
+.crm-save-and-value{width:100%;margin-top:16px;position:sticky;bottom:12px;z-index:25;box-shadow:0 12px 28px rgba(7,59,111,.24)}
+
+/* CRM · acciones separadas de guardado y tasación */
+.crm-save-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.crm-save-actions button{min-height:44px;padding:11px 16px;border-radius:12px;font-weight:800;cursor:pointer}
+.crm-save-only{background:#fff;border:1px solid #0b5fa5;color:#0b5fa5}
+.crm-save-only:hover{background:#eef6ff}
+.crm-save-actions button:disabled{opacity:.55;cursor:wait}
+@media(max-width:640px){.crm-save-actions button{width:100%}}
+
+/* Tasador CRM V2: cuatro valores, acciones visibles y mapa estable */
+.valuation-cards--four{grid-template-columns:repeat(2,minmax(0,1fr))}.valuation-card--communal{border-color:#8fc0e8;background:#f4f9ff}.valuation-card--base{border-color:#d8dee7;background:#fafbfd}.crm-save-actions{position:sticky;bottom:8px;z-index:900;display:flex!important;gap:10px;flex-wrap:wrap;padding:12px;margin-top:12px;border:1px solid #b9d1e5;border-radius:14px;background:rgba(255,255,255,.97);box-shadow:0 10px 30px rgba(15,23,42,.18)}.crm-save-actions button{flex:1;min-width:170px}.is-crm-embed .tasador-map-shell{min-height:390px}.is-crm-embed .tasador-map{height:390px!important;min-height:390px!important;width:100%!important}.leaflet-container{width:100%!important;height:100%!important}.is-crm-embed #crmSmartCompletion{display:block!important}.is-crm-embed #crmSmartCompletion[hidden]{display:block!important}@media(max-width:700px){.valuation-cards--four{grid-template-columns:1fr}.crm-save-actions{position:static}.is-crm-embed .tasador-map,.is-crm-embed .tasador-map-shell{height:340px!important;min-height:340px!important}}
+
+/* ----------------------------------------------------
+   TPL PREMIUM REPORT V3 - DOSSIER EJECUTIVO (PRINT)
+---------------------------------------------------- */
+body.tpl-report-open { overflow: hidden; background: #667b8d; }
+#tplReportPrintContainer {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: #cbd5e1; z-index: 9999; overflow-y: auto; overflow-x: hidden;
+}
+.tpl-report-topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.tpl-report-pages-wrap {
+  padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 40px;
+}
+.tpl-v3-dossier-page {
+  width: 210mm; height: 297mm; background: #fff;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  position: relative; overflow: hidden;
+  font-family: 'Inter', sans-serif; color: #173651;
+  display: flex; flex-direction: column;
+}
+.tpl-v3-dossier-page * { box-sizing: border-box; }
+
+/* Page 1: Cover */
+.tpl-dossier-cover { position: relative; height: 100%; background: #051624; color: #fff; }
+.tpl-dossier-cover__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+.tpl-dossier-cover__content { position: relative; z-index: 2; padding: 80px; height: 100%; display: flex; flex-direction: column; }
+.tpl-dossier-cover__logo { font-size: 1.2rem; font-weight: 900; letter-spacing: 0.15em; margin-bottom: auto; }
+.tpl-dossier-cover__titles h1 { font-family: 'Lora', serif; font-size: 3.5rem; font-weight: 400; line-height: 1.1; margin: 0 0 16px; }
+.tpl-dossier-cover__titles p { font-size: 1.15rem; color: #a4c2db; margin: 0 0 40px; }
+.tpl-dossier-cover__meta { display: grid; gap: 12px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,0.2); }
+.tpl-dossier-cover__meta span { display: block; font-size: 0.85rem; letter-spacing: 0.1em; color: #a4c2db; text-transform: uppercase; }
+.tpl-dossier-cover__meta strong { display: block; font-size: 1.2rem; font-weight: 400; }
+
+/* Pages 2 & 3: Content */
+.tpl-dossier-header { padding: 40px 50px 20px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #e2e8f0; }
+.tpl-dossier-header-brand strong { display: block; font-size: 1.1rem; color: #073b6f; font-weight: 800; }
+.tpl-dossier-header-brand small { display: block; font-size: 0.75rem; color: #64748b; letter-spacing: 0.05em; margin-top: 4px; }
+.tpl-dossier-header-meta { text-align: right; }
+.tpl-dossier-header-meta span { display: block; font-size: 0.8rem; color: #64748b; }
+.tpl-dossier-header-meta strong { color: #0f172a; }
+
+.tpl-dossier-body { padding: 40px 50px; flex: 1; }
+.tpl-dossier-title { font-family: 'Lora', serif; font-size: 2.2rem; font-weight: 500; color: #0f172a; margin: 0 0 32px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; }
+.tpl-dossier-section { margin-bottom: 40px; }
+.tpl-dossier-section-title { font-size: 0.85rem; font-weight: 800; color: #073b6f; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 16px; display: flex; align-items: center; gap: 12px; }
+.tpl-dossier-section-title::after { content: ""; flex: 1; height: 1px; background: #e2e8f0; }
+
+.tpl-dossier-value-hero { display: flex; justify-content: space-between; align-items: flex-start; padding: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 24px; }
+.tpl-dossier-value-hero__main h3 { font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 8px; }
+.tpl-dossier-value-hero__main .val { font-size: 3.5rem; font-weight: 800; color: #073b6f; line-height: 1; letter-spacing: -0.03em; margin: 0 0 12px; }
+.tpl-dossier-value-hero__main p { margin: 0; font-size: 0.95rem; color: #475569; max-width: 400px; line-height: 1.5; }
+.tpl-dossier-opp-index { padding: 16px 24px; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; text-align: right; }
+.tpl-dossier-opp-index span { display: block; font-size: 0.75rem; color: #64748b; letter-spacing: 0.05em; margin-bottom: 6px; }
+.tpl-dossier-opp-index strong { display: block; font-size: 1.1rem; color: #0f172a; }
+
+.tpl-dossier-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.tpl-dossier-metric-card { padding: 20px; border: 1px solid #e2e8f0; border-radius: 6px; }
+.tpl-dossier-metric-card small { display: block; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.tpl-dossier-metric-card strong { display: block; font-size: 1.3rem; color: #0f172a; font-weight: 700; }
+
+.tpl-dossier-table { width: 100%; border-collapse: collapse; }
+.tpl-dossier-table th { text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 0; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
+.tpl-dossier-table td { padding: 16px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; color: #0f172a; }
+.tpl-dossier-table td:first-child { font-weight: 600; width: 40%; color: #334155; }
+
+.tpl-dossier-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.tpl-dossier-list li { display: flex; gap: 12px; font-size: 0.95rem; color: #334155; line-height: 1.5; }
+.tpl-dossier-list li::before { content: "•"; color: #073b6f; font-weight: bold; }
+
+.tpl-dossier-footer { padding: 20px 50px 30px; text-align: center; border-top: 1px solid #e2e8f0; }
+.tpl-dossier-footer p { margin: 0 0 4px; font-size: 0.8rem; color: #64748b; }
+.tpl-dossier-footer small { color: #94a3b8; font-size: 0.7rem; }
+
+@media print {
+  @page { size: A4; margin: 0; }
+  body { background: #fff !important; }
+  #tplReportPrintContainer { position: static; background: #fff; height: auto; overflow: visible; display: block; }
+  .tpl-report-topbar { display: none !important; }
+  .tpl-report-pages-wrap { padding: 0; gap: 0; display: block; }
+  .tpl-v3-dossier-page { width: 100%; height: 297mm; box-shadow: none; page-break-after: always; }
+}
+
+/* AI Report UI in CRM Smart Completion */
+.crm-ai-header { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.ai-avatar { width: 40px; height: 40px; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.crm-ai-header span { display: block; font-size: 0.8rem; color: #6366f1; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.crm-ai-header strong { display: block; font-size: 1.1rem; color: var(--text); }
+.crm-smart-completion { background: #f8fafc; border: 2px solid #e0e7ff; border-radius: 12px; padding: 20px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.crm-ai-loading { display: flex; align-items: center; gap: 10px; color: #64748b; font-size: 0.9rem; font-weight: 500; margin-bottom: 10px; }
+.crm-ai-loading .dot { width: 8px; height: 8px; background: #6366f1; border-radius: 50%; animation: pulse 1.5s infinite ease-in-out; }
+.crm-ai-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+.crm-ai-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+

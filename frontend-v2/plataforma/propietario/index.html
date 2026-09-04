@@ -1,0 +1,375 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu Parcela Lista - Área de Propietarios</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/tpl-identity-seo.css">
+    <link rel="stylesheet" href="../../css/parcela.css">
+    <style>
+        /* Estilos base y utilidades para las fases */
+        .fase-container { display: none; padding: 2rem 1rem; max-width: 1200px; margin: 0 auto; min-height: 80vh; }
+        .fase-active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Premium Styles */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #fcfcfc; color: #222; margin: 0; }
+        .header-institucional { display: flex; justify-content: center; align-items: center; padding: 1.5rem; background: #fff; border-bottom: 1px solid #eaeaea; }
+        .header-institucional img { max-width: 180px; height: auto; }
+        
+        /* Fase 1 */
+        .hero-section { text-align: center; margin-top: 2rem; margin-bottom: 3rem; }
+        .hero-section h1 { font-size: 2.75rem; color: #111; margin-bottom: 1rem; letter-spacing: -1px; font-weight: 800; }
+        .hero-section p { font-size: 1.1rem; color: #555; }
+        
+        .tpl-public-stats { display: flex; justify-content: center; gap: 2rem; margin: 3rem 0; flex-wrap: wrap; }
+        .stat-card { background: #fff; padding: 2.5rem 2rem; border-radius: 16px; border: 1px solid #eaeaea; text-align: center; min-width: 220px; transition: transform 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
+        .stat-card .stat-value { font-size: 3.5rem; font-weight: 800; color: #111; margin-bottom: 0.5rem; line-height: 1; }
+        .stat-card .stat-label { font-size: 0.95rem; color: #666; font-weight: 500; }
+        
+        .market-intelligence { background: #fff; padding: 4rem 3rem; border-radius: 24px; border: 1px solid #eaeaea; margin: 4rem 0; }
+        .market-intelligence h2 { text-align: center; margin-bottom: 3rem; font-size: 2rem; font-weight: 700; color: #111; }
+        .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
+        .comparable-card { background: #f9f9f9; border-radius: 16px; overflow: hidden; border: 1px solid #eee; transition: all 0.3s ease; }
+        .comparable-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-color: #ddd; }
+        .comparable-card img { width: 100%; height: 220px; object-fit: cover; background: #e0e0e0; }
+        .comparable-card-body { padding: 1.5rem; }
+        .comparable-price { font-size: 1.75rem; font-weight: 800; color: #111; margin-bottom: 0.5rem; }
+        .comparable-details { color: #555; font-size: 0.95rem; }
+        
+        .btn-primary { display: inline-flex; align-items: center; justify-content: center; padding: 1rem 2rem; background: #111; color: #fff; font-weight: 600; font-size: 1.1rem; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s ease; text-decoration: none; }
+        .btn-primary:hover { background: #333; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        .btn-primary.large { font-size: 1.25rem; padding: 1.25rem 3rem; border-radius: 12px; }
+        .btn-whatsapp { background: #128C7E; color: #fff; }
+        .btn-whatsapp:hover { background: #0c6a5e; }
+        .btn-container { text-align: center; margin-top: 3rem; }
+        
+        /* Fase 2 */
+        .progress-container { background: #f0f0f0; border-radius: 20px; height: 8px; margin: 2rem 0 3rem; overflow: hidden; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .progress-bar { background: #111; height: 100%; width: 65%; border-radius: 20px; }
+        .score-text { text-align: center; font-size: 1.5rem; font-weight: 700; color: #111; margin-bottom: 0.5rem; }
+        
+        .owner-proposal-form { background: #fff; padding: 3.5rem; border-radius: 24px; border: 1px solid #eaeaea; max-width: 750px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+        .form-group { margin-bottom: 1.75rem; }
+        .form-group label { display: block; margin-bottom: 0.75rem; font-weight: 600; color: #222; font-size: 0.95rem; }
+        .form-control { width: 100%; padding: 1rem; border: 1px solid #ddd; border-radius: 10px; font-size: 1rem; transition: all 0.3s ease; box-sizing: border-box; background: #fdfdfd; }
+        .form-control:focus { border-color: #111; outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(17,17,17,0.05); }
+        .file-upload-box { border: 2px dashed #ccc; padding: 4rem 2rem; text-align: center; border-radius: 16px; cursor: pointer; transition: all 0.3s ease; color: #666; background: #fafafa; }
+        .file-upload-box:hover { border-color: #111; color: #111; background: #f4f4f4; }
+        
+        /* Fase 3 */
+        .loading-screen { text-align: center; padding: 8rem 2rem; }
+        .spinner { width: 50px; height: 50px; border: 3px solid rgba(17,17,17,0.1); border-left-color: #111; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 2.5rem; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 1.75rem; color: #111; font-weight: 700; margin-bottom: 1rem; }
+        
+        /* Fase 4 */
+        .upsell-hero { background: #111; color: #fff; padding: 5rem 3rem; border-radius: 24px; text-align: center; margin-bottom: 4rem; overflow: hidden; position: relative; }
+        .upsell-hero h1 { font-size: 3rem; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -1px; }
+        .upsell-hero p { font-size: 1.2rem; color: #aaa; max-width: 650px; margin: 0 auto 3rem; line-height: 1.6; }
+        
+        .valuation-results { display: flex; justify-content: center; gap: 2rem; margin: 4rem 0; flex-wrap: wrap; }
+        .valuation-card { background: #fff; padding: 3rem 2rem; border-radius: 20px; border: 1px solid #eaeaea; text-align: center; min-width: 250px; flex: 1; max-width: 320px; transition: transform 0.3s ease; }
+        .valuation-card.highlight { transform: scale(1.05); border: 2px solid #111; box-shadow: 0 20px 40px rgba(0,0,0,0.08); z-index: 1; }
+        .valuation-title { font-size: 0.9rem; color: #777; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 1rem; font-weight: 600; }
+        .valuation-price { font-size: 2.75rem; font-weight: 800; color: #111; margin-bottom: 1rem; }
+        
+        /* Fase 5 */
+        .capture-box { max-width: 550px; margin: 6rem auto; background: #fff; padding: 4rem 3rem; border-radius: 24px; border: 1px solid #eaeaea; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .capture-box h2 { margin-bottom: 1.5rem; color: #111; font-size: 2.25rem; font-weight: 800; }
+        .capture-box p { color: #555; margin-bottom: 2.5rem; font-size: 1.1rem; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <header class="tpl-header">
+  <a class="tpl-brand" href="../../index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="../../assets/brand/tpl-mark.svg" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="#buscador">Buscar parcelas</a>
+    <a href="../../como-comprar.html">Cómo comprar</a>
+    <a href="../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../tpl-business-v2/index.html">TPL Business</a>
+    <a class="tpl-publish" href="../publicar-v2/index.html">Publicar</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="#resultados">Parcelas</a>
+    <a class="tpl-publish" href="../publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="#buscador">Buscar parcelas</a>
+    <a href="../../como-comprar.html">Cómo comprar</a>
+    <a href="../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../tpl-business-v2/index.html">TPL Business</a>
+  </nav>
+</header>
+
+    <main>
+        <!-- Fase 1: Dashboard de Retención -->
+        <section id="fase-dashboard" class="fase-container fase-active">
+            <div class="hero-section">
+                <h1>¡Qué gusto saludarte, <span id="dash-hero-name">Propietario</span>!</h1>
+                <p style="font-size: 1.25rem; font-weight: 500; color: #333; margin-top: 0.5rem;">Gracias por ser parte exclusiva de Tu Parcela Lista. Trabajamos en equipo para lograr tu venta.</p>
+            </div>
+            
+            <div style="background: #111827; border: 1px solid #D4AF37; padding: 2rem; border-radius: 16px; max-width: 800px; margin: 0 auto 3rem; text-align: center; color: #F9FAFB; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);">
+                <strong style="display: block; font-size: 1.3rem; margin-bottom: 0.75rem; color: #D4AF37; font-family: var(--font-serif, serif);">ðŸš€ Gran Lanzamiento: Parcelalista.cl</strong>
+                <p style="margin: 0; line-height: 1.6; font-size: 1.05rem; color: #D1D5DB;">Estamos a punto de lanzar nuestra nueva plataforma premium <strong style="color: white;">Parcelalista.cl</strong> con toda la fuerza del mercado. Para garantizar que tu propiedad destaque y se venda de la manera más eficaz posible, necesitamos calcular su <strong style="color: white;">valor técnico real</strong>. Por favor, verifica tu perfil a continuación.</p>
+            </div>
+            
+            <div class="ficha-cabecera">
+                <h2 id="dash-titulo">Tu propiedad</h2>
+                <p id="dash-comuna-linea">Comuna de <span id="dash-comuna">tu parcela</span></p>
+            </div>
+
+            <div class="valores-grid" id="dash-valores">
+                <div class="valor-card destacado">
+                    <span class="lbl">Valor TPL recomendado</span>
+                    <strong id="dash-valor-tpl">Por calcular</strong>
+                    <small>Se calcula con tus antecedentes</small>
+                </div>
+                <div class="valor-card">
+                    <span class="lbl">Valor de venta ágil</span>
+                    <strong id="dash-valor-apuro">Por calcular</strong>
+                    <small>Si necesitas vender rápido</small>
+                </div>
+                <div class="valor-card">
+                    <span class="lbl">Ficha completa</span>
+                    <strong id="dash-health">0%</strong>
+                    <small>Mientras más completa, mejor la tasación</small>
+                </div>
+            </div>
+
+            <div class="progress-container"><div class="progress-bar" style="width:0"></div></div>
+            <p class="score-text">Revisando tu ficha…</p>
+
+            <div class="aviso-faltan" id="dash-faltantes-aviso" style="display:none;"></div>
+
+            <h3 class="bloque-titulo">Antecedentes de tu propiedad</h3>
+            <div class="campos-grid" id="dash-campos"></div>
+
+            <div class="btn-container">
+                <button class="btn-primary large" onclick="mostrarFase('fase-actualizacion')">Verificar Salud del Perfil</button>
+            </div>
+        </section>
+
+        <!-- Fase 2: Salud del Perfil y Actualización -->
+        <section id="fase-actualizacion" class="fase-container">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="score-text">Tu perfil está al 65%</div>
+                <div class="progress-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <div class="owner-proposal-form">
+                    <h2 style="margin-bottom: 2.5rem; color: #111; text-align: center; font-size: 1.8rem; font-weight: 700;">Completa los datos técnicos para tu tasación</h2>
+                    
+                    <div class="form-group">
+                        <label>Topografía de la parcela</label>
+                        <select class="form-control" id="form-topografia">
+                            <option value="">Seleccionar...</option>
+                            <option value="Totalmente Plana">Totalmente Plana</option>
+                            <option value="Mayormente plana">Mayormente plana</option>
+                            <option value="Lomaje suave">Lomaje suave</option>
+                            <option value="Con pendiente">Quebrada / Pendiente pronunciada</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="form-group">
+                            <label>Factibilidad de Agua</label>
+                            <select class="form-control" id="form-agua">
+                                <option value="">Seleccionar...</option>
+                                <option value="Pozo profundo">Pozo profundo</option>
+                                <option value="Conexión APR">Conexión APR</option>
+                                <option value="Puntera">Puntera</option>
+                                <option value="Agua disponible">Agua disponible</option>
+                                <option value="Factibilidad">Factibilidad de agua</option>
+                                <option value="Camión Aljibe">Camión Aljibe</option>
+                                <option value="Sin factibilidad">Sin factibilidad</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Factibilidad de Luz</label>
+                            <select class="form-control" id="form-luz">
+                                <option value="">Seleccionar...</option>
+                                <option value="Empalme instalado">Empalme instalado</option>
+                                <option value="Postación a menos de 100m">Postación cercana</option>
+                                <option value="Paneles solares instalados">Paneles solares instalados</option>
+                                <option value="Factibilidad eléctrica">Factibilidad eléctrica</option>
+                                <option value="Sin factibilidad cercana">Sin factibilidad cercana</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Situación Legal (Rol)</label>
+                        <select class="form-control" id="form-rol">
+                            <option value="">Seleccionar...</option>
+                            <option value="Rol Propio">Rol Propio (Inscrito CBR)</option>
+                            <option value="Cesión de Derechos">Cesión de Derechos</option>
+                            <option value="Subdivisión en trámite">Subdivisión en trámite SAG</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="form-group">
+                            <label>Acceso al terreno</label>
+                            <select class="form-control" id="form-acceso">
+                                <option value="">Seleccionar...</option>
+                                <option value="Camino público pavimentado">Camino público pavimentado</option>
+                                <option value="Camino público de ripio">Camino público de ripio</option>
+                                <option value="Servidumbre de paso">Servidumbre de paso</option>
+                                <option value="Camino por mejorar">Camino por mejorar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cierre perimetral</label>
+                            <select class="form-control" id="form-cierre">
+                                <option value="">Seleccionar...</option>
+                                <option value="Cerrado completo">Cerrado completo</option>
+                                <option value="Cerrado parcial">Cerrado parcial</option>
+                                <option value="Sin cierre">Sin cierre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="form-group">
+                            <label>Portón de acceso</label>
+                            <select class="form-control" id="form-porton">
+                                <option value="">Seleccionar...</option>
+                                <option value="Con portón">Con portón</option>
+                                <option value="Sin portón">Sin portón</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio que pides (CLP)</label>
+                            <input type="number" class="form-control" id="form-precio" placeholder="Ej. 45000000" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 2.5rem; background: #fafafa; padding: 1.5rem; border-radius: 12px; border: 1px solid #eaeaea;">
+                        <label style="font-size: 1.1rem; margin-bottom: 0.5rem;">Flexibilidad y Mejoras para la Venta</label>
+                        <p style="font-size: 0.9rem; color: #666; margin-bottom: 1.5rem;">Estos datos se mostrarán a los compradores interesados.</p>
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-weight: 500; font-size: 0.95rem;">¿Estás dispuesto a conversar condiciones?</label>
+                            <select id="form-negociacion" class="form-control" style="margin-top: 0.5rem;">
+                                <option value="precio_fijo">Precio Fijo</option>
+                                <option value="ofertas">Acepto Ofertas</option>
+                                <option value="mejoras">Mantengo Precio pero incluyo Mejoras</option>
+                                <option value="ofertas_y_mejoras" selected>Acepto Ofertas y/o Mejoras</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="font-weight: 500; font-size: 0.95rem; margin-bottom: 0.75rem;">¿Qué mejoras podrías evaluar incluir si te pagan el precio acordado?</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;" id="form-mejoras">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="cerco"> Cerco perimetral</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="porton"> Portón de acceso</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="puntera_agua"> Puntera o agua</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="empalme_electrico"> Empalme eléctrico</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="camino_acceso"> Mejorar camino</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;"><input type="checkbox" value="fosa_septica"> Fosa séptica</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 2.5rem;">
+                        <label>Fotografías Actualizadas (Recomendado)</label>
+                        <div class="file-upload-box">
+                            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1.5rem;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            <p style="font-size: 1.1rem; color: #444; font-weight: 500;">Haz clic o arrastra tus fotos aquí</p>
+                            <p style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">Formatos soportados: JPG, PNG, HEIC</p>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container" style="margin-top: 3rem;">
+                        <button class="btn-primary large" style="width: 100%;" onclick="mostrarFase('fase-loading')">Guardar y calcular mi valor TPL</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fase 3: Cargador de Tasación -->
+        <section id="fase-loading" class="fase-container">
+            <div class="loading-screen">
+                <div class="spinner"></div>
+                <div class="loading-text">Generando Informe Metodología TPL...</div>
+                <p style="color: #666; font-size: 1.1rem; margin-top: 1rem;">Conectando atributos con el motor matemático TPL.</p>
+            </div>
+        </section>
+
+
+        <!-- Fase 4 â†’ Redirigido al Informe Metodología TPL (ver propietario/js/app.js) -->
+
+        <!-- Fase 5: Captura de Correo (Alternativa) -->
+        <section id="fase-captura" class="fase-container">
+            <div class="capture-box">
+                <h2>Aún estamos recopilando datos</h2>
+                <p>Estamos procesando la información de mercado más reciente para tu comuna específica. Déjanos tu correo corporativo o personal y te enviaremos el reporte completo en cuanto finalice.</p>
+                
+                <div class="form-group" style="text-align: left;">
+                    <label>Correo electrónico</label>
+                    <input type="email" class="form-control" placeholder="tu@correo.com">
+                </div>
+                <button class="btn-primary large" style="width: 100%; margin-top: 1rem;">Enviarme el certificado cuando esté listo</button>
+                
+                <div style="margin-top: 3rem;">
+                    <button style="background: none; border: none; color: #111; font-weight: 600; cursor: pointer;" onclick="mostrarFase('fase-dashboard')">← Volver al Dashboard</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Librerías de datos de TPL -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../../js/core/tpl-data-service.js?v=20260901-limit"></script>
+    <script src="../../js/core/valuation-engine.js?v=20260901-motor-unico"></script>
+    <script src="../../js/tpl-market-intelligence.js"></script>
+
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const toggle = document.getElementById("menu-toggle");
+            const menu = document.getElementById("mobile-menu");
+            if (toggle && menu) {
+                toggle.addEventListener("click", () => {
+                    const isHidden = menu.hidden;
+                    menu.hidden = !isHidden;
+                    toggle.setAttribute("aria-expanded", String(isHidden));
+                });
+            }
+        });
+        
+        function mostrarFase(idFase) {
+            document.querySelectorAll('.fase-container').forEach(el => {
+                el.classList.remove('fase-active');
+            });
+            
+            document.getElementById(idFase).classList.add('fase-active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+
+    <!-- app.js va DESPUES del bloque de arriba: alli se declara mostrarFase(),
+         y una declaracion de funcion pisa cualquier window.mostrarFase anterior. -->
+    <script src="js/app.js?v=20260902-token"></script>
+
+    <script type="module">
+      // El adaptador es un modulo ES; se expone en window para que app.js
+      // (script clasico) pueda usar el MISMO motor que el CRM y el informe.
+      import '../../js/core/valuation-adapter.js?v=20260902-comparables';
+    </script>
+
+</body>
+</html>
+
+

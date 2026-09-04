@@ -1,0 +1,287 @@
+{
+  "pucón": {
+    "avgM2": 13011,
+    "sample": 20,
+    "totalSample": 41
+  },
+  "villarrica": {
+    "avgM2": 6950,
+    "sample": 20,
+    "totalSample": 50
+  },
+  "coihueco": {
+    "avgM2": 5026,
+    "sample": 9,
+    "totalSample": 22
+  },
+  "chillán viejo": {
+    "avgM2": 5050,
+    "sample": 4,
+    "totalSample": 5
+  },
+  "yumbel": {
+    "avgM2": 4042,
+    "sample": 21,
+    "totalSample": 34
+  },
+  "bulnes": {
+    "avgM2": 5906,
+    "sample": 10,
+    "totalSample": 13
+  },
+  "chillán": {
+    "avgM2": 7308,
+    "sample": 32,
+    "totalSample": 66
+  },
+  "san ignacio": {
+    "avgM2": 7275,
+    "sample": 4,
+    "totalSample": 5
+  },
+  "ninhue": {
+    "avgM2": 2333,
+    "sample": 3,
+    "totalSample": 5
+  },
+  "san fabián": {
+    "avgM2": 11414,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "ñiquén": {
+    "avgM2": 4175,
+    "sample": 6,
+    "totalSample": 6
+  },
+  "yungay": {
+    "avgM2": 4940,
+    "sample": 3,
+    "totalSample": 4
+  },
+  "cobquecura": {
+    "avgM2": 7519,
+    "sample": 8,
+    "totalSample": 17
+  },
+  "san carlos": {
+    "avgM2": 5271,
+    "sample": 7,
+    "totalSample": 9
+  },
+  "quillón": {
+    "avgM2": 5523,
+    "sample": 9,
+    "totalSample": 14
+  },
+  "coelemu": {
+    "avgM2": 2000,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "san nicolás": {
+    "avgM2": 4428,
+    "sample": 7,
+    "totalSample": 8
+  },
+  "pinto": {
+    "avgM2": 6094,
+    "sample": 7,
+    "totalSample": 9
+  },
+  "portezuelo": {
+    "avgM2": 2900,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "el carmen": {
+    "avgM2": 4029,
+    "sample": 3,
+    "totalSample": 3
+  },
+  "pemuco": {
+    "avgM2": 4684,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "ránquil": {
+    "avgM2": 3056,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "florida": {
+    "avgM2": 5141,
+    "sample": 21,
+    "totalSample": 34
+  },
+  "laja": {
+    "avgM2": 4214,
+    "sample": 11,
+    "totalSample": 11
+  },
+  "chillan viejo": {
+    "avgM2": 2857,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "los ángeles": {
+    "avgM2": 6567,
+    "sample": 30,
+    "totalSample": 55
+  },
+  "cabrero": {
+    "avgM2": 5816,
+    "sample": 7,
+    "totalSample": 14
+  },
+  "hualqui": {
+    "avgM2": 4610,
+    "sample": 4,
+    "totalSample": 8
+  },
+  "antuco": {
+    "avgM2": 4293,
+    "sample": 3,
+    "totalSample": 7
+  },
+  "santa juana": {
+    "avgM2": 7972,
+    "sample": 8,
+    "totalSample": 13
+  },
+  "quilaco": {
+    "avgM2": 13226,
+    "sample": 2,
+    "totalSample": 4
+  },
+  "coronel": {
+    "avgM2": 80547,
+    "sample": 1,
+    "totalSample": 2
+  },
+  "quilleco": {
+    "avgM2": 19000,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "san rosendo": {
+    "avgM2": 3750,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "concepción": {
+    "avgM2": 16934,
+    "sample": 6,
+    "totalSample": 8
+  },
+  "santa bárbara": {
+    "avgM2": 18000,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "los angeles": {
+    "avgM2": 9170,
+    "sample": 7,
+    "totalSample": 8
+  },
+  "nacimiento": {
+    "avgM2": 3028,
+    "sample": 3,
+    "totalSample": 5
+  },
+  "arauco": {
+    "avgM2": 12120,
+    "sample": 5,
+    "totalSample": 5
+  },
+  "negrete": {
+    "avgM2": 5286,
+    "sample": 3,
+    "totalSample": 4
+  },
+  "tucapel": {
+    "avgM2": 3000,
+    "sample": 1,
+    "totalSample": 3
+  },
+  "tomé": {
+    "avgM2": 5695,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "cañete": {
+    "avgM2": 4200,
+    "sample": 3,
+    "totalSample": 3
+  },
+  "san pedro de la paz": {
+    "avgM2": 77778,
+    "sample": 1,
+    "totalSample": 2
+  },
+  "temuco": {
+    "avgM2": 6718,
+    "sample": 1,
+    "totalSample": 3
+  },
+  "malalcahuello": {
+    "avgM2": 11431,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "lebu": {
+    "avgM2": 4400,
+    "sample": 1,
+    "totalSample": 2
+  },
+  "loncoche": {
+    "avgM2": 9275,
+    "sample": 3,
+    "totalSample": 6
+  },
+  "vilcún": {
+    "avgM2": 4768,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "curacautin": {
+    "avgM2": 4600,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "curacautín": {
+    "avgM2": 3050,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "loss angeles": {
+    "avgM2": 15100,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "mulchén": {
+    "avgM2": 4900,
+    "sample": 2,
+    "totalSample": 2
+  },
+  "los sauces": {
+    "avgM2": 950,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "quirihue": {
+    "avgM2": 375,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "hualpén": {
+    "avgM2": 612849607,
+    "sample": 1,
+    "totalSample": 1
+  },
+  "cauquenes": {
+    "avgM2": 2500,
+    "sample": 1,
+    "totalSample": 1
+  }
+}

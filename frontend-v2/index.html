@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#002b54">
+  <title>Tu Parcela Lista | Parcelas y Campos en Chile</title>
+  <meta name="description" content="Encuentra parcelas y campos en Chile. Compara alternativas, cotiza tu proyecto de vivienda y avanza hacia una nueva vida rural con acompañamiento en cada paso.">
+  <meta name="keywords" content="parcelas en chile, campos en chile, venta de parcelas, terrenos rurales, parcelas baratas, parcelas Biobío, parcelas Ñuble, parcelas Araucanía">
+
+  <!-- Open Graph / Redes sociales -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.parcelalista.cl/">
+  <meta property="og:title" content="Tu Parcela Lista | Parcelas y Campos en Chile">
+  <meta property="og:description" content="Encuentra parcelas y campos en Chile. Cotiza tu proyecto de vivienda y da forma a tu nueva etapa rural.">
+  <meta property="og:image" content="https://www.parcelalista.cl/image/logo_compartir.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tu Parcela Lista | Parcelas y Campos en Chile">
+  <meta name="twitter:description" content="Encuentra parcelas y campos en Chile. Cotiza tu proyecto de vivienda y da forma a tu nueva etapa rural.">
+  <meta name="twitter:image" content="https://www.parcelalista.cl/image/logo_compartir.png">
+
+  <!-- Favicon e iconos -->
+  <link rel="icon" type="image/png" href="/image/favicon.png">
+  <link rel="apple-touch-icon" href="/image/favicon-512.png">
+  <link rel="canonical" href="https://www.parcelalista.cl/">
+
+  <!-- Preloads críticos -->
+  <link rel="preload" href="./assets/hero-familia-casa-campo-premium.webp" as="image" fetchpriority="high">
+  <link rel="preload" href="./assets/brand/tpl-mark.svg" as="image">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+
+  <!-- Sistema de diseño compartido (tokens, botones, cards, tablas, foco, reduced-motion) -->
+  <link rel="stylesheet" href="./css/tpl-design-system.css?v=20260901-banner">
+
+  <!-- CSS único consolidado -->
+  <link rel="stylesheet" href="./css/index.css?v=20260831-redesign1">
+
+  <!-- Datos estructurados (schema.org) para buscadores -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "name": "Tu Parcela Lista",
+    "url": "https://www.parcelalista.cl/",
+    "image": "https://www.parcelalista.cl/image/logo_compartir.png",
+    "description": "Portal de venta de parcelas y campos en Chile: comparación de alternativas, tasación técnica TPL y acompañamiento para proyectos de vivienda rural.",
+    "areaServed": {
+      "@type": "Country",
+      "name": "Chile"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Tu Parcela Lista",
+    "url": "https://www.parcelalista.cl/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://www.parcelalista.cl/#buscador",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║          HEADER               ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+  <header class="tpl-header">
+    <a class="tpl-brand" href="./index.html" aria-label="Tu Parcela Lista, inicio">
+      <img src="./assets/brand/tpl-mark.svg" width="130" height="56" alt="Tu Parcela Lista">
+    </a>
+    <nav class="tpl-nav" aria-label="Navegación principal">
+      <a href="#buscador">Buscar parcelas</a>
+      <a href="./como-comprar.html">Cómo comprar</a>
+      <a href="./cotizador.html">Cotizador de Casa</a>
+
+      <a href="./red-partner-v2/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business-v2/index.html">TPL Business</a>
+      <a class="tpl-publish" href="./plataforma/publicar-v2/index.html">Publicar</a>
+    </nav>
+    <div class="tpl-mobile-actions">
+      <a href="#resultados" class="tpl-mobile-parcelas">Parcelas</a>
+      <a class="tpl-publish" href="./plataforma/publicar-v2/index.html">Publicar</a>
+      <button id="menu-toggle" class="tpl-menu-button" type="button"
+              aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">&#9776;</button>
+    </div>
+    <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+      <a href="#buscador">Buscar parcelas</a>
+      <a href="./como-comprar.html">Cómo comprar</a>
+      <a href="./cotizador.html">Cotizador de Casa</a>
+
+      <a href="./red-partner-v2/index.html">Red Partner</a>
+      <a href="./plataforma/tpl-business-v2/index.html">TPL Business</a>
+      <a href="./plataforma/publicar-v2/index.html">Publicar Parcela</a>
+    </nav>
+  </header>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║   COMMUNE RIBBON (STICKY)     ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+  <section class="commune-ribbon" aria-label="Explorar parcelas por comuna">
+    <div class="commune-ribbon__shell">
+      <div class="commune-ribbon__intro">
+        <span>EXPLORA POR ZONA</span>
+        <strong>Comunas disponibles</strong>
+      </div>
+      <div id="commune-ribbon-groups" class="commune-ribbon__groups" aria-live="polite">
+        <div class="commune-region" style="opacity:0.4;pointer-events:none;">
+          <strong>Biob&iacute;o</strong>
+          <button type="button" class="commune-chip">Cargando...</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║        TRUST BAR              ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+  <div class="tpl-trust-bar" aria-label="Estadísticas del catálogo">
+    <span id="trust-parcelas"><strong>—</strong> parcelas publicadas</span>
+    <span class="tpl-trust-sep" aria-hidden="true">&middot;</span>
+    <span id="trust-comunas"><strong>—</strong> comunas disponibles</span>
+    <span class="tpl-trust-sep" aria-hidden="true">&middot;</span>
+    <span id="trust-regiones"><strong>—</strong> regiones cubiertas</span>
+    <span class="tpl-trust-sep" aria-hidden="true">&middot;</span>
+    <span class="tpl-trust-cta"><a href="#buscador">Explorar ahora &rarr;</a></span>
+  </div>
+
+  <main>
+
+    <!-- ╔═══════════════════════════════╗ -->
+    <!-- ║      HERO + BUSCADOR          ║ -->
+    <!-- ╚═══════════════════════════════╝ -->
+    <section class="tpl-hero" aria-label="Busca tu parcela ideal">
+      <img class="tpl-hero__bg"
+           src="./assets/hero-familia-casa-campo-premium.webp"
+           alt="Familia en el campo"
+           fetchpriority="high"
+           decoding="async">
+      <div class="tpl-hero__shade" aria-hidden="true"></div>
+
+      <div class="tpl-hero__inner">
+        <!-- Texto izquierda -->
+        <div class="tpl-hero__text">
+          <span class="tpl-hero__eyebrow">TU NUEVA ETAPA COMIENZA AQU&Iacute;</span>
+          <h1>Vive el campo.<br><em>Construye tu vida.</em></h1>
+          <p>Encuentra parcelas para crear una vida con m&aacute;s espacio, naturaleza y libertad.
+             Define la ubicaci&oacute;n y proyecta tu inversi&oacute;n.</p>
+          <div class="tpl-hero__trust" aria-hidden="true">
+            <span>&#10003; Cat&aacute;logo verificado</span>
+            <span>&#10003; Tasador TPL incluido</span>
+            <span>&#10003; Asesor&iacute;a sin costo</span>
+          </div>
+        </div>
+
+        <!-- Widget derecha (glassmorphism) -->
+        <div class="tpl-search-widget" id="buscador">
+
+          <!-- Panel 1: Dónde buscas -->
+          <div class="widget-panel">
+            <h3>1. &iquest;D&oacute;nde buscas tu parcela?</h3>
+            <div class="search-methods" role="group" aria-label="Método de búsqueda">
+              <button id="nearby-method" class="search-method is-active" type="button" data-method="nearby">
+                <strong>Cerca de ti</strong>
+              </button>
+              <button id="commune-method" class="search-method" type="button" data-method="commune">
+                <strong>Por Comuna</strong>
+              </button>
+            </div>
+
+            <div id="nearby-panel" class="method-panel">
+              <button id="locate-button" class="primary-button" type="button">
+                &#9635; Mostrar parcelas cercanas
+              </button>
+              <small id="location-status" class="status-text" aria-live="polite"></small>
+            </div>
+
+            <div id="commune-panel" class="method-panel" hidden>
+              <select id="commune-select" aria-label="Seleccionar comuna">
+                <option value="">Selecciona una comuna</option>
+              </select>
+              <button id="commune-search-button" class="primary-button" type="button">
+                Ver parcelas disponibles
+              </button>
+            </div>
+          </div>
+
+          <hr class="widget-divider">
+
+          <!-- Panel 2: Proyecto de vivienda / Presupuesto combo -->
+          <div class="widget-panel" id="proyecto-presupuesto">
+            <h3>2. &iquest;Buscas proyecto de vivienda? <small>(Opcional)</small></h3>
+            <form id="combo-budget-form" class="combo-budget-form">
+              <div class="combo-budget-input-wrap">
+                <b>$</b>
+                <input id="combo-budget-input"
+                       type="text"
+                       inputmode="numeric"
+                       autocomplete="off"
+                       placeholder="Presupuesto total (Terreno + Casa)">
+              </div>
+              <div class="combo-budget-quick" aria-label="Presupuestos rápidos">
+                <button type="button" data-combo-budget="10000000">$10M</button>
+                <button type="button" data-combo-budget="25000000">$25M</button>
+                <button type="button" data-combo-budget="35000000">$35M</button>
+                <button type="button" data-combo-budget="50000000">$50M</button>
+              </div>
+              <button class="primary-button combo-search-button" type="submit">
+                Ver proyectos compatibles
+              </button>
+            </form>
+          </div>
+
+        </div><!-- /.tpl-search-widget -->
+      </div><!-- /.tpl-hero__inner -->
+    </section>
+
+    <!-- ╔═══════════════════════════════╗ -->
+    <!-- ║   RESULTADOS COMBO (oculto)   ║ -->
+    <!-- ╚═══════════════════════════════╝ -->
+    <div id="combo-results-wrap" class="combo-results-wrap" hidden>
+      <div class="combo-results-head">
+        <div>
+          <span class="tpl-section-eyebrow">PROYECTOS COMPATIBLES</span>
+          <h2>Alternativas para imaginar tu proyecto</h2>
+          <p id="combo-results-summary"></p>
+        </div>
+        <button id="combo-refresh" class="map-button" type="button">Ver otras opciones</button>
+      </div>
+      <div id="combo-grid" class="combo-grid" aria-live="polite"></div>
+    </div>
+
+    <!-- ╔═══════════════════════════════╗ -->
+    <!-- ║      VIDEO CORPORATIVO        ║ -->
+    <!-- ╚═══════════════════════════════╝ -->
+    <section class="tpl-video-section" aria-labelledby="tpl-video-title">
+      <div class="tpl-video-section__inner">
+        <div class="tpl-video-section__copy">
+          <span class="tpl-section-eyebrow">AS&Iacute; SOMOS</span>
+          <h2 id="tpl-video-title">Conoce Tu Parcela Lista</h2>
+          <p>Conectamos personas con su parcela ideal, y acompa&ntilde;amos el proyecto completo:
+             terreno, vivienda y servicios en un solo lugar.</p>
+          <a href="./como-comprar.html" class="tpl-video-link">
+            C&oacute;mo funciona el proceso &rarr;
+          </a>
+        </div>
+        <div class="tpl-video-player-wrap" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+          <iframe 
+              src="https://www.youtube.com/embed/G_t1VvNcNv8?autoplay=1&mute=1&modestbranding=1&rel=0&showinfo=0" 
+              title="Tu Parcela Lista Video Oficial" 
+              frameborder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowfullscreen
+              style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"
+          ></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- ╔═══════════════════════════════╗ -->
+    <!-- ║      C&Oacute;MO FUNCIONA         ║ -->
+    <!-- ╚═══════════════════════════════╝ -->
+    <section class="tpl-how" aria-labelledby="tpl-how-title">
+      <div class="tpl-how__inner">
+        <div class="tpl-how__head">
+          <span class="tpl-section-eyebrow">AS&Iacute; FUNCIONA</span>
+          <h2 id="tpl-how-title">De la b&uacute;squeda a tu proyecto</h2>
+        </div>
+        <ol class="tpl-how__steps" role="list">
+          <li class="tpl-how__step">
+            <div class="tpl-how__icon" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
+            <strong>Busca y compara</strong>
+            <p>Explora parcelas por zona o cerca de donde est&aacute;s. Filtra por precio,
+               naturaleza, servicios y mucho m&aacute;s.</p>
+          </li>
+          <li class="tpl-how__step">
+            <div class="tpl-how__icon" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <strong>Cotiza tu proyecto</strong>
+            <p>Combina la parcela ideal con una casa prefabricada y ajusta el proyecto
+               completo a tu presupuesto.</p>
+          </li>
+          <li class="tpl-how__step">
+            <div class="tpl-how__icon" aria-hidden="true">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <strong>Te acompa&ntilde;amos</strong>
+            <p>Desde el primer contacto hasta escriturar. Nuestros asesores te gu&iacute;an
+               en cada paso del proceso.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ╔═══════════════════════════════╗ -->
+    <!-- ║    SECCIÓN DE RESULTADOS      ║ -->
+    <!-- ╚═══════════════════════════════╝ -->
+    <section id="resultados" class="results-section" aria-labelledby="results-title">
+      <div class="results-toolbar" id="scroll-anchor">
+        <div>
+          <span id="search-context" class="context-label">OPORTUNIDADES DISPONIBLES</span>
+          <h2 id="results-title">Parcelas disponibles</h2>
+          <p id="results-count">Mostrando primero las parcelas m&aacute;s econ&oacute;micas.</p>
+        </div>
+        <button id="map-button" class="map-button" type="button" disabled>Mapa</button>
+      </div>
+
+      <!-- Priority bar — sticky al hacer scroll -->
+      <div id="priority-bar" class="priority-bar" role="toolbar" aria-label="Filtrar resultados">
+        <button type="button" data-priority="distance">M&aacute;s cercanas</button>
+        <button type="button" data-priority="payment">Facilidad de pago</button>
+        <button type="button" data-priority="nature">M&aacute;s naturales</button>
+        <button type="button" data-priority="services">Servicios cerca</button>
+        <button type="button" data-priority="opportunity" class="priority-opportunity">Oportunidades</button>
+        <button type="button" class="is-active" data-priority="economic">M&aacute;s econ&oacute;micas</button>
+        <button type="button" data-priority="large">1 hect&aacute;rea o m&aacute;s</button>
+      </div>
+
+      <!-- Panel mapa (Leaflet, carga lazy) -->
+      <div id="map-panel" class="map-panel" hidden>
+        <div class="map-panel-head">
+          <strong>Ubicaci&oacute;n de las parcelas encontradas</strong>
+          <button id="map-close" type="button">Cerrar</button>
+        </div>
+        <div id="map" class="map-canvas" aria-label="Mapa de parcelas"></div>
+      </div>
+
+      <!-- Grilla — skeleton mientras carga -->
+      <div id="parcel-grid" class="parcel-grid" aria-live="polite" aria-label="Resultados de parcelas">
+        <!-- Skeleton cards visibles mientras carga el catálogo -->
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-80"></div>
+            <div class="skeleton-line w-55"></div>
+            <div class="skeleton-line w-70"></div>
+          </div>
+        </div>
+      </div>
+
+      <button id="load-more" class="load-more" type="button" hidden>Ver m&aacute;s parcelas</button>
+      </section>
+
+      <!-- SECCIÓN PARCELAS CON CASA -->
+      <section id="houses-section" class="results-section" style="display:none; margin-top: 60px; padding-top: 0;">
+        <div class="results-toolbar">
+          <div>
+            <span class="context-label">PROYECTOS COMPLETOS</span>
+            <h2>Parcelas con casa</h2>
+            <p>Propiedades listas para llegar y habitar.</p>
+          </div>
+        </div>
+        <div class="parcel-grid" id="houses-grid">
+          <!-- Rendered via JS -->
+        </div>
+      </section>
+
+  </main>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║  SECCIONES SECUNDARIAS        ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+
+
+  <!-- Banner tasador -->
+  <div class="tpl-valuation-banner" role="complementary" aria-label="Tasador TPL">
+    <div class="tpl-valuation-banner__copy">
+      <span>TASADOR TPL</span>
+      <strong>&iquest;Quieres conocer el valor de tu propiedad?</strong>
+      <p>Referencia orientativa considerando ubicaci&oacute;n, superficie, servicios,
+         atributos y mercado comunal.</p>
+    </div>
+    <a href="./plataforma/publicar/tasador.html" class="tpl-valuation-banner__cta">
+      Tasar mi propiedad &rarr;
+    </a>
+  </div>
+
+  <!-- Campo Story editorial -->
+  <section class="tpl-campo-story" aria-labelledby="tpl-campo-story-title">
+    <div class="tpl-campo-story__inner">
+      <div class="tpl-campo-story__content">
+        <span class="tpl-campo-story__eyebrow">REVISTA TPL &middot; HISTORIA &amp; VIDA RURAL</span>
+        <h2 id="tpl-campo-story-title">El campo que nos hizo.</h2>
+        <p>Dos siglos de cambios, trabajo, territorio y nuevas formas de habitar Chile.
+           Una historia que llega hasta quienes hoy vuelven a imaginar una vida con
+           m&aacute;s espacio, naturaleza y ra&iacute;ces.</p>
+        <a class="tpl-campo-story__action" href="./campo-chileno.html">
+          Leer El Campo Chileno &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║         FOOTER                ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+  <footer class="tpl-footer">
+    <img src="assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+    <p>Encuentra tu parcela. Despu&eacute;s construimos contigo el proyecto completo.</p>
+    <nav aria-label="Navegación del pie de página">
+      <a href="./terminos.html">T&eacute;rminos</a>
+      <a href="./politica-privacidad.html">Privacidad</a>
+      <a href="./red-partner-v2/index.html">Red Partner</a>
+      <a href="./como-comprar.html">C&oacute;mo comprar</a>
+    </nav>
+    <a class="tpl-internal-access"
+       href="./plataforma/crm-tpl-v1/index.html"
+       aria-label="Acceso protegido para asesores de Tu Parcela Lista">
+      Acceso asesores
+    </a>
+  </footer>
+
+  <!-- ╔═══════════════════════════════╗ -->
+  <!-- ║         SCRIPTS               ║ -->
+  <!-- ╚═══════════════════════════════╝ -->
+  <!-- Datos del catálogo (local, fallback) -->
+  <script src="./parcelas.js" defer></script>
+  <script src="./casas.js" defer></script>
+
+  <!-- Motores y servicios -->
+  <script src="./js/tpl-public-stats.js?v=20260730-stats-2" defer></script>
+  <script src="./js/tpl-market-intelligence.js?v=20260831-fix-export" defer></script>
+  <script src="./js/core/tpl-data-service.js?v=20260901-limit" defer></script>
+  <script src="./js/core/tpl-property-view.js?v=20260903-normalizador-unico" defer></script>
+  <script src="./js/tpl-seo.js?v=20260901-esc" defer></script>
+
+  <!-- Lógica principal del index -->
+  <script src="./js/core/valuation-engine.js?v=20260901-motor-unico" defer></script>
+  <script src="./js/index.js?v=20260831-redesign1" defer></script>
+
+  <!-- Video (maneja su propia carga de la YouTube API) -->
+  <script src="./js/video-autoplay.js" defer></script>
+
+  <!-- Módulos auth y analytics -->
+  <script type="module" src="./js/core/auth.js"></script>
+  <script type="module" src="./js/core/analytics-tracker.js?v=20260831"></script>
+
+  <!-- SEO dinámico + Trust bar -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // SEO dinámico
+      window.TPLSEO?.apply({
+        title: 'Tu Parcela Lista | Ecosistema para tu proyecto de vida rural',
+        description: 'Encuentra parcelas y campos, compara alternativas y da forma a tu proyecto de vida rural con acompañamiento, casas y servicios en un solo ecosistema.'
+      });
+
+      // Trust bar: actualiza con datos del catálogo local
+      function updateTrustBar() {
+        try {
+          const parcels = Array.isArray((typeof parcelas !== "undefined" ? parcelas : [])) ? (typeof parcelas !== "undefined" ? parcelas : []).filter(Boolean) : [];
+          if (!parcels.length) return;
+          const comunas = new Set(parcels.map(p => p.comuna).filter(Boolean));
+          const regiones = new Set(
+            parcels.map(p => p.region || p.region_nombre).filter(Boolean)
+          );
+          const pEl = document.getElementById('trust-parcelas');
+          const cEl = document.getElementById('trust-comunas');
+          const rEl = document.getElementById('trust-regiones');
+          if (pEl) pEl.innerHTML = `<strong>${parcels.length}+</strong> parcelas publicadas`;
+          if (cEl) cEl.innerHTML = `<strong>${comunas.size}</strong> comunas disponibles`;
+          if (rEl) rEl.innerHTML = `<strong>${Math.max(regiones.size, 3)}</strong> regiones cubiertas`;
+        } catch (e) { /* silencioso */ }
+      }
+
+      // Actualización inicial (catálogo local)
+      setTimeout(updateTrustBar, 300);
+
+      // Actualización cuando el catálogo remoto hidrata la grilla
+      const grid = document.getElementById('parcel-grid');
+      if (grid) {
+        const obs = new MutationObserver(() => {
+          const cards = grid.querySelectorAll('.parcel-card');
+          if (cards.length) updateTrustBar();
+        });
+        obs.observe(grid, { childList: true });
+      }
+
+      // Hint de video: ocultar cuando el usuario interactúa con el player
+      const playerWrap = document.querySelector('.tpl-video-player-wrap');
+      const hint = document.querySelector('.tpl-video-play-hint');
+      if (playerWrap && hint) {
+        playerWrap.addEventListener('click', () => hint.style.opacity = '0', { once: true });
+        playerWrap.addEventListener('mouseenter', () => hint.style.opacity = '0', { once: true });
+      }
+    });
+  </script>
+
+</body>
+</html>

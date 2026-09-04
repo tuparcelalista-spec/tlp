@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CRM TLP v1 — Tu Parcela Lista</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Leaflet Maps -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <!-- Design System -->
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/layout.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/modules.css">
+  <!-- Capa puente para las clases de utilidad que usan los modulos escritos
+       contra Tailwind, que nunca se cargo en este proyecto. Ver el encabezado
+       de utilities.css. -->
+  <link rel="stylesheet" href="./styles/utilities.css?v=20260902c">
+</head>
+<body>
+
+  <!-- ═══════════════ BOOT SCREEN ═══════════════ -->
+  <div id="bootScreen" class="boot-screen">
+    <div class="boot-brand">
+      <div class="boot-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="12" fill="#073a5a"/>
+          <path d="M14 34V18l10-6 10 6v16l-10 6-10-6z" stroke="#3eb8a0" stroke-width="2" fill="none"/>
+          <path d="M24 12v28M14 18l10 6 10-6M14 34l10-6 10 6" stroke="#3eb8a0" stroke-width="1.5" opacity=".5"/>
+        </svg>
+      </div>
+      <h1 class="boot-title">CRM TLP</h1>
+      <p class="boot-version">v1.0.0 · Tu Parcela Lista</p>
+    </div>
+    <div class="boot-progress">
+      <div class="boot-spinner" id="bootSpinner"></div>
+      <p class="boot-status" id="bootStatus">Inicializando…</p>
+    </div>
+    <div class="boot-error" id="bootError">
+      <p class="boot-error-msg" id="bootErrorMsg"></p>
+      <pre class="boot-error-detail" id="bootErrorDetail"></pre>
+      <div class="boot-error-actions">
+        <button class="btn btn--primary" id="bootRetry">Reintentar</button>
+        <button class="btn btn--ghost" id="bootLogout">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ APP SHELL ═══════════════ -->
+  <div id="app" class="app" hidden>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="sidebar__logo">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect width="48" height="48" rx="12" fill="#073a5a"/>
+            <path d="M14 34V18l10-6 10 6v16l-10 6-10-6z" stroke="#3eb8a0" stroke-width="2" fill="none"/>
+            <path d="M24 12v28M14 18l10 6 10-6M14 34l10-6 10 6" stroke="#3eb8a0" stroke-width="1.5" opacity=".5"/>
+          </svg>
+        </div>
+        <div class="sidebar__title">
+          <span>CRM TLP</span>
+          <small>Centro de Operaciones</small>
+        </div>
+      </div>
+      <nav class="sidebar__nav" id="sidebarNav"></nav>
+      <div class="sidebar__foot">
+        <div class="sidebar__staff" id="staffInfo"></div>
+        <button class="btn btn--ghost btn--sm btn--full" id="btnSignOut">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Topbar -->
+      <header class="topbar" id="topbar">
+        <div class="topbar__left">
+          <button class="topbar__menu-btn" id="menuBtn" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="topbar__title">
+            <small>Tu Parcela Lista</small>
+            <h1 id="viewTitle">Cargando…</h1>
+          </div>
+        </div>
+        <div class="topbar__center">
+          <div class="search-box">
+            <svg class="search-box__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input id="universalSearch" class="search-box__input" type="search" placeholder="Buscar parcelas, clientes, proyectos…" aria-label="Buscar">
+          </div>
+        </div>
+        <div class="topbar__right">
+          <span class="topbar__date" id="todayDate"></span>
+        </div>
+      </header>
+
+      <!-- Dynamic Content -->
+      <section class="content" id="content"></section>
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- TPL Land Engine -->
+  <script src="../../js/core/valuation-engine.js?v=20260901-motor-unico"></script>
+
+  <!-- Version de la aplicacion.
+       Vive aqui a proposito: el HTML se sirve con no-store, asi que una recarga
+       siempre trae el valor nuevo. Si la version viviera dentro de un modulo,
+       ese modulo tambien quedaria cacheado y nunca se enteraria de su propio
+       cambio: es lo que pasaba al subirla en router.js. -->
+  <script>window.__TPL_APP_VERSION = '20260904b';</script>
+
+  <!-- App Entry -->
+  <script type="module" src="./core/boot.js?v=20260904b"></script>
+</body>
+</html>

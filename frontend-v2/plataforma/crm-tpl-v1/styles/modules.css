@@ -1,0 +1,584 @@
+/* Dashboard */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+@media (min-width: 768px) {
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1440px) {
+  .dashboard-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.dashboard-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.dashboard-feed {
+  position: relative;
+  padding-left: var(--sp-6);
+}
+.dashboard-feed::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--c-border-light);
+}
+
+/* Kanban */
+.kanban {
+  display: flex;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  padding-bottom: var(--sp-4);
+  align-items: flex-start;
+  min-height: 600px;
+}
+
+.kanban__column {
+  min-width: 280px;
+  width: 280px;
+  background-color: var(--c-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.kanban__column-header {
+  padding: var(--sp-3);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 3px solid var(--c-primary-light);
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.kanban__cards {
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-height: 100px;
+}
+
+.kanban__card {
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3);
+  box-shadow: var(--shadow-xs);
+  cursor: grab;
+  transition: box-shadow var(--transition-fast);
+}
+
+.kanban__card:active {
+  cursor: grabbing;
+}
+.kanban__card:hover {
+  box-shadow: var(--shadow-sm);
+}
+.kanban__card.dragging {
+  opacity: 0.5;
+}
+
+/* Agenda */
+.agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.agenda__item {
+  display: flex;
+  background-color: var(--c-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--c-border-light);
+  overflow: hidden;
+}
+
+.agenda__time {
+  padding: var(--sp-4);
+  background-color: var(--c-bg);
+  border-right: 1px solid var(--c-border-light);
+  font-weight: var(--fw-semibold);
+  color: var(--c-primary);
+  min-width: 100px;
+  text-align: center;
+}
+.agenda__details {
+  padding: var(--sp-4);
+  flex: 1;
+}
+
+/* Property Grid */
+.property-filters {
+  display: flex;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.property-grid, .casa-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--sp-6);
+}
+@media (min-width: 768px) {
+  .property-grid, .casa-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .property-grid, .casa-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.casa-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--c-surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--c-border-light);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.casa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.casa-card__img {
+  height: 200px;
+  background-color: var(--c-border-light);
+  object-fit: cover;
+  width: 100%;
+}
+
+.casa-card__content {
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Detail Layout */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-6);
+}
+@media (min-width: 1024px) {
+  .detail-layout {
+    grid-template-columns: 300px 1fr;
+  }
+}
+
+.detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+
+/* Timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.timeline__item {
+  position: relative;
+  padding-left: var(--sp-8);
+}
+.timeline__item::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background-color: var(--c-primary-light);
+  z-index: 2;
+}
+.timeline__item::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 14px;
+  bottom: calc(var(--sp-4) * -1 - 4px);
+  width: 2px;
+  background-color: var(--c-border);
+  z-index: 1;
+}
+.timeline__item:last-child::after {
+  display: none;
+}
+
+/* Login Card */
+.login-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--c-bg);
+}
+
+.login-card {
+  background-color: var(--c-surface);
+  padding: var(--sp-8);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--c-border-light);
+}
+
+/* ==========================================================================
+   Aviso "COMIENZO DE PROYECTO"
+   Cliente que confirmó desde el correo que quiere partir. Persiste en el
+   dashboard hasta que alguien lo marca como atendido, para que ninguna
+   solicitud se pierda por no estar mirando la pantalla en ese momento.
+   ========================================================================== */
+.comienzo-wrap { display: flex; flex-direction: column; gap: .9rem; }
+.comienzo-wrap__head { display: flex; align-items: center; gap: .6rem; }
+.comienzo-wrap__head h2 { margin: 0; font-size: 1.05rem; color: #7c2d12; font-weight: 800; }
+.comienzo-wrap__pulse {
+  width: 11px; height: 11px; border-radius: 50%; background: #ea580c;
+  box-shadow: 0 0 0 0 rgba(234, 88, 12, .55);
+  animation: comienzo-latido 1.8s infinite;
+}
+@keyframes comienzo-latido {
+  70%  { box-shadow: 0 0 0 12px rgba(234, 88, 12, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .comienzo-wrap__pulse { animation: none; } }
+
+.comienzo-card {
+  border: 2px solid #fdba74; border-radius: 14px; overflow: hidden;
+  background: linear-gradient(180deg, #fff7ed, #ffffff);
+  box-shadow: 0 10px 26px rgba(124, 45, 18, .10);
+}
+.comienzo-card__flag {
+  background: #ea580c; color: #fff; font-size: .72rem; font-weight: 900;
+  letter-spacing: .14em; padding: 7px 16px;
+}
+.comienzo-card__body {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1.2rem; padding: 16px 18px 8px; flex-wrap: wrap;
+}
+.comienzo-card__body h3 { margin: 0 0 3px; font-size: 1.15rem; color: #7c2d12; }
+.comienzo-card__meta { margin: 0; color: #9a5b3d; font-size: .9rem; }
+.comienzo-card__contacto { margin: 4px 0 0; color: #a8785f; font-size: .82rem; }
+.comienzo-card__cifra { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+.comienzo-card__cifra strong { font-size: 1.3rem; color: #7c2d12; }
+.comienzo-card__cifra small { color: #a8785f; font-size: .75rem; }
+.comienzo-card__tiempo { color: #c2410c; font-size: .75rem; font-weight: 700; }
+.comienzo-card__acciones {
+  display: flex; gap: .5rem; flex-wrap: wrap; padding: 10px 18px 16px;
+}
+@media (max-width: 620px) {
+  .comienzo-card__body { flex-direction: column; }
+  .comienzo-card__cifra { text-align: left; }
+  .comienzo-card__acciones .btn { width: 100%; }
+}
+
+/* --------------------------------------------------------------------------
+   Pantalla de acceso
+   Antes se renderizaba dentro del armazon de la aplicacion: quedaba una barra
+   lateral vacia al costado del formulario. Con .is-login el armazon se oculta y
+   el acceso ocupa la pantalla completa, que es lo que corresponde a la puerta
+   de entrada del CRM.
+   -------------------------------------------------------------------------- */
+body.is-login .sidebar,
+body.is-login .topbar,
+body.is-login .sidebar-overlay { display: none; }
+body.is-login .main { margin-left: 0; }
+/* El contenedor .content no ocupa el alto de la ventana, asi que la tarjeta
+   quedaba pegada arriba pese al min-height del .login-wrap. */
+body.is-login .app,
+body.is-login .main { min-height: 100vh; }
+body.is-login .content { padding: 0; min-height: 100vh; display: block; }
+
+.login-card__head { text-align: center; margin-bottom: var(--sp-8); }
+.login-card__head h2 {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--c-primary);
+  letter-spacing: -.01em;
+}
+.login-card__head p {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+.login-card form { display: flex; flex-direction: column; gap: var(--sp-4); }
+.login-card .form-group { margin-bottom: 0; }
+.login-card .alert { margin: 0; }
+
+/* --------------------------------------------------------------------------
+   Pipeline comercial
+   -------------------------------------------------------------------------- */
+.pipeline-module { display: flex; flex-direction: column; height: calc(100vh - var(--topbar-height) - var(--sp-8)); }
+.pipeline-module__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-4); flex-wrap: wrap; margin-bottom: var(--sp-4);
+}
+.pipeline-module__head h2 { margin: 0; font-size: var(--fs-xl); font-weight: var(--fw-bold); color: var(--c-text); }
+.pipeline-module__head p { margin: var(--sp-1) 0 0; font-size: var(--fs-sm); color: var(--c-text-secondary); }
+.pipeline-module__ayuda {
+  font-size: var(--fs-xs); color: var(--c-text-muted); background: var(--c-surface);
+  border: 1px solid var(--c-border); border-radius: var(--radius-full);
+  padding: var(--sp-1) var(--sp-3); white-space: nowrap;
+}
+.pipeline-module__board { flex: 1; overflow-x: auto; overflow-y: hidden; padding-bottom: var(--sp-4); }
+
+/* --------------------------------------------------------------------------
+   Kanban: alias y piezas que faltaban
+   El componente components/kanban.js emite .kanban-board, .kanban__column-body,
+   .kanban__column-title, .kanban__column-count y las partes de la tarjeta
+   (-title, -subtitle, -footer, -meta, -badge). El CSS solo tenia .kanban,
+   .kanban__cards y .kanban__card, asi que el tablero salia sin columnas ni
+   formato aunque el modulo hubiese funcionado.
+   -------------------------------------------------------------------------- */
+.kanban-board {
+  display: flex; gap: var(--sp-4); align-items: flex-start;
+  height: 100%; padding-bottom: var(--sp-2);
+}
+.kanban__column-title { margin: 0; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-text); }
+.kanban__column-count {
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  color: var(--c-text-secondary); font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  min-width: 22px; text-align: center; border-radius: var(--radius-full); padding: 0 var(--sp-2);
+}
+.kanban__column-body {
+  padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-2);
+  min-height: 120px; flex: 1; overflow-y: auto;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  transition: background-color var(--transition-fast);
+}
+.kanban__column-body--hover { background-color: var(--c-surface-hover); box-shadow: inset 0 0 0 2px var(--c-accent); }
+.kanban__card--dragging { opacity: .5; }
+.kanban__card-title { margin: 0; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-text); }
+.kanban__card-subtitle { margin: var(--sp-1) 0 0; font-size: var(--fs-xs); color: var(--c-text-secondary); }
+.kanban__card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-2); margin-top: var(--sp-2);
+}
+.kanban__card-footer:empty { display: none; }
+.kanban__card-meta { font-size: var(--fs-xs); color: var(--c-text-muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.kanban__card-badge {
+  font-size: var(--fs-xs); font-weight: var(--fw-semibold);
+  background: var(--c-surface-hover); color: var(--c-primary);
+  border-radius: var(--radius-sm); padding: 2px var(--sp-2);
+}
+
+/* --------------------------------------------------------------------------
+   Resumen ejecutivo
+   -------------------------------------------------------------------------- */
+.dashboard-module { display: flex; flex-direction: column; gap: var(--sp-6); }
+.dash-titulo { font-size: var(--fs-lg); font-weight: var(--fw-bold); margin: 0 0 var(--sp-3); color: var(--c-text); }
+.dash-acciones { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+.dash-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: var(--sp-4); }
+.dash-kpis .kpi-card__value { font-size: var(--fs-2xl); }
+.dash-kpis .kpi-card__info small { display: block; font-size: var(--fs-xs); color: var(--c-text-muted); margin-top: 2px; }
+
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: var(--sp-4); align-items: start; }
+
+.card__meta { font-size: var(--fs-xs); color: var(--c-text-muted); font-weight: var(--fw-medium); }
+.card--nota { background: var(--c-bg); border-style: dashed; }
+
+.dash-vacio { margin: 0; font-size: var(--fs-sm); color: var(--c-text-secondary); line-height: 1.6; }
+.dash-nota { margin: var(--sp-3) 0 0; font-size: var(--fs-xs); color: var(--c-text-muted); line-height: 1.6; }
+.dash-nota code, .dash-pendientes code {
+  background: var(--c-surface-hover); border-radius: 3px; padding: 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em;
+}
+
+.dash-etapa + .dash-etapa { margin-top: var(--sp-3); }
+.dash-etapa__top { display: flex; justify-content: space-between; align-items: baseline; font-size: var(--fs-sm); margin-bottom: var(--sp-1); }
+.dash-etapa__top strong { font-weight: var(--fw-bold); color: var(--c-text); }
+.dash-etapa__barra { height: 6px; background: var(--c-border-light); border-radius: var(--radius-full); overflow: hidden; }
+.dash-etapa__barra span { display: block; height: 100%; background: var(--c-primary-light); border-radius: var(--radius-full); }
+
+.dash-tareas { list-style: none; margin: 0; padding: 0; }
+.dash-tarea {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3) 0; border-bottom: 1px solid var(--c-border-light);
+}
+.dash-tarea:last-child { border-bottom: 0; padding-bottom: 0; }
+.dash-tarea strong { display: block; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-text); }
+.dash-tarea small { display: block; font-size: var(--fs-xs); color: var(--c-text-secondary); margin-top: 2px; }
+.dash-tarea__fecha { font-size: var(--fs-xs); color: var(--c-text-muted); white-space: nowrap; }
+.dash-tarea--vencida strong { color: var(--c-danger); }
+.dash-tarea--vencida .dash-tarea__fecha { color: var(--c-danger); font-weight: var(--fw-semibold); }
+
+.dash-pendientes { margin: var(--sp-3) 0 0; padding-left: var(--sp-5); display: grid; gap: var(--sp-2); }
+.dash-pendientes li { font-size: var(--fs-sm); color: var(--c-text-secondary); line-height: 1.55; }
+
+.data-table td small { display: block; font-size: var(--fs-xs); color: var(--c-text-muted); margin-top: 1px; }
+
+/* =============================================================================
+   REVISIÓN DE PUBLICACIONES
+   El aviso naranja va arriba del panel: es lo único donde alguien de fuera
+   está esperando una respuesta nuestra, y mientras no se revise la propiedad
+   no existe para el público.
+   ============================================================================= */
+.aviso-revision {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4, 16px);
+  background: #fff7ed;
+  border: 2px solid #ea580c;
+  border-left-width: 6px;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: var(--sp-6, 24px);
+}
+.aviso-revision__marca {
+  flex: none;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  background: #ea580c; color: #fff;
+  border-radius: 50%;
+  font-weight: 800; font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.aviso-revision__texto { flex: 1; display: grid; gap: 3px; min-width: 0; }
+.aviso-revision__texto strong {
+  color: #9a3412;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+.aviso-revision__texto span { color: #7c2d12; font-size: .9rem; line-height: 1.5; }
+.aviso-revision__btn {
+  flex: none;
+  background: #ea580c; color: #fff;
+  padding: 11px 20px; border-radius: 8px;
+  font-weight: 700; font-size: .9rem; text-decoration: none;
+  white-space: nowrap;
+}
+.aviso-revision__btn:hover { background: #c2410c; }
+
+/* ---------- Bandeja ---------- */
+.rev-modulo { display: grid; gap: var(--sp-5, 20px); }
+.rev-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.rev-titulo { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--c-text); }
+.rev-contador {
+  background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa;
+  padding: 5px 12px; border-radius: 999px; font-size: .82rem; font-weight: 700;
+}
+
+/* ---------- Panel de detalle ---------- */
+.rev-detalle[hidden] { display: none; }
+.rev-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  padding: 24px;
+  display: grid;
+  gap: 22px;
+}
+.rev-panel__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.rev-panel__head h2 { margin: 4px 0 2px; font-size: 1.3rem; font-weight: 700; }
+.rev-kicker {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--c-text-muted); font-weight: 600;
+}
+.rev-sub { margin: 0; color: var(--c-text-secondary); font-size: .92rem; }
+
+.rev-seccion { display: grid; gap: 10px; }
+.rev-seccion h3 {
+  margin: 0; font-size: .78rem; text-transform: uppercase; letter-spacing: .09em;
+  color: var(--c-text-muted); font-weight: 700;
+  padding-bottom: 8px; border-bottom: 1px solid var(--c-border-light);
+}
+.rev-cuenta {
+  background: var(--c-bg); color: var(--c-text-secondary);
+  padding: 2px 8px; border-radius: 999px; font-size: .72rem; margin-left: 6px;
+}
+.rev-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.rev-dato { display: grid; gap: 2px; min-width: 0; }
+.rev-dato span { font-size: .74rem; color: var(--c-text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.rev-dato strong { font-size: .95rem; color: var(--c-text); word-break: break-word; }
+.rev-descripcion { margin: 0; color: var(--c-text-secondary); line-height: 1.65; white-space: pre-wrap; }
+.rev-fotos { margin: 0; padding-left: 18px; color: var(--c-text-secondary); font-size: .88rem; line-height: 1.7; }
+.rev-fotos-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.rev-fotos-item {
+  display: block; aspect-ratio: 1; border-radius: 8px; overflow: hidden;
+  background: var(--c-bg); border: 1px solid var(--c-border-light);
+}
+.rev-fotos-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rev-fotos-item--rota {
+  display: flex; align-items: center; justify-content: center;
+  color: var(--c-text-muted); font-size: .72rem; text-align: center; padding: 6px;
+}
+.rev-alerta {
+  margin: 0; padding: 10px 14px;
+  background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
+  color: #9a3412; font-size: .88rem; line-height: 1.5;
+}
+.rev-seccion--alerta {
+  background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+  padding: 14px 16px; gap: 8px;
+}
+.rev-seccion--alerta h3 {
+  color: #9a3412; border-bottom: none; padding-bottom: 0;
+  text-transform: none; font-size: .95rem; letter-spacing: 0;
+}
+.rev-seccion--alerta .rev-alerta { background: transparent; border: none; padding: 0; }
+.rev-faltantes {
+  margin: 0; padding-left: 18px; columns: 2; column-gap: 24px;
+  color: #9a3412; font-size: .88rem; font-weight: 600; line-height: 1.9;
+}
+@media (max-width: 640px) { .rev-faltantes { columns: 1; } }
+
+/* ---------- Decisión ---------- */
+.rev-decision {
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+}
+.rev-decision label { font-size: .82rem; font-weight: 600; color: var(--c-text); }
+.rev-decision textarea {
+  width: 100%; padding: 11px 13px;
+  border: 1px solid var(--c-border); border-radius: 8px;
+  font: inherit; font-size: .92rem; resize: vertical;
+  background: var(--c-surface); color: var(--c-text);
+}
+.rev-botones { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.rev-nota { margin: 0; font-size: .8rem; color: var(--c-text-muted); line-height: 1.5; }
+.rev-estado {
+  margin: 0; padding: 10px 13px; border-radius: 8px;
+  background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; font-size: .88rem;
+}
+.rev-estado[hidden] { display: none; }
+.rev-estado--ok { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+
+@media (max-width: 720px) {
+  .aviso-revision { flex-wrap: wrap; }
+  .aviso-revision__btn { width: 100%; text-align: center; }
+  .rev-panel__head { flex-direction: column; }
+}

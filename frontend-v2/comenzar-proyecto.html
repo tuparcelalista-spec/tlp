@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Comenzar mi proyecto | Tu Parcela Lista</title>
+  <meta name="description" content="Confirma que quieres comenzar tu proyecto rural con Tu Parcela Lista.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="./assets/logo-tu-parcela-lista.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/tpl-shell.css">
+  <link rel="stylesheet" href="./css/tpl-design-system.css?v=20260901-banner">
+  <style>
+    body { background: #eef3f7; margin: 0; }
+    .cp-shell { max-width: 620px; margin: 0 auto; padding: 48px 20px 80px; }
+    .cp-card {
+      background: #fff; border: 1px solid #dce5ed; border-radius: 20px;
+      padding: 40px 36px; text-align: center;
+      box-shadow: 0 18px 50px rgba(17, 48, 77, .08);
+    }
+    .cp-mark {
+      width: 68px; height: 68px; margin: 0 auto 20px; border-radius: 50%;
+      display: grid; place-items: center; font-size: 32px;
+    }
+    .cp-mark--ok { background: #dff4eb; color: #12624b; }
+    .cp-mark--wait { background: #e4eef9; color: #073a5a; }
+    .cp-mark--error { background: #fdeceb; color: #a33a3a; }
+    .cp-card h1 { font-family: Lora, Georgia, serif; font-size: 1.85rem; color: #073a5a; margin: 0 0 12px; line-height: 1.2; }
+    .cp-card p { color: #5b6b7c; line-height: 1.65; margin: 0 0 14px; }
+    .cp-pasos {
+      text-align: left; background: #f6f9fb; border: 1px solid #e0e9f0;
+      border-radius: 14px; padding: 20px 22px; margin: 24px 0 8px;
+    }
+    .cp-pasos strong { display: block; color: #173e5c; font-size: .8rem; letter-spacing: .1em; margin-bottom: 12px; }
+    .cp-pasos ol { margin: 0; padding-left: 20px; color: #5b6b7c; line-height: 1.9; }
+    .cp-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 26px; }
+    .cp-btn {
+      display: inline-block; padding: 13px 22px; border-radius: 11px;
+      font-weight: 700; text-decoration: none; font-size: .95rem;
+    }
+    .cp-btn--wa { background: #25d366; color: #fff; }
+    .cp-btn--ghost { background: #e8f0f7; color: #073a5a; }
+    @media (max-width: 560px) { .cp-card { padding: 30px 22px; } .cp-acciones .cp-btn { width: 100%; } }
+  </style>
+</head>
+<body>
+
+  <header class="tpl-header">
+    <a class="tpl-brand" href="./index.html" aria-label="Tu Parcela Lista, inicio">
+      <img src="./assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+    </a>
+    <nav class="tpl-nav" aria-label="Navegación principal">
+      <a href="./index.html#buscador">Buscar parcelas</a>
+      <a href="./como-comprar.html">Cómo comprar</a>
+    </nav>
+  </header>
+
+  <main class="cp-shell">
+    <div class="cp-card" id="cp-card">
+      <div class="cp-mark cp-mark--wait" id="cp-mark" aria-hidden="true">⏳</div>
+      <h1 id="cp-titulo">Confirmando tu solicitud…</h1>
+      <p id="cp-texto">Un momento, estamos registrando que quieres comenzar tu proyecto.</p>
+      <div id="cp-extra" hidden></div>
+    </div>
+  </main>
+
+  <script src="./js/core/tpl-data-service.js?v=20260901-limit"></script>
+  <script>
+  (() => {
+    'use strict';
+    const $ = (id) => document.getElementById(id);
+    const token = new URLSearchParams(location.search).get('t') || '';
+
+    const pintar = (icono, clase, titulo, texto, extraHTML) => {
+      const marca = $('cp-mark');
+      marca.textContent = icono;
+      marca.className = 'cp-mark cp-mark--' + clase;
+      $('cp-titulo').textContent = titulo;
+      $('cp-texto').textContent = texto;
+      const extra = $('cp-extra');
+      if (extraHTML) { extra.innerHTML = extraHTML; extra.hidden = false; }
+      else { extra.hidden = true; }
+    };
+
+    const PASOS = `
+      <div class="cp-pasos">
+        <strong>QUÉ VIENE AHORA</strong>
+        <ol>
+          <li>Un asesor TPL revisa tu proyecto.</li>
+          <li>Te contacta para resolver dudas y confirmar valores.</li>
+          <li>Coordinan la visita a la parcela.</li>
+        </ol>
+      </div>
+      <div class="cp-acciones">
+        <a class="cp-btn cp-btn--wa" href="https://wa.me/56988508361?text=${encodeURIComponent('Hola, confirmé que quiero comenzar mi proyecto TPL.')}" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+        <a class="cp-btn cp-btn--ghost" href="./index.html">Volver al portal</a>
+      </div>`;
+
+    async function confirmar() {
+      if (!token) {
+        pintar('!', 'error', 'Enlace incompleto',
+          'Este enlace no trae el código de confirmación. Ábrelo directamente desde el correo que te enviamos.');
+        return;
+      }
+      try {
+        const cliente = await window.TPLDataService.getClient();
+        const { data, error } = await cliente.rpc('tpl_confirmar_comienzo_proyecto_v1', { p_token: token });
+        if (error) throw error;
+        if (!data?.ok) throw new Error('NO_OK');
+
+        const nombre = (data.nombre || '').trim().split(' ')[0];
+        if (data.ya_registrado) {
+          pintar('✓', 'ok', nombre ? `${nombre}, ya lo teníamos anotado` : 'Ya lo teníamos anotado',
+            'Tu solicitud está registrada y un asesor se pondrá en contacto contigo.', PASOS);
+        } else {
+          pintar('✓', 'ok', nombre ? `¡Listo, ${nombre}!` : '¡Listo!',
+            'Registramos que quieres comenzar tu proyecto. Un asesor TPL te contactará a la brevedad.', PASOS);
+        }
+      } catch (e) {
+        console.error('No se pudo confirmar el comienzo de proyecto', e);
+        pintar('!', 'error', 'No pudimos confirmar tu solicitud',
+          'El enlace puede haber caducado o ser incorrecto. Escríbenos por WhatsApp y lo resolvemos al instante.',
+          `<div class="cp-acciones">
+             <a class="cp-btn cp-btn--wa" href="https://wa.me/56988508361?text=${encodeURIComponent('Hola, quiero comenzar mi proyecto pero el enlace del correo no funcionó.')}" target="_blank" rel="noopener">Escribir por WhatsApp</a>
+             <a class="cp-btn cp-btn--ghost" href="./index.html">Volver al portal</a>
+           </div>`);
+      }
+    }
+
+    confirmar();
+  })();
+  </script>
+</body>
+</html>

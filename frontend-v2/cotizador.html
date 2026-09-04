@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cotizador de casa y proyecto rural | Tu Parcela Lista</title>
+  <meta name="description" content="Construye y guarda tu proyecto de parcela y vivienda con acompañamiento TPL.">
+  <link rel="icon" href="./assets/logo-tu-parcela-lista.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <!-- tpl-shell.css trae el layout de .tpl-header / .tpl-nav / .tpl-footer.
+       Sin el, el encabezado de esta pagina quedaba sin estilo (display:block). -->
+  <link rel="stylesheet" href="./css/tpl-shell.css">
+  <link rel="stylesheet" href="./css/cotizador.css">
+  <link rel="stylesheet" href="css/tpl-identity-seo.css">
+  <script src="js/tpl-seo.js"></script>
+
+</head>
+<body>
+  <header class="tpl-header">
+  <a class="tpl-brand" href="./index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="./assets/brand/tpl-mark.svg" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="./index.html#buscador">Buscar parcelas</a>
+    <a href="./como-comprar.html">Cómo comprar</a>
+    <a href="./red-partner-v2/index.html">Red Partner</a>
+    <a href="./plataforma/tpl-business-v2/index.html">TPL Business</a>
+    <a class="tpl-publish" href="./plataforma/publicar-v2/index.html">Publicar</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="./index.html#resultados">Parcelas</a>
+    <a class="tpl-publish" href="./plataforma/publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="./index.html#buscador">Buscar parcelas</a>
+    <a href="./como-comprar.html">Cómo comprar</a>
+    <a href="./red-partner-v2/index.html">Red Partner</a>
+    <a href="./plataforma/tpl-business-v2/index.html">TPL Business</a>
+  </nav>
+</header>
+  <section class="tpl-emotional-hero" aria-label="Ahora imagina lo que puedes construir aquí">
+    <div class="hero-gallery-overlay" id="hero-gallery-overlay"></div>
+    <div class="tpl-emotional-hero__content">
+      <span class="tpl-emotional-hero__eyebrow">TU PROYECTO TOMA FORMA</span>
+      <h2>Ahora imagina lo que puedes construir aquí</h2>
+      <p>Compara una casa prefabricada o diseña una a tu medida. Avanza por etapas, entiende los costos y guarda tu proyecto cuando estés listo.</p>
+    </div>
+  </section>
+  <div class="tpl-positive-strip">No necesitas resolver todo hoy. <strong>Construye tu proyecto paso a paso.</strong></div>
+
+
+  <main class="page-shell">
+    <section class="welcome card">
+      <div>
+        <span class="eyebrow">TU PROYECTO YA COMENZÓ</span>
+        <h1>¡Felicitaciones! Vamos a darle forma a tu proyecto.</h1>
+        <p id="advisor-message">Elegiste una parcela. Ahora TPL te ayudará a definir la vivienda, mantener el presupuesto bajo control y elegir tu próximo paso.</p>
+      </div>
+      <div class="progress" aria-label="Avance del proyecto">
+        <span class="done">Parcela</span><span class="active">Vivienda</span><span>Presupuesto</span><span>Proyecto</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="content-column">
+        <section class="parcel-summary card">
+          <img id="parcel-image" alt="Parcela seleccionada">
+          <div>
+            <span class="mini-label">Tu parcela seleccionada</span>
+            <h2 id="parcel-name">Cargando parcela…</h2>
+            <p id="parcel-meta"></p>
+            <div class="virtues" id="parcel-virtues"></div>
+          </div>
+        </section>
+
+        <section class="card step" id="housing-step">
+          <div class="step-heading"><span>1</span><div><h2>¿Cómo quieres construir tu vivienda?</h2><p>Ambas alternativas pueden adaptarse a tu parcela y presupuesto.</p></div></div>
+          <div class="choice-grid housing-grid">
+            <button class="choice-card" data-housing="prefabricada" type="button">
+              <strong>Casa prefabricada</strong>
+              <small>Más rápida, modelos definidos y precio más predecible.</small>
+              <ul><li>Modelos disponibles</li><li>Menor tiempo de decisión</li><li>Instalación según modelo y ubicación</li></ul>
+            </button>
+            <button class="choice-card" data-housing="diseno-propio" type="button">
+              <strong>Diseño propio</strong>
+              <small>Una vivienda pensada para tu forma de vivir y para esta parcela.</small>
+              <ul><li>Distribución personalizada</li><li>Elección de superficie</li><li>Material y nivel de terminación</li></ul>
+            </button>
+          </div>
+        </section>
+
+        <section class="card step" id="prefab-panel" hidden>
+          <div class="step-heading"><span>2</span><div><h2>Elige una casa prefabricada</h2><p>Te mostramos modelos compatibles con tu presupuesto disponible.</p></div></div>
+          <div class="prefab-filters">
+            <label>Dormitorios<select id="prefab-rooms"><option value="all">Todos</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4 o más</option></select></label>
+            <label>Tamaño<select id="prefab-size"><option value="all">Todos</option><option value="small">Hasta 59 m²</option><option value="medium">60 a 109 m²</option><option value="large">110 m² o más</option></select></label>
+          </div>
+          <div class="prefab-grid" id="prefab-grid"></div>
+        </section>
+
+        <section class="card step" id="custom-panel" hidden>
+          <div class="step-heading"><span>2</span><div><h2>Define el tamaño de tu diseño</h2><p>Puedes elegir una referencia o ingresar exactamente los metros cuadrados que imaginas.</p></div></div>
+          <div class="size-grid">
+            <button data-size="52" type="button"><strong>Pequeña</strong><small>45–60 m²</small></button>
+            <button data-size="72" type="button"><strong>Mediana</strong><small>61–85 m²</small></button>
+            <button data-size="100" type="button"><strong>Grande</strong><small>86–120 m²</small></button>
+            <button data-size="140" type="button"><strong>Muy grande</strong><small>121–180 m²</small></button>
+          </div>
+          <div class="manual-fields">
+            <label>Metros cuadrados<input id="custom-m2" type="number" min="18" max="300" value="72"></label>
+            <label>Dormitorios<input id="custom-rooms" type="number" min="1" max="10" value="3"></label>
+          </div>
+          <h3>Selecciona el sistema constructivo</h3>
+          <div class="material-grid" id="material-grid"></div>
+          <button class="primary-button" id="confirm-custom-design" type="button" style="margin-top: 2rem; width: 100%;">Confirmar Diseño y Continuar</button>
+        </section>
+
+        <section class="card step" id="foundation-step" hidden>
+          <div class="step-heading"><span>3</span><div><h2>Elige la fundación</h2><p>Es la base de tu proyecto. Las alternativas varían según terreno y tipo de vivienda.</p></div></div>
+          <div class="foundation-grid" id="foundation-grid"></div>
+        </section>
+
+        <section class="card step" id="extras-step" hidden>
+          <div class="step-heading"><span>4</span><div><h2>Obras adicionales (Opcional)</h2><p>Agrega los elementos necesarios para completar tu proyecto.</p></div></div>
+          <div class="extras-grid" id="extras-grid"></div>
+        </section>
+
+      </div>
+
+      <aside class="summary card">
+        <span class="mini-label">Resumen en tiempo real</span>
+        <h2>Tu proyecto TPL</h2>
+        <div class="summary-row"><span>Parcela</span><strong id="sum-parcel">$0</strong></div>
+        <div class="summary-row"><span>Vivienda</span><strong id="sum-house">Por definir</strong></div>
+        <div class="summary-row"><span>Fundación</span><strong id="sum-foundation">Por definir</strong></div>
+        <div class="summary-row"><span>Obras adc.</span><strong id="sum-extras">$0</strong></div>
+        <div class="summary-row"><span>Superficie</span><strong id="sum-size">—</strong></div>
+        <div class="summary-row total"><span>Total estimado</span><strong id="sum-total">$0</strong></div>
+        <div class="budget-box" id="budget-box" hidden><span>Presupuesto informado</span><strong id="sum-budget"></strong><small id="budget-difference"></small></div>
+        <div class="advisor-note" id="summary-advice">Elige el tipo de vivienda para continuar.</div>
+        <button id="btn-whatsapp-cotizacion" type="button" style="width:100%; margin: 15px 0; padding:12px; background:#25D366; color:white; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.133.553 4.214 1.603 6.06L.266 23.514l5.578-1.464a12.016 12.016 0 006.187 1.696c6.646 0 12.031-5.385 12.031-12.031C24.062 5.385 18.677 0 12.031 0zm3.626 17.15c-.152.427-.887.844-1.228.877-.32.031-.767.124-2.528-.567-2.115-.83-3.468-2.984-3.573-3.125-.105-.141-.853-1.137-.853-2.17 0-1.033.538-1.541.728-1.737.19-.196.411-.245.549-.245.138 0 .276 0 .393.006.122.006.286-.046.438.318.157.377.538 1.314.585 1.408.047.094.078.204.016.332-.062.128-.094.208-.188.318-.094.11-.196.241-.281.332-.094.102-.194.212-.081.408.113.196.5 831 .918 1.203.541.482.879.621 1.077.728.198.107.315.094.433-.031.118-.125.508-.592.645-.796.137-.204.275-.17.455-.104.18.066 1.139.537 1.334.635.195.098.325.147.372.228.047.081.047.469-.105.896z"></path></svg>
+          Enviar a WhatsApp
+        </button>
+        <small class="disclaimer">Valores referenciales. Instalación, traslado, permisos y condiciones del terreno deben confirmarse antes de contratar.</small>
+      </aside>
+
+      <!-- El formulario para enviar la cotizacion va DESPUES del bloque de
+           montos. En una sola columna (movil y tablet) el orden queda
+           pasos -> montos -> datos de contacto, que es como se lee: primero
+           ves cuanto cuesta y despues decides pedirlo. En escritorio el
+           CSS lo devuelve a la columna izquierda, bajo los pasos, con el
+           resumen fijo a la derecha. -->
+        <section class="card step save-step" id="save-step">
+        <div class="step-heading"><span>5</span><div><h2>Termina tu presupuesto</h2><p>Guarda tus datos y abre la presentación premium de tu proyecto completo.</p></div></div>
+        <div class="form-grid">
+          <label>Nombre<input id="client-name" autocomplete="name" placeholder="Tu nombre"></label>
+          <label>WhatsApp <small class="field-hint">(correo o WhatsApp, uno basta)</small><input id="client-phone" inputmode="tel" autocomplete="tel" placeholder="9 1234 5678"></label>
+          <label>Correo <small class="field-hint">(correo o WhatsApp, uno basta)</small><input id="client-email" type="email" autocomplete="email" placeholder="nombre@correo.cl"></label>
+          <label>Comuna de residencia<input id="client-commune" placeholder="Tu comuna"></label>
+        </div>
+        <label class="consent"><input id="client-consent" type="checkbox"> Autorizo a Tu Parcela Lista a contactarme por este proyecto.</label>
+        <div class="action-row">
+          <button class="secondary" id="send-whatsapp" type="button">Enviar resumen a mi WhatsApp</button>
+          <button class="primary project-launch" id="open-project" type="button">Ver mi proyecto completo</button>
+        </div>
+        <p class="status" id="save-status" aria-live="polite"></p>
+      </section>
+    </section>
+  </main>
+
+  <script src="./parcelas.js"></script>
+  <script src="./casas.js"></script>
+  <script src="./extras.js?v=20260901-extras"></script>
+  <script src="./js/core/tpl-data-service.js?v=20260901-limit"></script>
+  <script defer src="./js/cotizador.js?v=20260901-extras"></script>
+<script>document.addEventListener("DOMContentLoaded",()=>window.TPLSEO?.apply({title:"Cotizador de casa y proyecto rural | Tu Parcela Lista",description:"Compara casas prefabricadas o dise\u00f1a una casa a tu medida y arma paso a paso el presupuesto de tu proyecto rural."}));</script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("btn-whatsapp-cotizacion");
+    if(!btn) return;
+    btn.addEventListener("click", () => {
+      const sumTotal = document.getElementById("sum-total")?.textContent || "$0";
+      const sumHouse = document.getElementById("sum-house")?.textContent || "Por definir";
+      const sumParcel = document.getElementById("sum-parcel")?.textContent || "$0";
+      
+      let text = `¡Hola! Acabo de armar una cotización en Tu Parcela Lista.%0A%0A`;
+      text += `*Terreno:* ${sumParcel}%0A`;
+      text += `*Casa:* ${sumHouse}%0A`;
+      text += `*Total Proyecto Estimado:* ${sumTotal}%0A%0A`;
+      text += `Quiero que un asesor me oriente con los siguientes pasos.`;
+      
+      window.open(`https://wa.me/56988508361?text=${text}`, '_blank');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+javascript:(async function(){try {const crmDomain = 'https://www.parcelalista.cl';const crmReviewUrl = \

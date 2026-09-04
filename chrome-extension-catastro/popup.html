@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TPL Catastro</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 1rem; width: 320px; color: #1e293b; margin: 0; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    .header h2 { margin: 0; font-size: 1.1rem; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
+    .settings-btn { cursor: pointer; background: none; border: none; font-size: 1.2rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; font-size: 0.8rem; color: #475569; text-transform: uppercase; }
+    input, select { width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; box-sizing: border-box; }
+    .btn { background: #3b82f6; color: white; padding: 0.75rem 1rem; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; margin-top: 0.5rem; }
+    .btn:hover { background: #2563eb; }
+    .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+    .status { margin-top: 0.75rem; text-align: center; font-size: 0.85rem; font-weight: 600; display: none; padding: 0.5rem; border-radius: 4px; }
+    .status.success { background: #d1fae5; color: #059669; }
+    .status.error { background: #fee2e2; color: #dc2626; }
+    .status.warning { background: #fef3c7; color: #d97706; }
+    #data-form { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🎯 TPL Catastro</h2>
+    <button class="settings-btn" id="goOptions" title="Configurar CRM">⚙️</button>
+  </div>
+
+  <div id="loading" style="text-align: center; color: #64748b; padding: 1rem;">
+    Analizando página...
+  </div>
+
+  <div id="data-form">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" id="titulo">
+    </div>
+    <div class="form-group" style="display: flex; gap: 0.5rem;">
+      <div style="flex: 1;">
+        <label>Precio (CLP)</label>
+        <input type="number" id="precio_clp" placeholder="0">
+      </div>
+      <div style="flex: 1;">
+        <label>Precio (UF)</label>
+        <input type="number" id="precio_uf" step="0.01" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group" style="display: flex; gap: 0.5rem;">
+      <div style="flex: 1;">
+        <label>Superficie (m²)</label>
+        <input type="number" id="superficie">
+      </div>
+      <div style="flex: 1;">
+        <label>Comuna</label>
+        <input type="text" id="comuna" list="comunasList">
+        <datalist id="comunasList"></datalist>
+      </div>
+      <div style="flex: 1;">
+        <label>Fecha Pub.</label>
+        <input type="date" id="fecha_pub">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Descripcin</label>
+      <textarea id="descripcion" rows="2" placeholder="Descripcin del anuncio..." style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:0.5rem; font-family:inherit; font-size:0.85rem; resize:vertical; box-sizing:border-box;"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Localidad / Sector</label>
+      <input type="text" id="direccion" placeholder="Ej: Salto del Laja...">
+    </div>
+    <div class="form-group">
+      <label>Tipo de Propiedad</label>
+      <select id="tipo">
+        <option value="Parcela">Parcela</option>
+        <option value="Parcela con casa">Parcela con casa</option>
+      </select>
+    </div>
+    
+    <button class="btn" id="saveBtn">Guardar en CRM</button>
+  </div>
+
+  <div class="status" id="statusBox"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

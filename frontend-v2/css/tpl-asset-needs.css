@@ -1,0 +1,21 @@
+[data-tpl-asset-needs]{display:grid;gap:18px}.tpl-needs-intro{max-width:760px;color:#607287;line-height:1.65}.tpl-needs-group{border:1px solid #dbe5ef;border-radius:20px;padding:22px;background:#fff}.tpl-needs-group>h3{margin:0;color:#073e72;font-size:1.25rem}.tpl-needs-group>p{margin:7px 0 18px;color:#66788a}.tpl-needs-group.is-confirmed{border-color:#e1c1b7;background:#fffaf8}.tpl-needs-group.is-pending{border-color:#c9d9e9;background:#f8fbff}.tpl-needs-group.is-optional{border-color:#bddfd4;background:#f8fcfb}.tpl-needs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.tpl-need-card{border:1px solid #dfe7ee;border-radius:16px;padding:18px;background:#fff;box-shadow:0 8px 24px rgba(13,53,88,.05)}.tpl-need-top{display:flex;justify-content:space-between;gap:10px;align-items:center}.tpl-need-top span{font-size:.7rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#365b78}.tpl-need-top b{font-size:.68rem;text-transform:uppercase;color:#697d8f}.tpl-need-card h3{margin:14px 0 8px;color:#073e72}.tpl-need-card p{margin:0 0 14px;color:#536b7e;line-height:1.5}.tpl-need-card small{color:#738596;line-height:1.4}.tpl-need-card[data-kind="necesidad_detectada"]{border-left:4px solid #b75b45}.tpl-need-card[data-kind="informacion_pendiente"]{border-left:4px solid #4b7fa8}.tpl-need-card[data-kind="mejora_sugerida"]{border-left:4px solid #2d8a6a}.tpl-needs-note{margin:0;color:#718294;font-size:.82rem}.tpl-needs-empty{border:1px solid #c6dfd6;background:#f6fbf9;border-radius:18px;padding:22px;display:grid;gap:5px;color:#28684f}@media(max-width:900px){.tpl-needs-grid{grid-template-columns:1fr 1fr}}@media(max-width:620px){.tpl-needs-grid{grid-template-columns:1fr}.tpl-needs-group{padding:17px}}
+
+/* CONIT Conectividad y Servicios */
+.conit-section { margin: 2rem 0; padding: 24px; background: #fdfdfd; border-radius: 12px; border: 1px solid #eaeaea; }
+.conit-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 2rem; }
+@media(min-width:600px) { .conit-grid { grid-template-columns: 1fr 1fr; } }
+.conit-card { display: flex; align-items: flex-start; gap: 1rem; padding: 1.25rem; border-radius: 10px; background: #ffffff; border: 1px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+.conit-card__icon { font-size: 2.2rem; flex-shrink: 0; }
+.conit-card__content h3 { margin: 0 0 0.25rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #607287; }
+.conit-card__name { margin: 0 0 0.5rem; font-size: 1.15rem; font-weight: 700; color: #073e72; }
+.conit-card__metrics { display: flex; gap: 1rem; }
+.conit-card__metrics span { display: inline-flex; align-items: center; background: #f8fbff; border: 1px solid #c9d9e9; padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: #073e72; }
+.conit-card__metrics span:last-child { background: transparent; border-color: transparent; color: #607287; font-weight: 500; padding-left: 0; }
+.conit-services h3 { font-size: 1.1rem; margin-bottom: 1rem; color: #073e72; }
+.conit-services__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+@media(min-width:768px) { .conit-services__grid { grid-template-columns: repeat(3, 1fr); } }
+.conit-service-card { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; background: #fff; border: 1px solid #dfe7ee; border-radius: 12px; box-shadow: 0 2px 6px rgba(13,53,88,.02); }
+.conit-service-icon { font-size: 1.5rem; }
+.conit-service-info { display: flex; flex-direction: column; }
+.conit-service-info strong { font-size: 0.95rem; color: #073e72; margin-bottom: 0.1rem; }
+.conit-service-info small { font-size: 0.8rem; color: #718294; font-weight: 600; }

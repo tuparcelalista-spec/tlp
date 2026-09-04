@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "TPL Catastro de Mercado",
+  "version": "1.0",
+  "description": "Extensión oficial de TPL para extraer y registrar información de propiedades desde portales inmobiliarios (Yapo, PortalInmobiliario).",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://*.yapo.cl/*",
+    "https://*.portalinmobiliario.com/*",
+    "https://*.mercadolibre.cl/*",
+    "https://www.parcelalista.cl/plataforma/crm-tpl-v1/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.parcelalista.cl/plataforma/crm-tpl-v1/*"],
+      "js": ["crm-bridge.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Extraer al CRM TPL"
+  },
+  "options_page": "options.html"
+}

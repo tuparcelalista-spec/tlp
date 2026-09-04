@@ -1,0 +1,404 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mi Propiedad TPL | Tu Parcela Lista</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="css/mi-parcela.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="js/core/tpl-data-service.js?v=20260901-limit" defer></script>
+  <script src="js/mi-parcela.js" defer></script>
+  <script src="./parcelas.js?v=20260823p"></script>
+</head>
+<body>
+<main class="owner-shell">
+  <header class="tpl-header">
+  <a class="tpl-brand" href="./index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="#inicio">Inicio</a>
+    <a href="#mis-datos">Mis Datos</a>
+    <a href="#tasacion">Tasación</a>
+    <a href="#planes">Planes</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="#resultados">Parcelas</a>
+    <a class="tpl-publish" href="./plataforma/publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="#buscador">Buscar parcelas</a>
+    <a href="./como-comprar.html">Cómo comprar</a>
+    <a href="./red-partner-v2/index.html">Red Partner</a>
+    <a href="./plataforma/tpl-business-v2/index.html">TPL Business</a>
+  </nav>
+</header>
+
+  <section id="loading" class="panel center"><h1>Preparando tu propiedad…</h1><p>Estamos actualizando diagnóstico, valoración y próximos pasos.</p></section>
+  <section id="error" class="panel center" hidden><h1>Enlace no disponible</h1><p id="errorText"></p></section>
+
+  <div id="app" hidden>
+
+  <section id="funnel-welcome" class="panel" style="text-align:center; padding: 40px 20px; background: linear-gradient(135deg, #1e3a8a, #0f172a); color: white; border-radius: 16px; margin-bottom: 30px;">
+    <img src="assets/logo-tu-parcela-lista.webp" width="100" style="margin-bottom: 20px; filter: brightness(0) invert(1);" alt="TPL">
+    <h1 style="font-size: 2.2rem; margin-bottom: 12px; color: white;">¡Gracias por ser parte de Tu Parcela Lista!</h1>
+    <p style="font-size: 1.1rem; color: #cbd5e1; max-width: 600px; margin: 0 auto 30px;">Estamos felices de acompañarte en este proceso. Tenemos tu propiedad en nuestra base de datos y nuestro motor de Inteligencia Artificial está listo para trabajar para ti.</p>
+    
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 12px; max-width: 700px; margin: 0 auto;">
+      <h2 style="color: #60a5fa; margin-top: 0;">¿Quieres conocer el valor de tasación que tiene tu propiedad?</h2>
+      
+      <!-- Interactive Attribute Reveal Box -->
+      <div id="ai-thinking-box" style="margin: 20px 0; min-height: 120px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 20px; text-align: left; display: none;">
+         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+           <div class="ai-spinner"></div>
+           <strong style="color: #60a5fa; font-size: 1.1rem;" id="ai-status-text">Analizando tu propiedad...</strong>
+         </div>
+         <ul id="ai-attributes-list" style="list-style: none; padding: 0; margin: 0; color: #cbd5e1; font-family: monospace; line-height: 1.6;">
+         </ul>
+      </div>
+
+      <button id="btn-start-valuation" class="primary" style="font-size: 1.2rem; padding: 15px 30px; margin-top: 20px; background: #3b82f6; border: none; border-radius: 30px; color: white; cursor: pointer; font-weight: bold; width: 100%;">TASAR MI PROPIEDAD</button>
+      
+      <div id="missing-attributes-alert" style="display:none; margin-top: 20px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: left;">
+        <strong>⚠️ Faltan campos para lograr la tasación correcta:</strong>
+        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">Necesitamos que completes el agua, la electricidad y el rol en el formulario de abajo para poder entregarte un valor preciso.</p>
+        <button onclick="document.getElementById('update').scrollIntoView({behavior:'smooth'})" style="margin-top: 10px; background: transparent; border: 1px solid #fca5a5; color: #fca5a5; padding: 5px 15px; border-radius: 4px; cursor: pointer;">Completar datos ahora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Valuation Results & Upsell -->
+  <section id="funnel-results" class="panel" style="display:none; padding: 40px; background: #f8fafc; border-radius: 16px; margin-bottom: 30px; border: 1px solid #e2e8f0; text-align: center;">
+    <h2 style="color: #0f172a; margin-top: 0; font-size: 2rem;">Resultados de Tasación TPL</h2>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+      <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #3b82f6;">
+        <span style="display: block; font-size: 0.9rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Valor TPL Tasación</span>
+        <strong id="funnel-tpl-value" style="display: block; font-size: 2.5rem; color: #1e3a8a; margin: 10px 0;">Calculando...</strong>
+        <small style="color: #94a3b8;">Precio de mercado recomendado</small>
+      </div>
+      <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #ef4444;">
+        <span style="display: block; font-size: 0.9rem; color: #64748b; font-weight: bold; text-transform: uppercase;">Valor Apuro (Venta Rápida)</span>
+        <strong id="funnel-apuro-value" style="display: block; font-size: 2.5rem; color: #ef4444; margin: 10px 0;">Calculando...</strong>
+        <small id="funnel-apuro-context" style="color: #94a3b8; display: block; line-height: 1.4;">Calculado según promedio TPL y las parcelas cercanas más económicas de tu comuna.</small>
+      </div>
+    </div>
+
+    <!-- Estrategia Recomendada -->
+    <div id="strategy-recommendation" style="background: #e0e7ff; padding: 25px; border-radius: 12px; border: 1px solid #c7d2fe; margin-bottom: 40px; text-align: left;">
+      <h3 style="color: #3730a3; margin-top: 0;">Estrategia Recomendada</h3>
+      <p id="strategy-text" style="color: #4338ca; font-size: 1.1rem; font-weight: 500; margin-bottom: 0;"></p>
+    </div>
+
+    <!-- Planes de Inversión -->
+    <h3 style="font-size: 1.8rem; color: #0f172a;">Planes de Inversión para Venta</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; text-align: left;">
+      <!-- Básico -->
+      <div style="background: white; border: 1px solid #cbd5e1; padding: 20px; border-radius: 12px;">
+        <h4 style="margin: 0 0 10px 0; color: #475569;">Plan Básico</h4>
+        <strong style="font-size: 1.5rem; color: #0f172a; display: block; margin-bottom: 15px;">$50.000</strong>
+        <ul style="padding-left: 20px; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+          <li>Publicación en portales inmobiliarios líderes</li>
+        </ul>
+        <button onclick="window.open('https://wa.me/56988508361?text=Hola,%20me%20interesa%20el%20Plan%20Básico%20de%20$50.000%20para%20vender%20mi%20parcela.')" style="width:100%; padding: 10px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-weight: bold; color: #475569;">Elegir Básico</button>
+      </div>
+      <!-- Normal -->
+      <div style="background: white; border: 2px solid #3b82f6; padding: 20px; border-radius: 12px; position: relative;">
+        <span style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #3b82f6; color: white; font-size: 0.75rem; padding: 2px 10px; border-radius: 10px; font-weight: bold;">MÁS POPULAR</span>
+        <h4 style="margin: 0 0 10px 0; color: #3b82f6;">Plan Normal</h4>
+        <strong style="font-size: 1.5rem; color: #0f172a; display: block; margin-bottom: 15px;">$70.000</strong>
+        <ul style="padding-left: 20px; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+          <li>Publicación en portales</li>
+          <li>Video con Inteligencia Artificial</li>
+          <li>Campaña en Redes Sociales (IG/FB)</li>
+        </ul>
+        <button onclick="window.open('https://wa.me/56988508361?text=Hola,%20me%20interesa%20el%20Plan%20Normal%20de%20$70.000%20con%20Video%20IA.')" style="width:100%; padding: 10px; background: #3b82f6; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white;">Elegir Normal</button>
+      </div>
+      <!-- Mayor -->
+      <div style="background: white; border: 1px solid #cbd5e1; padding: 20px; border-radius: 12px;">
+        <h4 style="margin: 0 0 10px 0; color: #475569;">Plan Mayor</h4>
+        <strong style="font-size: 1.5rem; color: #0f172a; display: block; margin-bottom: 15px;">$90.000</strong>
+        <ul style="padding-left: 20px; color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+          <li>Todo lo del Plan Normal</li>
+          <li>Video grabado exclusivo de la propiedad</li>
+          <li>Landing Page exclusiva para Google Ads</li>
+        </ul>
+        <button onclick="window.open('https://wa.me/56988508361?text=Hola,%20me%20interesa%20el%20Plan%20Mayor%20de%20$90.000%20con%20Landing%20Page.')" style="width:100%; padding: 10px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; font-weight: bold; color: #475569;">Elegir Mayor</button>
+      </div>
+      <!-- Apuro -->
+      <div style="background: linear-gradient(135deg, #ef4444, #991b1b); border: none; padding: 20px; border-radius: 12px; color: white;">
+        <h4 style="margin: 0 0 10px 0; color: #fca5a5;">Plan Apuro (Urgencia)</h4>
+        <strong style="font-size: 1.5rem; color: white; display: block; margin-bottom: 15px;">$120.000</strong>
+        <ul style="padding-left: 20px; color: #fecaca; font-size: 0.9rem; margin-bottom: 20px;">
+          <li>TODO lo del Plan Mayor</li>
+          <li>Se inyecta urgencia extrema en campañas</li>
+          <li><strong>Garantía:</strong> Si logramos la venta, se descuenta este valor de la comisión final.</li>
+        </ul>
+        <button onclick="window.open('https://wa.me/56988508361?text=Hola,%20necesito%20vender%20rápido.%20Me%20interesa%20el%20Plan%20Apuro%20de%20$120.000.')" style="width:100%; padding: 10px; background: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #991b1b;">Elegir Apuro</button>
+      </div>
+    </div>
+  </section>
+
+    <section class="hero panel">
+      <div>
+        <small>PASAPORTE DIGITAL DE TU PROPIEDAD</small>
+        <h1 id="title"></h1>
+        <p id="location"></p>
+        <div class="status-row"><span id="propertyStatus" class="status-pill"></span><span id="planStatus" class="status-pill subtle"></span><span id="dataFreshness" class="status-pill info"></span></div>
+        <p class="hero-copy">Mantén tus datos al día, mejora la confianza del anuncio y entra a TPL Business sin comenzar de nuevo.</p>
+        <div class="actions"><a id="publicLink" class="primary" target="_blank" rel="noopener">Ver anuncio</a><button id="scrollUpdate">Actualizar información</button><a id="businessTopLink" class="business-link" href="plataforma/tpl-business-v2/">Entrar a TPL Business</a></div>
+      </div>
+      <div class="price"><small>Precio publicado</small><strong id="price"></strong><span id="updated"></span></div>
+    </section>
+
+    <section id="diagnostico" class="diagnostic-shell panel">
+      <div class="diagnostic-head">
+        <div><small>DIAGí‘STICO TPL</small><h2>Estado actual de tu propiedad</h2><p id="diagnosticSummary">Estamos analizando la información más reciente.</p></div>
+        <div id="valuationBadge" class="valuation-badge tone-blue"><span>Valoración TPL</span><strong id="integralScore">—</strong><small id="integralLabel">En evaluación</small></div>
+      </div>
+      <div class="metric-grid" aria-label="Indicadores de la propiedad">
+        <article class="metric"><small>PROPIEDAD</small><strong id="propertyScore">—</strong><span>Condición y atributos</span></article>
+        <article class="metric"><small>ANUNCIO</small><strong id="listingScore">—</strong><span>Preparación para vender</span></article>
+        <article class="metric"><small>CONFIANZA</small><strong id="confidenceScore">—</strong><span>Calidad de la información</span></article>
+        <article class="metric"><small>PENDIENTES</small><strong id="pendingCount">0</strong><span>Datos o acciones abiertas</span></article>
+      </div>
+    </section>
+
+    <section class="three-grid">
+      <article class="panel insight-card strengths"><small>FORTALEZAS</small><h2>Lo que ya está bien</h2><div id="strengthsList" class="stack-list"></div></article>
+      <article class="panel insight-card pending"><small>INFORMACIÓN PENDIENTE</small><h2>Lo que conviene confirmar</h2><div id="pendingInfoList" class="stack-list"></div></article>
+      <article class="panel insight-card improvements"><small>OPORTUNIDADES</small><h2>Cómo puede mejorar</h2><div id="improvementsList" class="stack-list"></div></article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <small>INFORME BÁSICO GRATUITO</small>
+        <h2>Referencia actual de valor</h2>
+        <div class="valuation"><strong id="tplValue">Información insuficiente</strong><span id="tplM2"></span></div>
+        <p id="valuationText">Completa o corrige los antecedentes para mejorar la precisión del anélisis.</p>
+        <div id="valuationGap" class="notice"></div>
+        <p class="source-note">Los resultados distinguen entre información declarada, verificada y estimada.</p>
+      </article>
+      
+        <article class="panel" id="v3-owner-radar" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: none; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);">
+          <small style="color: #60a5fa; letter-spacing: 1px; font-weight: 700; border: 1px solid #60a5fa; padding: 2px 8px; border-radius: 12px; display: inline-block; margin-bottom: 12px;">RADAR DE COMPETENCIA TPL</small>
+          <h2 style="color: white; margin-top: 0;">¿Cómo compite tu propiedad hoy?</h2>
+          <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 24px;">Hemos analizado nuestro catastro para mostrarte cuántas propiedades similares compiten contigo en tu misma comuna, y cómo tu precio afecta la velocidad de venta.</p>
+          
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+             <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 16px;">
+                <div style="width: 60px; height: 60px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;" id="radar-count">
+                    -
+                </div>
+                <div>
+                   <span style="display: block; font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; font-weight: 600;">Inventario Local</span>
+                   <span style="font-size: 1.2rem; font-weight: bold; color: white;">Propiedades compitiendo en <span id="radar-comuna">tu comuna</span></span>
+                </div>
+             </div>
+             <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; font-size: 0.9rem; color: #cbd5e1;" id="radar-analysis">
+                Calculando posicionamiento...
+             </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;">
+             <h3 style="margin: 0 0 12px 0; font-size: 1.1rem; color: white;">Simulador de Plusvalía e Inversión</h3>
+             <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 16px;">Descubre cuánto aumenta el valor de tu propiedad si realizas mejoras estratégicas antes de venderla.</p>
+             
+             <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+                 <label style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: 20px; cursor: pointer; color: #34d399; font-size: 0.9rem;">
+                     <input type="checkbox" id="sim-agua" onchange="updateSimulator()"> Habilitar Pozo/APR (+10%)
+                 </label>
+                 <label style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: 20px; cursor: pointer; color: #34d399; font-size: 0.9rem;">
+                     <input type="checkbox" id="sim-rol" onchange="updateSimulator()"> Regularizar Rol Propio (+5%)
+                 </label>
+             </div>
+             
+             <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
+                 <div>
+                    <span style="display: block; font-size: 0.8rem; color: #94a3b8;">Nuevo Valor TPL Estimado</span>
+                    <span style="font-size: 1.8rem; font-weight: bold; color: #10b981;" id="sim-result">-$</span>
+                 </div>
+                 <div style="text-align: right;">
+                    <span style="display: block; font-size: 0.8rem; color: #94a3b8;">Costo aprox. mejoras</span>
+                    <span style="font-size: 1.1rem; font-weight: bold; color: #f87171;" id="sim-cost">$0</span>
+                 </div>
+             </div>
+          </div>
+        </article>
+
+        <article class="panel valuation-report-card">
+        <small>INFORME DE TASACIÓN TPL</small>
+        <h2>Tu análisis visual y descargable</h2>
+        <div class="report-summary"><span>Última versión</span><strong id="reportVersion">Sin tasación</strong><span id="reportDate">Completa los antecedentes para generar una versión.</span></div>
+        <div class="actions"><button id="viewValuationReport" type="button" disabled>Ver informe</button><button id="downloadValuationReport" class="primary" type="button" disabled>Descargar PDF</button></div>
+        <p id="reportStatus" class="source-note">El informe usa exactamente el mismo Valor TPL oficial del CRM y de parcela.html.</p>
+      </article>
+      <article class="panel next-actions">
+        <small>PRÓXIMOS PASOS</small>
+        <h2>Qué recomendamos hacer ahora</h2>
+        <div id="tasksList" class="stack-list"></div>
+      </article>
+    </section>
+
+    <section id="offersSection" class="panel offers-panel">
+      <div class="section-title"><div><small>PROPUESTAS RECIBIDAS</small><h2>Ofertas y condiciones para tu propiedad</h2><p>Compara monto, mejoras y condiciones antes de responder.</p></div><span id="offersCount" class="auto-badge">0 ofertas</span></div>
+      <div id="offersList" class="offers-list"></div>
+    </section>
+
+    <section id="timelineSection" class="grid">
+      <article class="panel"><small>HISTORIAL DEL ACTIVO</small><h2>Todo lo que ha ocurrido</h2><div id="timeline" class="timeline"></div></article>
+      <article class="panel"><small>SERVICIOS RELACIONADOS</small><h2>Solo según lo que esta propiedad necesita</h2><div id="needsList" class="stack-list"></div></article>
+    </section>
+
+    <section id="update" class="panel update-panel">
+      <div class="section-title"><div><small>TASADOR TPL CANÓNICO</small><h2>Completa los antecedentes que influyen en la tasación</h2><p>Esta es la misma ficha utilizada por el Tasador Completo y el CRM. Los datos automáticos se calculan desde la ubicación; tú solo confirmas lo que conoces de la propiedad.</p></div><span class="auto-badge">Una sola fuente de verdad</span></div>
+      <form id="ownerForm">
+        <div class="valuation-progress"><div><strong id="valuationCompletion">0%</strong><span>Completitud para tasación</span></div><div class="valuation-progress-track"><span id="valuationCompletionBar"></span></div><p id="valuationMissingText">Revisando antecedentes…</p></div>
+
+        <fieldset><legend>1. Identificación y valor comercial</legend><div class="fields">
+          <label>Título<input name="titulo" maxlength="160"></label><label>Precio publicado<input name="precio_publicado" type="number" min="0"></label>
+          <label>Superficie del terreno (m²)<input name="superficie_m2" type="number" min="1" step="1"></label><label>Precio esperado por el propietario<input name="asking" type="number" min="0"></label>
+          <label>Región<input name="region" readonly></label><label>Comuna<input name="comuna" readonly></label>
+          <label>Latitud<input name="lat" type="number" step="0.000001"></label><label>Longitud<input name="lng" type="number" step="0.000001"></label>
+          <div id="mi-parcela-mapa" style="height: 300px; width: 100%; border-radius: 8px; margin-top: 12px; grid-column: 1 / -1; z-index: 1;"></div>
+          <label>Situación del rol<select name="rol_situacion"><option value="">Por confirmar</option><option value="propio">Rol propio</option><option value="en_tramite">En trámite</option><option value="derechos">Derechos</option><option value="otro">Otro</option></select></label>
+          <label class="wide">Descripción<textarea name="descripcion" rows="5" maxlength="5000"></textarea></label>
+        </div></fieldset>
+
+        <fieldset><legend>2. Ubicación, acceso y distancias</legend><div class="fields">
+          <label>Acceso<select name="access"><option value="">Por confirmar</option><option value="pavimento">Pavimento hasta la propiedad</option><option value="ripio_bueno">Ripio en buen estado</option><option value="ripio_regular">Ripio regular</option><option value="mejorable">Requiere mejoras</option><option value="dificil">Difícil en invierno</option></select></label>
+          <label>Distancia al centro comunal (km)<input name="commune_distance" type="number" min="0" step="1"></label>
+          <label>Distancia a ruta principal (km)<input name="route_distance" type="number" min="0" step="1"></label>
+          <label>Topografía<select name="topography"><option value="">Por confirmar</option><option value="plana">Plana</option><option value="suave">Pendiente suave</option><option value="pendiente">Pendiente</option><option value="irregular">Irregular</option></select></label>
+          <label>Tipo de suelo<select name="soil"><option value="">Por confirmar</option><option value="agricola">Agrícola</option><option value="forestal">Forestal</option><option value="mixto">Mixto</option><option value="rocoso">Rocoso</option><option value="humedo">Húmedo</option></select></label>
+          <label>Exposición solar<select name="exposure"><option value="">Por confirmar</option><option value="excelente">Excelente</option><option value="buena">Buena</option><option value="media">Media</option><option value="baja">Baja</option></select></label>
+          <label>Vista principal<select name="view"><option value="">Por confirmar</option><option value="cordillera">Cordillera / volcán</option><option value="agua">Lago / río / mar</option><option value="valle">Valle / campo</option><option value="bosque">Bosque</option><option value="urbana">Urbana</option><option value="sin_vista">Sin vista destacada</option></select></label>
+          <label>Clasificación turística<select name="tourism"><option value="">Por confirmar</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option><option value="sin_clasificar">Sin clasificar</option></select></label>
+        </div></fieldset>
+
+        <fieldset><legend>3. Servicios e infraestructura</legend><div class="fields">
+          <label>Agua<select name="water"><option value="">Por confirmar</option><option value="apr">APR</option><option value="pozo_inscrito">Pozo inscrito</option><option value="pozo">Pozo</option><option value="vertiente">Vertiente</option><option value="rio">Río / estero</option><option value="factibilidad">Factibilidad</option><option value="no">No disponible</option></select></label>
+          <label>Electricidad<select name="electricity"><option value="">Por confirmar</option><option value="empalme">Empalme instalado</option><option value="red_predio">Red en el predio</option><option value="factibilidad">Factibilidad / postación cercana</option><option value="solar">Sistema solar</option><option value="no">No disponible</option></select></label>
+          <label>Distancia a red eléctrica (km)<input name="electricity_pole_distance" type="number" min="0" step="1"></label>
+          <label>Cierre perimetral<select name="fencing"><option value="">Por confirmar</option><option value="completo">Completo</option><option value="parcial">Parcial</option><option value="no">Sin cierre</option></select></label>
+          <label>Portón / acceso controlado<select name="gate"><option value="">Por confirmar</option><option value="automatico">Automático</option><option value="manual">Manual</option><option value="condominio">Acceso de condominio</option><option value="no">No</option></select></label>
+          <label>Condominio o loteo<select name="condominium"><option value="">Por confirmar</option><option value="regularizado">Regularizado</option><option value="en_tramite">En trámite</option><option value="no">No pertenece</option></select></label>
+          <label>Vegetación<select name="vegetation"><option value="">Por confirmar</option><option value="nativo">Bosque nativo</option><option value="frutales">Frutales</option><option value="pradera">Pradera</option><option value="forestal">Plantación forestal</option><option value="mixta">Mixta</option><option value="escasa">Escasa</option></select></label>
+        </div>
+        <div class="check-grid"><label><input type="checkbox" name="nature" value="rio"> Río o estero</label><label><input type="checkbox" name="nature" value="bosque_nativo"> Bosque nativo</label><label><input type="checkbox" name="nature" value="vista"> Vista destacada</label><label><input type="checkbox" name="nature" value="termal"> Aguas termales</label><label><input type="checkbox" name="nature" value="laguna"> Laguna / tranque</label><label><input type="checkbox" name="nature" value="frutales"> Frutales</label></div></fieldset>
+
+        <fieldset><legend>4. Vivienda existente, si corresponde</legend><div class="fields">
+          <label>Superficie casa (m²)<input name="area_casa" type="number" min="0"></label><label>Materialidad<input name="material_casa" maxlength="120"></label>
+          <label>Año construcción<input name="anio_construccion" type="number" min="1800" max="2100"></label><label>Estado de la casa<select name="estado_casa"><option value="">No informada</option><option value="excelente">Excelente</option><option value="bueno">Bueno</option><option value="regular">Regular</option><option value="malo">Requiere reparación</option></select></label>
+          <label>Año remodelación<input name="anio_remodelacion" type="number" min="1800" max="2100"></label><label>Dormitorios<input name="dormitorios" type="number" min="0"></label><label>Baños<input name="banos" type="number" min="0"></label><label>Pisos<input name="pisos" type="number" min="0"></label>
+          <label class="wide">Característica diferenciadora<input name="differentiator" maxlength="300" placeholder="Ej.: vista al volcán, acceso al río, construcción nueva"></label>
+        </div></fieldset>
+
+        <fieldset><legend>5. Obras y mejoras existentes</legend><div class="works-grid">
+          <label>Casa / cabaña ($)<input name="work_casa" type="number" min="0"></label><label>Galpón / bodega ($)<input name="work_galpon" type="number" min="0"></label><label>Pozo / APR ($)<input name="work_agua" type="number" min="0"></label><label>Cerco ($)<input name="work_cerco" type="number" min="0"></label><label>Portón ($)<input name="work_porton" type="number" min="0"></label><label>Camino interior ($)<input name="work_camino" type="number" min="0"></label><label>Paneles solares ($)<input name="work_solar" type="number" min="0"></label><label>Quincho / piscina ($)<input name="work_recreacion" type="number" min="0"></label>
+        </div></fieldset>
+
+        <fieldset><legend>6. Contacto privado</legend><p class="mini">Estos datos no se publican automáticamente. En planes gratuitos el WhatsApp público seguirá siendo +56 9 8850 8361.</p><div class="fields"><label>Nombre<input name="contacto_nombre"></label><label>Correo<input name="contacto_email" type="email"></label><label>Teléfono / WhatsApp<input name="contacto_whatsapp" type="tel"></label><label>Tipo<select name="contacto_tipo"><option value="propietario">Propietario</option><option value="corredor">Corredor</option></select></label></div></fieldset>
+
+        <label class="photo-box">Fotografías para revisión<input name="fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple><span>Las fotos se revisan antes de reemplazar las actuales.</span></label>
+        <div class="save-row"><button class="primary" type="submit">Guardar y solicitar recélculo</button><span id="formStatus" role="status"></span></div>
+      </form>
+    </section>
+
+    <section class="panel business premium-business">
+      <div><small>CONTIí‘A EN TPL BUSINESS</small><h2>Tu propiedad ya está lista para transformarse en proyecto</h2><p>Usa la misma ficha para administrar informes, campañas, servicios, cotizaciones, avances y documentos sin volver a ingresar los datos.</p><ul><li>Diagnóstico e historial del activo</li><li>Solicitudes y servicios recomendados</li><li>Seguimiento de proyectos y avances</li></ul></div>
+      <a id="businessLink" href="plataforma/tpl-business-v2/">Abrir mi entorno TPL Business</a>
+    </section>
+  </div>
+</main>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Escuchar cuando el form cargue la comuna o el precio
+    setTimeout(initOwnerRadar, 2000); // Wait for mi-parcela.js to load data
+});
+
+let baseValuationForSim = 0;
+
+function initOwnerRadar() {
+    if (!window.parcelas) return;
+    
+    // Attempt to get owner data from the form
+    const comunaInput = document.querySelector('input[name="comuna"]');
+    const priceInput = document.querySelector('input[name="asking"]');
+    
+    const ownerComuna = comunaInput ? comunaInput.value.trim() : "";
+    const ownerPrice = priceInput ? Number(priceInput.value) : 0;
+    
+    if (!ownerComuna) return;
+    document.getElementById("radar-comuna").textContent = ownerComuna;
+    
+    // Find competition
+    const cNorm = ownerComuna.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const competitors = window.parcelas.filter(p => {
+        const pc = String(p.comuna||"").normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        return pc === cNorm;
+    });
+    
+    document.getElementById("radar-count").textContent = competitors.length;
+    
+    if (competitors.length > 0 && ownerPrice > 0) {
+        const cheaper = competitors.filter(p => {
+            let pPrice = p.precio;
+            if (typeof pPrice === 'string') pPrice = parseInt(pPrice.replace(/\D/g, ''), 10);
+            return pPrice < ownerPrice;
+        });
+        
+        const pct = Math.round((cheaper.length / competitors.length) * 100);
+        
+        let analysisText = "";
+        if (pct < 30) {
+            analysisText = `<strong style="color: #34d399;">¡Excelente posicionamiento!</strong> Estás más barato que el ${100 - pct}% del mercado en ${ownerComuna}. Tienes alta liquidez (venta esperada: 1 - 3 meses).`;
+        } else if (pct < 60) {
+            analysisText = `<strong style="color: #fbbf24;">Precio de mercado promedio.</strong> Tu precio compite directamente con la mayoría. Se requerirá un buen plan de marketing (venta esperada: 4 - 6 meses).`;
+        } else {
+            analysisText = `<strong style="color: #f87171;">Alerta de sobreprecio.</strong> El ${pct}% de las parcelas en ${ownerComuna} están publicadas a un precio MENOR que el tuyo. Esto alejará a los compradores de nuestra plataforma (venta esperada: +10 meses).`;
+        }
+        
+        document.getElementById("radar-analysis").innerHTML = analysisText;
+    }
+    
+    // Setup Simulator
+    // Let's find average price for their commune to mock their base valuation
+    const avg = competitors.reduce((acc, p) => {
+        let pPrice = p.precio;
+        if (typeof pPrice === 'string') pPrice = parseInt(pPrice.replace(/\D/g, ''), 10);
+        return acc + (pPrice || 15000000);
+    }, 0) / (competitors.length || 1);
+    
+    baseValuationForSim = ownerPrice > 0 ? ownerPrice : avg;
+    updateSimulator();
+}
+
+function updateSimulator() {
+    if (!baseValuationForSim) return;
+    const hasAgua = document.getElementById("sim-agua").checked;
+    const hasRol = document.getElementById("sim-rol").checked;
+    
+    let multiplier = 1.0;
+    let cost = 0;
+    
+    if (hasAgua) { multiplier += 0.10; cost += 2500000; }
+    if (hasRol) { multiplier += 0.05; cost += 1500000; }
+    
+    const money = (v) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(v);
+    
+    document.getElementById("sim-result").textContent = money(baseValuationForSim * multiplier);
+    document.getElementById("sim-cost").textContent = money(cost);
+}
+</script>
+
+</body>
+</html>
+
+

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /plataforma/
+Allow: /plataforma/publicar-v2/
+Sitemap: https://www.parcelalista.cl/sitemap.xml

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>TPL Catastro Bridge</title>
+</head>
+<body>
+<script>
+    const ALLOWED_ORIGINS = [
+        'https://www.portalinmobiliario.com',
+        'https://portalinmobiliario.com',
+        'https://www.yapo.cl',
+        'https://yapo.cl',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+    ];
+
+    // Permitir mensajes solo desde los orígenes validados
+    window.addEventListener('message', function(event) {
+        if (!ALLOWED_ORIGINS.includes(event.origin)) {
+            console.warn('TPL Catastro Bridge: Origen rechazado - ' + event.origin);
+            return;
+        }
+
+        if (event.data && event.data.type === 'TPL_CATASTRO_INGEST') {
+            try {
+                // Guardar la data capturada en el localStorage bajo el dominio parcelalista.cl
+                localStorage.setItem('tpl_catastro_pending', JSON.stringify(event.data.payload));
+                
+                // Responder al padre (Bookmarklet) validado que se guardó exitosamente
+                event.source.postMessage({ type: 'TPL_CATASTRO_ACK' }, event.origin);
+            } catch (e) {
+                console.error("Bridge Error:", e);
+            }
+        }
+    });
+</script>
+</body>
+</html>

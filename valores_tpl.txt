@@ -1,0 +1,192 @@
+ID: perigallo_yumbel
+Nombre: Parcela cercada con linda vista sector Perigallo - Yumbel
+Precio Publicado: $20.000.000
+Valor TPL Tasador: 15816360
+Valor Comunal: 19820000
+-----------------------------------
+ID: venega_ñipas
+Nombre: Lomas Coloradas - Ñipas
+Precio Publicado: $25.000.000
+Valor TPL Tasador: 19950000
+Valor Comunal: 25000000
+-----------------------------------
+ID: el_roble
+Nombre: El Roble Nativo – Nacimiento
+Precio Publicado: $6.690.000
+Valor TPL Tasador: 12081720
+Valor Comunal: 15140000
+-----------------------------------
+ID: chequenal_parcela_13
+Nombre: Chequenal Nativo – Parcela 13 | Nacimiento
+Precio Publicado: $13.658.000
+Valor TPL Tasador: 15897000
+Valor Comunal: 15140000
+-----------------------------------
+ID: chequenal_parcela_44
+Nombre: Chequenal Premium con Arroyo | Nacimiento
+Precio Publicado: $15.800.000
+Valor TPL Tasador: 17411000
+Valor Comunal: 15140000
+-----------------------------------
+ID: santa_ana_media_hectarea
+Nombre: Santa Ana – 5.000 m² | Quillón
+Precio Publicado: $8.490.000
+Valor TPL Tasador: 25806218
+Valor Comunal: 27615000
+-----------------------------------
+ID: florida_d2
+Nombre: Las Ulloas – Parcela D2 | Florida
+Precio Publicado: $24.360.000
+Valor TPL Tasador: 24938991
+Valor Comunal: 25705000
+-----------------------------------
+ID: los_guindos_media_hectarea
+Nombre: Los Guindos Nativo – Bosque Nahuelbuta | Nacimiento
+Precio Publicado: $9.578.000
+Valor TPL Tasador: 12081720
+Valor Comunal: 15140000
+-----------------------------------
+ID: el_nogal
+Nombre: El Nogal – Campo de 10.700 m² | Río Claro, Yumbel
+Precio Publicado: $36.720.000
+Valor TPL Tasador: 40559153
+Valor Comunal: 42414800
+-----------------------------------
+ID: yumbel_ruta_6500mts2
+Nombre: Ruta Concepción–Yumbel | Parcela 6.500 m²
+Precio Publicado: $15.800.000
+Valor TPL Tasador: 21785153
+Valor Comunal: 25766000
+-----------------------------------
+ID: yumbel_ruta_7000mts2
+Nombre: Ruta Concepción–Yumbel Premium | Parcela 7.000 m²
+Precio Publicado: $24.980.000
+Valor TPL Tasador: 23460934
+Valor Comunal: 27748000
+-----------------------------------
+ID: pano_largo
+Nombre: Paño Largo – Campo de 4,02 Hectáreas | Río Claro, Yumbel
+Precio Publicado: $50.480.000
+Valor TPL Tasador: 81269928
+Valor Comunal: 159352800
+-----------------------------------
+ID: las_petacas
+Nombre: Las Petacas – Campo de 4,36 Hectáreas | Río Claro, Yumbel
+Precio Publicado: $46.400.000
+Valor TPL Tasador: 88143504
+Valor Comunal: 172830400
+-----------------------------------
+ID: florida_b2
+Nombre: Las Ulloas Premium – Parcela B2 | Florida
+Precio Publicado: $24.377.000
+Valor TPL Tasador: 25043735
+Valor Comunal: 25812961
+-----------------------------------
+ID: florida_a
+Nombre: Las Ulloas Premium – Parcela A | Florida
+Precio Publicado: $33.200.000
+Valor TPL Tasador: 32221176
+Valor Comunal: 34958800
+-----------------------------------
+ID: florida_c
+Nombre: Las Ulloas Vista Panorámica – Parcela C | Florida
+Precio Publicado: $47.580.000
+Valor TPL Tasador: 41548359
+Valor Comunal: 50381800
+-----------------------------------
+ID: florida_b3
+Nombre: Las Ulloas – Casa de Campo Premium | Florida
+Precio Publicado: $150.000.000
+Valor TPL Tasador: 41149335
+Valor Comunal: 56551000
+-----------------------------------
+ID: florida_d1
+Nombre: Las Ulloas Mirador – Parcela D1 | Florida
+Precio Publicado: $42.640.000
+Valor TPL Tasador: 36884768
+Valor Comunal: 44726700
+-----------------------------------
+ID: los_guindos_1h
+Nombre: Los Guindos Nativo – Campo de 1 Hectárea | Nacimiento
+Precio Publicado: $14.900.000
+Valor TPL Tasador: 20538924
+Valor Comunal: 30280000
+-----------------------------------
+ID: negrete_vista_rio
+Nombre: Mirador del Biobío – Vista al Río | Negrete
+Precio Publicado: $28.900.000
+Valor TPL Tasador: 33407520
+Valor Comunal: 26430000
+-----------------------------------
+ID: negrete_parcela_con_rio
+Nombre: Ribera del Vergara – Acceso Privado al Río | Negrete
+Precio Publicado: $36.200.000
+Valor TPL Tasador: 33407520
+Valor Comunal: 26430000
+-----------------------------------
+ID: yumbel_5min_pueblo
+Nombre: Yumbel Centro Cercano – Parcela 5.000 m²
+Precio Publicado: $24.980.000
+Valor TPL Tasador: 18105570
+Valor Comunal: 19820000
+-----------------------------------
+ID: rio_claro_con_casa
+Nombre: Río Claro – Parcela con Vivienda para Remodelar | Yumbel
+Precio Publicado: $31.100.000
+Valor TPL Tasador: 25270500
+Valor Comunal: 19820000
+-----------------------------------
+ID: altos_quillon
+Nombre: Altos de Quillón – Parcela 5.000 m²
+Precio Publicado: $26.300.000
+Valor TPL Tasador: 28995750
+Valor Comunal: 27615000
+-----------------------------------
+ID: pemuco_campo
+Nombre: Cordilleranas de Pemuco – Campo de 10 Hectáreas | Ñuble
+Precio Publicado: $98.000.000
+Valor TPL Tasador: 161598000
+Valor Comunal: 468400000
+-----------------------------------
+ID: santa_ana_campo
+Nombre: Santa Ana de Quillón – Campo de 10 Hectáreas | Proyecto de Parcelación
+Precio Publicado: $120.000.000
+Valor TPL Tasador: 173974500
+Valor Comunal: 552300000
+-----------------------------------
+ID: santa_ana_6000mts2
+Nombre: Santa Ana del Baúl – Parcela 6.000 m² | Quillón
+Precio Publicado: $10.000.000
+Valor TPL Tasador: 34794900
+Valor Comunal: 33138000
+-----------------------------------
+ID: santa_ana_9500mts2
+Nombre: Santa Ana del Baúl – Parcela Premium 9.500 m² | Quillón
+Precio Publicado: $16.000.000
+Valor TPL Tasador: 46828136
+Valor Comunal: 52468500
+-----------------------------------
+ID: santa_ana_8000mts2
+Nombre: Santa Ana del Baúl – Parcela Premium 8.000 m² | Quillón
+Precio Publicado: $13.500.000
+Valor TPL Tasador: 44073540
+Valor Comunal: 44184000
+-----------------------------------
+ID: chequenal_4ultimas
+Nombre: Chequenal – Últimas 4 Parcelas Disponibles | Nacimiento
+Precio Publicado: $12.500.000
+Valor TPL Tasador: 22710000
+Valor Comunal: 15140000
+-----------------------------------
+ID: caburgua
+Nombre: Mirador del Villarrica – Parcela Premium | Caburgua
+Precio Publicado: $173.000.000
+Valor TPL Tasador: 104088000
+Valor Comunal: 65055000
+-----------------------------------
+ID: campo_ruta_cabrero
+Nombre: Ruta Concepción–Cabrero – Campo Estratégico 2 Hectáreas | Yumbel
+Precio Publicado: $95.000.000
+Valor TPL Tasador: 59460000
+Valor Comunal: 79280000
+-----------------------------------

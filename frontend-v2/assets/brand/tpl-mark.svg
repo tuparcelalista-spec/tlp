@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Tu Parcela Lista</title>
+  <desc id="desc">Símbolo de terreno, hogar y naturaleza</desc>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="5" x2="57" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D527E"/><stop offset="1" stop-color="#082F4F"/>
+    </linearGradient>
+    <linearGradient id="land" x1="13" y1="47" x2="53" y2="39" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F9B82"/><stop offset="1" stop-color="#9BBE42"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="18" fill="url(#bg)"/>
+  <path d="M14 31.5 31.8 17 50 31.5" fill="none" stroke="#F4C542" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M19 31v14.5h26V31" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13 49c9-5.2 18.5-4.4 27-1.3 4.8 1.7 9.4 1.6 14-.5" fill="none" stroke="url(#land)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M43.5 43.3c.6-5 4.1-8.8 9.1-10-1 5.4-4.1 8.8-9.1 10Z" fill="#9BBE42"/>
+</svg>

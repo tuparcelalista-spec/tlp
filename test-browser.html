@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<script type="module">
+  window.onerror = (msg, src, line, col, err) => {
+    console.log('Global Error:', msg, err);
+  };
+  import('./frontend-v2/plataforma/crm-tpl-v1/modules/catastro/index.js')
+    .then(() => console.log('Import successful'))
+    .catch(err => {
+      console.log('Import failed:', err.name, err.message, err.stack);
+      document.body.innerHTML += err.name + ': ' + err.message;
+    });
+</script>
+</body>
+</html>

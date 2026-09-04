@@ -1,0 +1,24 @@
+PARCHE T6 · DISTANCIA TERRITORIAL AUTOMÁTICA TPL
+
+1. Copiar la migración:
+   supabase/migrations/202608050019_tpl_distancia_territorial_automatica_v1.sql
+
+2. Ejecutar:
+   supabase db push
+
+3. Reemplazar:
+   supabase/functions/procesar-recalculo-tasador/index.ts
+
+4. Desplegar:
+   supabase functions deploy procesar-recalculo-tasador --no-verify-jwt
+
+5. Verificar en SQL Editor:
+   select public.tpl_auditoria_distancia_tasador_v1();
+
+6. Ejecutar el worker usando el secreto interno rotado:
+   curl -X POST "https://hwyscirbycojwndyzozn.supabase.co/functions/v1/procesar-recalculo-tasador" \
+     -H "x-tpl-internal-secret: $SECRET" \
+     -H "Content-Type: application/json" \
+     -d '{"limit":30}'
+
+La distancia calculada se identifica como centro_comunal_calculado y no reemplaza una distancia declarada válida.

@@ -1,0 +1,240 @@
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background-color: var(--c-primary);
+  color: var(--c-surface);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  z-index: 40;
+  transition: transform var(--transition-base);
+}
+
+.sidebar__brand {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-6);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-4) 0;
+}
+
+.sidebar__nav-group {
+  margin-bottom: var(--sp-6);
+}
+
+.sidebar__nav-label {
+  padding: 0 var(--sp-6);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: var(--sp-2);
+  letter-spacing: 0.05em;
+  font-weight: var(--fw-medium);
+}
+
+.sidebar__nav a {
+  display: flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-6);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--fs-sm);
+  transition: all var(--transition-fast);
+}
+
+.sidebar__nav a:hover,
+.sidebar__nav a.active {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--c-accent);
+  border-right: 3px solid var(--c-accent);
+}
+
+.sidebar__foot {
+  padding: var(--sp-4) var(--sp-6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+  transition: opacity var(--transition-base);
+}
+
+.main {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  height: var(--topbar-height);
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-6);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  justify-content: space-between;
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.topbar__menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-text);
+  padding: var(--sp-2);
+  margin-left: calc(var(--sp-2) * -1);
+  flex-direction: column;
+  gap: 4px;
+}
+
+.topbar__menu-btn span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--c-text);
+  border-radius: 2px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2) var(--sp-3);
+  width: 300px;
+}
+
+.search-box input {
+  border: none;
+  background: none;
+  outline: none;
+  margin-left: var(--sp-2);
+  width: 100%;
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.content {
+  flex: 1;
+  padding: var(--sp-6);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.boot-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--c-bg);
+}
+
+.boot-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--c-border-light);
+  border-top-color: var(--c-primary);
+  border-radius: var(--radius-full);
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--sp-4);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.boot-error {
+  display: none;
+  color: var(--c-danger);
+  background-color: #fee2e2;
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  max-width: 400px;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+  .main {
+    grid-column: 1;
+  }
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-overlay.open {
+    display: block;
+  }
+  .topbar__menu-btn {
+    display: flex;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Pie de la barra lateral
+   Va sobre fondo navy (#073a5a). El nombre del asesor se pintaba con
+   text-gray-900 y el boton de salir con el color de texto por defecto: ambos
+   quedaban practicamente invisibles.
+   -------------------------------------------------------------------------- */
+.sidebar__staff-name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: #fff;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sidebar__staff-role {
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, .6);
+  text-transform: capitalize;
+}
+.sidebar .btn--ghost {
+  color: rgba(255, 255, 255, .85);
+  border-color: rgba(255, 255, 255, .25);
+  background: transparent;
+}
+.sidebar .btn--ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, .5);
+  background: rgba(255, 255, 255, .08);
+}

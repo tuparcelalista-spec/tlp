@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Allow: /frontend-v2/
+
+# Bloquear directorios y archivos internos, de testeo o de desarrollo
+Disallow: /frontend-v2/plataforma/crm-tpl-v1/
+Disallow: /frontend-v2/plataforma/informe-valores/
+Disallow: /frontend-v2/plataforma/propietario/
+Disallow: /frontend-v2/archive/
+Disallow: /chrome-extension-catastro/
+Disallow: /node_modules/
+Disallow: /test*.html
+Disallow: /test_*.html
+
+# Bloquear páginas específicas que no deben ser indexadas porque requieren login o parámetros
+Disallow: /frontend-v2/mi-parcela.html
+Disallow: /frontend-v2/informe-tasacion.html
+
+Sitemap: https://www.parcelalista.cl/sitemap.xml

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Informe de Valor TPL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=20260902-portada">
+</head>
+<body>
+
+    <nav class="topbar no-print">
+        <div class="topbar-in">
+            <span class="marca">TU PARCELA LISTA</span>
+            <div class="topbar-acciones">
+                <span class="badge-doc">Informe de valor</span>
+                <button type="button" class="btn-print" onclick="window.print()">Imprimir / PDF</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Calculando el valor de la propiedad…</p>
+    </div>
+
+    <main class="doc" id="main-content" style="display:none;">
+
+        <!-- PORTADA -->
+        <header class="portada">
+            <figure class="hero" id="hero-figura">
+                <img id="hero-img" alt="" fetchpriority="high">
+                <div class="hero-velo"></div>
+                <figcaption class="hero-texto">
+                    <span class="eyebrow">Informe de valor · Tu Parcela Lista</span>
+                    <h1 id="prop-title">Activo inmobiliario</h1>
+                    <p class="ubicacion" id="prop-subtitle">Ubicación en evaluación</p>
+                    <div class="chips" id="portada-chips"></div>
+                </figcaption>
+            </figure>
+
+            <div class="galeria" id="galeria"></div>
+
+            <div class="doc-info">
+                <span>Emitido el <strong id="doc-date">--</strong></span>
+                <span>Referencia <strong id="doc-id">--</strong></span>
+                <span id="doc-fotos"></span>
+            </div>
+        </header>
+
+        <!-- I. RESUMEN EJECUTIVO -->
+        <section class="seccion">
+            <h2 class="sect-title"><span class="num">I</span> Resumen ejecutivo</h2>
+
+            <div class="resumen-grid">
+                <div class="dato-card principal">
+                    <span class="lbl">Valor TPL</span>
+                    <span class="val" id="sum-value">--</span>
+                    <span class="sub" id="sum-value-m2">--</span>
+                </div>
+                <div class="dato-card">
+                    <span class="lbl">Rango de negociación</span>
+                    <span class="val" id="sum-rango">--</span>
+                    <span class="sub" id="sum-rango-note">--</span>
+                </div>
+                <div class="dato-card">
+                    <span class="lbl">Su precio vs. valor TPL</span>
+                    <span class="val" id="sum-brecha">--</span>
+                    <span class="sub" id="sum-brecha-note">--</span>
+                </div>
+                <div class="dato-card">
+                    <span class="lbl">Confianza del cálculo</span>
+                    <span class="val" id="sum-confidence">--</span>
+                    <span class="sub" id="sum-confidence-note">--</span>
+                </div>
+            </div>
+
+            <div class="dos-columnas">
+                <div class="lectura" id="reading-executive"></div>
+                <aside class="panel-lateral">
+                    <h3>En qué se apoya esta confianza</h3>
+                    <ul class="lista-check" id="confianza-razones"></ul>
+                </aside>
+            </div>
+
+            <div class="aviso" id="bloque-advertencias" style="display:none;">
+                <strong>Lo que este informe no puede afirmar</strong>
+                <ul id="lista-advertencias"></ul>
+            </div>
+        </section>
+
+        <!-- II. EVIDENCIA DE MERCADO -->
+        <section class="seccion">
+            <h2 class="sect-title"><span class="num">II</span> Qué pide hoy el mercado</h2>
+            <p class="bajada">Precios reales de avisos publicados en la zona, capturados por el catastro de mercado de TPL.</p>
+
+            <div id="mercado-cuerpo">
+                <div class="resumen-grid" id="mercado-tarjetas"></div>
+                <p class="fuente-dato" id="mercado-fuentes"></p>
+                <div id="comparables-container"></div>
+            </div>
+        </section>
+
+        <!-- III. CONSTRUCCION DEL VALOR -->
+        <section class="seccion">
+            <h2 class="sect-title"><span class="num">III</span> Cómo se construye este valor</h2>
+            <p class="bajada">La posición territorial fija la base; los atributos declarados la ajustan. Cada línea es una regla del motor TPL, no una apreciación.</p>
+
+            <h3 class="sub-title">Posición territorial</h3>
+            <div id="territorio-cuerpo"></div>
+
+            <h3 class="sub-title">Del terreno al valor final</h3>
+            <div class="waterfall" id="waterfall"></div>
+            <p class="pie-tabla" id="nota-cascada"></p>
+        </section>
+
+        <!-- IV. FICHA TECNICA -->
+        <section class="seccion">
+            <h2 class="sect-title"><span class="num">IV</span> Ficha técnica y calidad del activo</h2>
+
+            <div class="tech-grid" id="tech-attributes-container"></div>
+
+            <div class="aviso oportunidad" id="faltantes-bloque" style="display:none;">
+                <strong>Antecedentes que faltan</strong>
+                <p id="faltantes-nota"></p>
+                <ul id="faltantes-lista"></ul>
+            </div>
+
+            <div id="entorno-bloque" style="display:none;">
+<h3 class="sub-title">Entorno inmediato</h3>
+<div class="territorio-grid" id="entorno-grid"></div>
+<p class="fuente-dato" id="entorno-fuente"></p>
+</div>
+<h3 class="sub-title">Índices TPL</h3>
+            <div class="indices" id="indices-bloque"></div>
+        </section>
+
+        <!-- V. ESTRATEGIA -->
+        <section class="seccion">
+            <h2 class="sect-title"><span class="num">V</span> Escenarios de venta</h2>
+            <table class="tabla-escenarios">
+                <thead>
+                    <tr><th>Escenario</th><th>Precio</th><th>Liquidez</th><th>Plazo estimado</th><th>Qué implica</th></tr>
+                </thead>
+                <tbody id="scenario-tbody"></tbody>
+            </table>
+            <p class="pie-tabla" id="nota-escenarios"></p>
+        </section>
+
+        <!-- VI. PLAN DE ACCION -->
+        <section class="seccion destacada">
+            <h2 class="sect-title"><span class="num">VI</span> Qué hacer con esta propiedad</h2>
+            <p class="bajada">Cada punto sale de algo que este informe demostró en las secciones anteriores.</p>
+
+            <div class="servicios" id="servicios-lista"></div>
+
+            <h3 class="sub-title">Plan de marketing según el valor del activo</h3>
+            <div class="escalon" id="marketing-escalon"></div>
+
+            <div class="dato-card principal presupuesto" id="presupuesto"></div>
+
+            <div class="conclusion" id="reading-conclusion"></div>
+        </section>
+
+        <!-- VII. METODOLOGIA -->
+        <section class="seccion metodologia">
+            <h2 class="sect-title"><span class="num">VII</span> Metodología y trazabilidad</h2>
+            <div class="flujo">
+                <span>Atributos declarados</span><i>→</i>
+                <span>Base por superficie</span><i>→</i>
+                <span>Posición territorial</span><i>→</i>
+                <span>Ajustes con topes</span><i>→</i>
+                <span>Contraste con el mercado</span>
+            </div>
+            <ul class="fuentes" id="motor-fuentes"></ul>
+            <p class="fuente-dato">
+                Motor <strong id="motor-version">--</strong> · cálculo generado el <strong id="motor-fecha">--</strong>.
+                Es una estimación metodológica basada en antecedentes declarados y precios publicados; no constituye una tasación
+                comercial regulada ni reemplaza una visita a terreno.
+            </p>
+        </section>
+
+        <!-- Invitación a vender con TPL. Solo se muestra en la vista del
+             propietario (informe abierto con ?token=): el informe interno que
+             abre un asesor no debe ofrecerle crear una cuenta. app.js la
+             revela y rellena con los datos de la propiedad. -->
+        <section id="invitacion-venta" class="invitacion" hidden>
+            <div class="invitacion__cabecera">
+                <span class="invitacion__kicker">Vender con Tu Parcela Lista</span>
+                <h2 id="invitacion-titulo">Ya sabes cuánto vale. El siguiente paso es venderla.</h2>
+                <p id="invitacion-bajada" class="invitacion__bajada"></p>
+            </div>
+
+            <ul class="invitacion__lista">
+                <li><strong>Tu informe siempre a mano</strong><span>Entra cuando quieras y ve cómo cambia el valor.</span></li>
+                <li><strong>Tu propia página de venta</strong><span>Con tus fotos y tu precio, lista para compartir.</span></li>
+                <li><strong>Campañas en Google</strong><span>Elige cuánta prisa tienes y nosotros la publicamos.</span></li>
+            </ul>
+
+            <form id="form-registro" class="invitacion__form" novalidate>
+                <p class="invitacion__aviso" id="registro-aviso" hidden></p>
+
+                <label for="reg-email">Tu correo electrónico</label>
+                <input type="email" id="reg-email" name="email" autocomplete="email" required
+                       placeholder="el correo que registraste con TPL">
+                <small class="invitacion__ayuda">Debe ser el mismo correo que nos diste al publicar esta propiedad.</small>
+
+                <label for="reg-pass">Crea una contraseña</label>
+                <input type="password" id="reg-pass" name="password" autocomplete="new-password" required
+                       minlength="8" placeholder="mínimo 8 caracteres">
+
+                <label for="reg-pass2">Repite la contraseña</label>
+                <input type="password" id="reg-pass2" name="password2" autocomplete="new-password" required
+                       minlength="8" placeholder="escríbela otra vez">
+
+                <button type="submit" id="reg-submit" class="invitacion__btn">Crear mi cuenta y entrar</button>
+                <p class="invitacion__legal">Al crear la cuenta aceptas los términos de Tu Parcela Lista. Puedes cerrarla cuando quieras.</p>
+            </form>
+        </section>
+
+        <footer class="doc-footer">
+            <p>Tu Parcela Lista · Documento de trabajo interno</p>
+        </footer>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/core/tpl-data-service.js?v=20260901-limit"></script>
+    <script src="../../js/core/valuation-engine.js?v=20260901-motor-unico"></script>
+    <script type="module" src="app.js?v=20260902-comparables"></script>
+</body>
+</html>

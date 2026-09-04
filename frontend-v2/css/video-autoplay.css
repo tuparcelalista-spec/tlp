@@ -1,0 +1,14 @@
+.tpl-video-corporate {
+  border: 4px solid var(--tpl-naranja);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 0 12px rgba(120, 180, 0, 0.3);
+  max-width: 800px;
+  margin: 2rem auto;
+}
+
+.video-wrapper {
+  width: 100%;
+  aspect-ratio: 16/9;
+}

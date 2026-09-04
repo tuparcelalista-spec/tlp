@@ -1,0 +1,12 @@
+componente,responsabilidad,estado,accion
+Supabase Cerebro,"Actores, propiedades, proyectos, solicitudes y estados",Productivo,Mantener
+TPL GEOINT,"Territorio, hubs, destinos y distancias",Faltante,Crear v1 mínima
+TPL Land Engine,"Valoración matemática",Productivo,Mantener fórmula inicialmente
+Worker Tasador,"Orquestar y persistir tasaciones",Productivo,Consumir GEOINT
+TPL Market Intelligence,"Valoración y badges locales",Duplicado,Convertir en fallback/editorial
+Index,"Catálogo y filtros",Productivo,Leer tasación canónica
+CRM,"Operación comercial",Productivo,Mantener
+Publicador,"Captura de antecedentes",Productivo,Mantener
+parcela.html,"Presentación pública",Productivo,Leer datos canónicos
+Informe Premium,"Explicación de tasación",Productivo,Mantener
+tpl-brain.js,"Demo local de Studio Mark II",Prototipo,Renombrar o retirar

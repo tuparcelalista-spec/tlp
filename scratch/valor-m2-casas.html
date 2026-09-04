@@ -1,0 +1,646 @@
+<title>Valor por m² de casas TPL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+
+<style>
+  :root {
+    --paper:#F1F3EF; --surface:#FBFCFA; --ink:#141C19; --ink-2:#3E4A45; --ink-3:#6E7B75;
+    --line:#D7DCD5; --line-soft:#E5E9E2;
+    --accent:#0E5B52; --accent-ink:#0E5B52; --accent-bg:#DFEAE6;
+    --flag:#8A5A12; --flag-bg:#F4EAD6; --good:#1C7048;
+    --s1:#2a78d6; --s2:#1baf7a;
+    --shadow:0 1px 2px rgba(20,28,25,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0F1412; --surface:#161D1A; --ink:#E9EEEA; --ink-2:#B0BCB6; --ink-3:#7E8B85;
+      --line:#2A342F; --line-soft:#1E2724;
+      --accent:#63D2BA; --accent-ink:#7FDCC7; --accent-bg:#14322C;
+      --flag:#DCA746; --flag-bg:#2C2314; --good:#52C88C;
+      --s1:#3987e5; --s2:#199e70;
+      --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0F1412; --surface:#161D1A; --ink:#E9EEEA; --ink-2:#B0BCB6; --ink-3:#7E8B85;
+    --line:#2A342F; --line-soft:#1E2724;
+    --accent:#63D2BA; --accent-ink:#7FDCC7; --accent-bg:#14322C;
+    --flag:#DCA746; --flag-bg:#2C2314; --good:#52C88C;
+    --s1:#3987e5; --s2:#199e70;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Source Serif 4", Georgia, serif; font-size:17px; line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 28px 96px; }
+
+  .masthead { padding:72px 0 0; }
+  .eyebrow {
+    font-family:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size:11.5px; font-weight:500; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-3); margin:0 0 18px;
+  }
+  h1 {
+    font-family:"Archivo", Arial, sans-serif; font-weight:800;
+    font-size:clamp(2.3rem,5.4vw,3.7rem); line-height:1.03; letter-spacing:-.028em;
+    text-wrap:balance; margin:0 0 22px; max-width:18ch;
+  }
+  .lede { font-size:1.16rem; color:var(--ink-2); max-width:64ch; margin:0 0 40px; }
+  .lede strong { color:var(--ink); font-weight:600; }
+
+  .measured {
+    border-top:1.5px solid var(--ink); border-bottom:1px solid var(--line);
+    padding:26px 0 28px; display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(128px,1fr)); gap:26px 22px;
+  }
+  .measured__item { display:flex; flex-direction:column; gap:4px; }
+  .measured__n {
+    font-family:"Archivo",sans-serif; font-weight:700; font-size:1.85rem;
+    line-height:1; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+  }
+  .measured__n--flag { color:var(--flag); }
+  .measured__l {
+    font-family:"IBM Plex Mono",monospace; font-size:11px; line-height:1.45;
+    letter-spacing:.04em; color:var(--ink-3); text-transform:uppercase;
+  }
+
+  .area { padding-top:64px; }
+  .area__head {
+    display:flex; align-items:baseline; gap:16px;
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:24px;
+  }
+  .area__num {
+    font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;
+    letter-spacing:.1em; color:var(--accent-ink); padding-top:6px;
+  }
+  .area__title {
+    font-family:"Archivo",sans-serif; font-weight:700;
+    font-size:clamp(1.35rem,2.5vw,1.8rem); letter-spacing:-.018em; margin:0; flex:1;
+  }
+  p { max-width:68ch; }
+  .area p { margin:0 0 16px; }
+  code {
+    font-family:"IBM Plex Mono",monospace; font-size:.85em;
+    background:var(--accent-bg); color:var(--accent-ink); padding:1px 5px; border-radius:3px;
+  }
+
+  /* ---- figura ---- */
+  figure { margin:28px 0 0; }
+  figcaption {
+    font-size:.92rem; color:var(--ink-3); margin-top:14px; max-width:68ch; line-height:1.6;
+  }
+  figcaption b { color:var(--ink-2); font-weight:600; }
+  .viz {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:6px; padding:22px 20px 14px; box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  .viz__title {
+    font-family:"Archivo",sans-serif; font-weight:600; font-size:1rem;
+    margin:0 0 3px; letter-spacing:-.01em;
+  }
+  .viz__sub {
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--ink-3); margin:0 0 18px;
+  }
+  svg { display:block; max-width:100%; height:auto; }
+  .ax { fill:var(--ink-3); font-family:"IBM Plex Mono",monospace; font-size:10px; }
+  .axl { fill:var(--ink-2); font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+  .grid { stroke:var(--line-soft); stroke-width:1; }
+  .rule { stroke:var(--flag); stroke-width:1.5; stroke-dasharray:5 4; }
+  .rulet { fill:var(--flag); font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; }
+  .dot { fill:var(--s1); stroke:var(--surface); stroke-width:2; }
+  .dlab { fill:var(--ink-2); font-family:"IBM Plex Mono",monospace; font-size:9.5px; }
+
+  .leyenda { display:flex; flex-wrap:wrap; gap:18px; margin:0 0 16px; padding:0; list-style:none; }
+  .leyenda li { display:flex; align-items:center; gap:7px; font-size:.85rem; color:var(--ink-2); }
+  .swatch { width:11px; height:11px; border-radius:2px; flex:none; }
+
+  /* ---- tabla ---- */
+  .tablewrap { overflow-x:auto; border:1px solid var(--line); border-radius:4px; background:var(--surface); box-shadow:var(--shadow); margin-top:24px; }
+  table { border-collapse:collapse; width:100%; min-width:600px; }
+  th, td { text-align:left; padding:12px 16px; border-bottom:1px solid var(--line-soft); vertical-align:top; }
+  thead th {
+    font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);
+    background:var(--paper); border-bottom:1px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom:0; }
+  td.num { font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-weight:600; white-space:nowrap; }
+  td.what { font-weight:600; font-size:.97rem; }
+  td.why { color:var(--ink-2); font-size:.92rem; }
+  .pill {
+    display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+    font-weight:600; letter-spacing:.05em; padding:3px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .pill--medido { background:var(--accent-bg); color:var(--accent-ink); }
+  .pill--juicio { background:var(--flag-bg); color:var(--flag); }
+
+  .callout {
+    margin:28px 0 0; padding:20px 22px; border-radius:6px;
+    background:var(--flag-bg); border-left:4px solid var(--flag);
+  }
+  .callout p { margin:0; color:var(--ink-2); }
+  .callout strong { color:var(--ink); }
+
+  .closing {
+    margin-top:68px; border-top:1.5px solid var(--ink); padding-top:28px;
+    display:grid; grid-template-columns:168px 1fr; gap:34px;
+  }
+  .closing p { margin:0 0 14px; }
+  .closing p:last-child { margin-bottom:0; }
+  .closing__label {
+    font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+    letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding-top:5px;
+  }
+
+  a { color:var(--accent-ink); text-underline-offset:2px; }
+  a:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+
+  @media (max-width:720px) {
+    body { font-size:16px; }
+    .wrap { padding:0 20px 72px; }
+    .masthead { padding-top:48px; }
+    .closing { grid-template-columns:1fr; gap:14px; }
+  }
+  @media (prefers-reduced-motion:reduce) { * { animation:none!important; transition:none!important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Tu Parcela Lista · Catastro de mercado · 3 de septiembre de 2026</p>
+    <h1>Qué vale el metro construido</h1>
+    <p class="lede">
+      Revisé los 562 avisos del catastro buscando las tarifas por m² que pediste: la de construcción y la de piscina.
+      <strong>El catastro no puede darla</strong>, y puedo demostrar por qué. Pero de paso valida
+      una de las dos tarifas que el motor ya usa, y el catálogo de prefabricadas —que sí es dato
+      de costo real— entrega el piso de la escala.
+    </p>
+
+    <div class="measured">
+      <div class="measured__item"><span class="measured__n">562</span><span class="measured__l">avisos en catastro</span></div>
+      <div class="measured__item"><span class="measured__n measured__n--flag">14</span><span class="measured__l">tipificados con casa</span></div>
+      <div class="measured__item"><span class="measured__n">35</span><span class="measured__l">con m² construidos</span></div>
+      <div class="measured__item"><span class="measured__n measured__n--flag">18</span><span class="measured__l">útiles tras filtrar</span></div>
+      <div class="measured__item"><span class="measured__n measured__n--flag">8</span><span class="measured__l">declaran materialidad</span></div>
+      <div class="measured__item"><span class="measured__n measured__n--flag">0</span><span class="measured__l">declaran antigüedad</span></div>
+      <div class="measured__item"><span class="measured__n">25</span><span class="measured__l">con piscina, pareables</span></div>
+      <div class="measured__item"><span class="measured__n measured__n--flag">528</span><span class="measured__l">avisos en el backtest</span></div>
+    </div>
+  </header>
+
+  <!-- ================= 1 ================= -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">01</span>
+      <h2 class="area__title">El método y por qué falla</h2>
+    </div>
+
+    <p>
+      Un aviso de parcela con casa trae un precio solo: el del conjunto. Para aislar la construcción
+      hay una sola vía defendible — restarle al precio el valor del terreno, usando la mediana
+      comunal del propio motor para esa comuna y ese tramo de superficie. Lo que sobra se divide
+      por los metros construidos.
+    </p>
+    <p>
+      De los 35 avisos con superficie construida, 4 quedaron con el terreno valiendo más que el
+      precio total, 4 sin referencia comunal y 9 fuera de todo rango plausible. Quedaron
+      <strong>18 casos</strong>. Su mediana es <code>$355.200/m²</code>. El problema es que esa
+      cifra no mide lo que parece medir.
+    </p>
+
+    <figure>
+      <div class="viz">
+        <p class="viz__title">El resultado depende del terreno, no de la casa</p>
+        <p class="viz__sub">18 avisos · cada punto es una parcela con casa · dos coincidentes se separaron levemente</p>
+        <svg viewBox="0 0 720 400" role="img" aria-label="Dispersión: a mayor peso del terreno en el precio, menor el valor por m² que arroja el método. La relación es mecánica, no real.">
+          <!-- grid horizontal -->
+          <line class="grid" x1="74" y1="330" x2="700" y2="330"></line>
+          <line class="grid" x1="74" y1="264" x2="700" y2="264"></line>
+          <line class="grid" x1="74" y1="198" x2="700" y2="198"></line>
+          <line class="grid" x1="74" y1="132" x2="700" y2="132"></line>
+          <line class="grid" x1="74" y1="66"  x2="700" y2="66"></line>
+          <!-- eje Y -->
+          <text class="ax" x="66" y="334" text-anchor="end">0</text>
+          <text class="ax" x="66" y="268" text-anchor="end">200k</text>
+          <text class="ax" x="66" y="202" text-anchor="end">400k</text>
+          <text class="ax" x="66" y="136" text-anchor="end">600k</text>
+          <text class="ax" x="66" y="70"  text-anchor="end">800k</text>
+          <text class="axl" x="74" y="30">$/m² construido que arroja el método</text>
+          <!-- eje X -->
+          <line class="grid" x1="74" y1="330" x2="700" y2="330" stroke="var(--line)"></line>
+          <text class="ax" x="74"  y="352" text-anchor="middle">10%</text>
+          <text class="ax" x="230" y="352" text-anchor="middle">30%</text>
+          <text class="ax" x="387" y="352" text-anchor="middle">50%</text>
+          <text class="ax" x="543" y="352" text-anchor="middle">70%</text>
+          <text class="ax" x="700" y="352" text-anchor="middle">90%</text>
+          <text class="axl" x="387" y="380" text-anchor="middle">Peso del terreno en el precio total</text>
+
+          <!-- referencia: tarifa sólida vigente $350.000 -->
+          <line class="rule" x1="74" y1="214.5" x2="700" y2="214.5"></line>
+          <text class="rulet" x="700" y="209" text-anchor="end">tarifa sólida vigente del motor · $350.000</text>
+
+          <!-- puntos: x = 74 + (peso-10)/80*626 ; y = 330 - m2/800000*264 -->
+          <circle class="dot" cx="97"  cy="42"  r="6"></circle>
+          <circle class="dot" cx="144" cy="60"  r="6"></circle>
+          <circle class="dot" cx="176" cy="214" r="6"></circle>
+          <circle class="dot" cx="199" cy="216" r="6"></circle>
+          <circle class="dot" cx="199" cy="71"  r="6"></circle>
+          <circle class="dot" cx="207" cy="231" r="6"></circle>
+          <circle class="dot" cx="207" cy="135" r="6"></circle>
+          <circle class="dot" cx="223" cy="241" r="6"></circle>
+          <circle class="dot" cx="246" cy="127" r="6"></circle>
+          <circle class="dot" cx="356" cy="179" r="6"></circle>
+          <circle class="dot" cx="364" cy="147" r="6"></circle>
+          <circle class="dot" cx="364" cy="143" r="6"></circle>
+          <circle class="dot" cx="403" cy="213" r="6"></circle>
+          <circle class="dot" cx="417" cy="213" r="6"></circle>
+          <circle class="dot" cx="481" cy="259" r="6"></circle>
+          <circle class="dot" cx="544" cy="303" r="6"></circle>
+          <circle class="dot" cx="590" cy="234" r="6"></circle>
+          <circle class="dot" cx="598" cy="234" r="6"></circle>
+
+          <!-- etiquetas de los extremos -->
+          <text class="dlab" x="107" y="39">Quillón · $872.801</text>
+          <text class="dlab" x="533" y="318" text-anchor="middle">Los Ángeles · $83.333</text>
+        </svg>
+      </div>
+      <figcaption>
+        Cuando el terreno pesa poco en el precio, el método devuelve cifras enormes; cuando pesa
+        mucho, devuelve cifras minúsculas. <b>Esa pendiente es aritmética, no inmobiliaria:</b> el
+        residual absorbe todo lo que no es suelo — piscina, galpón, vista, derechos de agua y el
+        optimismo del vendedor — y lo divide por los metros de la casa.
+      </figcaption>
+    </figure>
+
+    <div class="callout">
+      <p>
+        <strong>Dos inversiones lógicas confirman que el método no mide construcción.</strong>
+        Las casas grandes salen <em>más caras</em> por m² que las chicas ($590.000 sobre 150 m²
+        contra $355.000 bajo 80 m²), cuando en construcción es al revés porque los costos fijos se
+        reparten. Y la madera sale <em>más cara</em> que el hormigón ($743.542 contra $543.211).
+        Si el residual midiera obra, ninguna de las dos cosas ocurriría.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 2 ================= -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">02</span>
+      <h2 class="area__title">Lo que sí quedó en pie</h2>
+    </div>
+
+    <p>
+      El catálogo de prefabricadas de TPL son 14 modelos con precio cotizado real. A diferencia del
+      residual, se comporta como una curva de costo: <strong>a mayor tamaño, menor $/m²</strong>
+      ($136.389 bajo 50 m² → $123.264 entre 51 y 90 → $123.750 sobre 90). Y se parte limpio en dos
+      gamas.
+    </p>
+
+    <figure>
+      <div class="viz">
+        <p class="viz__title">Cinco fuentes sobre el mismo eje</p>
+        <p class="viz__sub">$/m² construido</p>
+        <ul class="leyenda">
+          <li><span class="swatch" style="background:var(--s1)"></span>Dato de costo o de mercado</li>
+          <li><span class="swatch" style="background:var(--s2)"></span>Tarifa vigente en el motor</li>
+        </ul>
+        <svg viewBox="0 0 720 250" role="img" aria-label="Comparación de cinco referencias de valor por metro cuadrado construido. La tarifa sólida del motor coincide con dos fuentes independientes.">
+          <line class="grid" x1="250" y1="20" x2="250" y2="205"></line>
+          <line class="grid" x1="362" y1="20" x2="362" y2="205"></line>
+          <line class="grid" x1="474" y1="20" x2="474" y2="205"></line>
+          <line class="grid" x1="586" y1="20" x2="586" y2="205"></line>
+          <line class="grid" x1="698" y1="20" x2="698" y2="205"></line>
+          <text class="ax" x="250" y="222" text-anchor="middle">100k</text>
+          <text class="ax" x="362" y="222" text-anchor="middle">200k</text>
+          <text class="ax" x="474" y="222" text-anchor="middle">300k</text>
+          <text class="ax" x="586" y="222" text-anchor="middle">400k</text>
+          <text class="ax" x="698" y="222" text-anchor="middle">500k</text>
+
+          <!-- x = 138 + valor/1000*1.12 -->
+          <text class="dlab" x="230" y="42" text-anchor="end" style="font-size:11px">Prefabricada gama básica</text>
+          <line x1="138" y1="38" x2="278" y2="38" stroke="var(--s1)" stroke-width="2"></line>
+          <circle cx="278" cy="38" r="6" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text class="dlab" x="292" y="42" style="font-weight:600">$125.000<tspan class="ax"> · n=11</tspan></text>
+
+          <text class="dlab" x="230" y="80" text-anchor="end" style="font-size:11px">Motor · madera</text>
+          <line x1="138" y1="76" x2="440" y2="76" stroke="var(--s2)" stroke-width="2"></line>
+          <circle cx="440" cy="76" r="6" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text class="dlab" x="454" y="80" style="font-weight:600">$270.000<tspan class="ax"> · tarifa actual</tspan></text>
+
+          <text class="dlab" x="230" y="118" text-anchor="end" style="font-size:11px">Motor · sólida</text>
+          <line x1="138" y1="114" x2="530" y2="114" stroke="var(--s2)" stroke-width="2"></line>
+          <circle cx="530" cy="114" r="6" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text class="dlab" x="544" y="118" style="font-weight:600">$350.000<tspan class="ax"> · tarifa actual</tspan></text>
+
+          <text class="dlab" x="230" y="156" text-anchor="end" style="font-size:11px">Prefabricada gama alta</text>
+          <line x1="138" y1="152" x2="530" y2="152" stroke="var(--s1)" stroke-width="2"></line>
+          <circle cx="530" cy="152" r="6" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text class="dlab" x="544" y="156" style="font-weight:600">$350.000<tspan class="ax"> · n=3</tspan></text>
+
+          <text class="dlab" x="230" y="194" text-anchor="end" style="font-size:11px">Mediana residual catastro</text>
+          <line x1="138" y1="190" x2="536" y2="190" stroke="var(--s1)" stroke-width="2"></line>
+          <circle cx="536" cy="190" r="6" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text class="dlab" x="550" y="194" style="font-weight:600">$355.200<tspan class="ax"> · n=18</tspan></text>
+        </svg>
+      </div>
+      <figcaption>
+        <b>La tarifa sólida de $350.000 que el motor ya usa queda corroborada por dos fuentes
+        independientes:</b> la mediana de la gama alta del catálogo ($350.000 exacto) y la mediana
+        residual del catastro ($355.200). Que dos métodos con datos y sesgos distintos caigan en el
+        mismo punto es la evidencia más fuerte de todo este análisis.
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 3 ================= -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">03</span>
+      <h2 class="area__title">Las cuatro tarifas</h2>
+    </div>
+
+    <p>
+      El formulario del publicador ofrece cuatro materialidades. Tres las puedo anclar en dato; la
+      cuarta no, y prefiero decírtelo a rellenarla.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Materialidad</th><th>$/m²</th><th>Base</th><th>Origen</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="what">Ligera</td>
+            <td class="num">$125.000</td>
+            <td class="why">Mediana de los 11 modelos prefabricados básicos del catálogo TPL, precio cotizado real.</td>
+            <td><span class="pill pill--medido">medido</span></td>
+          </tr>
+          <tr>
+            <td class="what">Estándar</td>
+            <td class="num">$270.000</td>
+            <td class="why">Tarifa de madera que el motor ya usa. Queda entre el kit prefabricado y la obra sólida, que es donde corresponde a la construcción en madera en sitio.</td>
+            <td><span class="pill pill--medido">vigente</span></td>
+          </tr>
+          <tr>
+            <td class="what">Sólida</td>
+            <td class="num">$350.000</td>
+            <td class="why">Corroborada por la gama alta del catálogo y por la mediana residual del catastro, por separado.</td>
+            <td><span class="pill pill--medido">medido ×2</span></td>
+          </tr>
+          <tr>
+            <td class="what">Premium</td>
+            <td class="num">a definir</td>
+            <td class="why">No hay dato que la sostenga. El techo del catálogo es $388.889/m² y los valores altos del catastro son artefactos del método. Si quieres una escala completa, sugiero <strong>$450.000</strong> — pero es criterio comercial tuyo, no una medición.</td>
+            <td><span class="pill pill--juicio">tu decisión</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <p>
+        <strong>La depreciación no se puede derivar de este catastro.</strong> El campo
+        <code>antiguedad</code> no guarda la edad de la casa: guarda cuánto lleva publicado el
+        aviso — «hace 2 meses», «hace 1 día». Ninguno de los 560 registros trae edad de
+        construcción. Las tasas actuales del motor ($10.000/m² anual en madera, $8.000 en sólida,
+        con cinco años de gracia) quedan como están: no tengo con qué contradecirlas ni con qué
+        confirmarlas.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= 4 ================= -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">04</span>
+      <h2 class="area__title">La piscina, por diferencia</h2>
+    </div>
+
+    <p>
+      Ningún aviso del catastro declara los metros de su piscina, así que no hay forma directa.
+      Pero sí se puede por diferencia: comparar parcelas equivalentes con y sin piscina, y
+      descontar lo demás que las separa. De 4.000 a 6.000 m² y con casa mencionada quedan
+      <strong>25 avisos con piscina contra 181 sin</strong>.
+    </p>
+    <p>
+      El primer intento es engañoso. La diferencia bruta de mediana da $26.000.000, pero los dos
+      grupos ni siquiera están en las mismas comunas: las que tienen piscina se concentran en
+      Yumbel, Santa Juana y Arauco, mientras las que no la tienen las dominan Chillán, Villarrica
+      y Pucón. Hay que comparar dentro de cada comuna.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Comuna</th><th>Con piscina</th><th>Sin piscina</th><th>Diferencia</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="what">Quillón</td><td class="why">n=1</td><td class="why">n=5</td><td class="num">$126.000.000</td></tr>
+          <tr><td class="what">Florida</td><td class="why">n=1</td><td class="why">n=13</td><td class="num">$69.100.000</td></tr>
+          <tr><td class="what">Los Ángeles</td><td class="why">n=3</td><td class="why">n=26</td><td class="num">$37.750.000</td></tr>
+          <tr><td class="what">Pucón</td><td class="why">n=2</td><td class="why">n=19</td><td class="num">$37.500.000</td></tr>
+          <tr><td class="what">Yumbel</td><td class="why">n=4</td><td class="why">n=4</td><td class="num">$37.100.000</td></tr>
+          <tr><td class="what">Santa Juana</td><td class="why">n=5</td><td class="why">n=3</td><td class="num">$0</td></tr>
+          <tr><td class="what">Villarrica</td><td class="why">n=1</td><td class="why">n=16</td><td class="num">−$3.000.000</td></tr>
+          <tr><td class="what">Chillán</td><td class="why">n=1</td><td class="why">n=26</td><td class="num">−$15.000.000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:22px">
+      La mediana de las ocho es <strong>$37.300.000</strong>. Y aguanta el control más exigente: si
+      se descartan las comunas con un solo aviso con piscina, las tres que quedan con muestra real
+      —Yumbel con 4, Los Ángeles con 3, Pucón con 2— caen en $37,1M, $37,75M y $37,5M de forma
+      independiente. Esa convergencia es la parte firme del hallazgo.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>Pero esos $37,3 millones no son la piscina.</strong> Las casas con piscina son más
+        grandes: mediana de 130 m² contra 80 m² de las que no la tienen. Esos 50 m² de casa
+        adicional viajan dentro de la diferencia y hay que descontarlos con la tarifa que
+        corresponda.
+      </p>
+    </div>
+
+    <figure>
+      <div class="viz">
+        <p class="viz__title">Qué queda para la piscina, y cuánto es el metro</p>
+        <p class="viz__sub">$37.300.000 menos los 50 m² de casa extra, dividido por el tamaño de piscina</p>
+        <div class="tablewrap" style="margin-top:0;border:0;box-shadow:none">
+          <table>
+            <thead>
+              <tr>
+                <th>Tamaño de piscina</th>
+                <th>Si la casa extra es ligera<br><span style="text-transform:none;letter-spacing:0">resto $31.050.000</span></th>
+                <th>Si es estándar<br><span style="text-transform:none;letter-spacing:0">resto $23.800.000</span></th>
+                <th>Si es sólida<br><span style="text-transform:none;letter-spacing:0">resto $19.800.000</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="what">24 m² · 6×4</td><td class="num">$1.293.750</td><td class="num">$991.667</td><td class="num">$825.000</td></tr>
+              <tr><td class="what">32 m² · 8×4</td><td class="num">$970.313</td><td class="num" style="color:var(--accent-ink)">$743.750</td><td class="num">$618.750</td></tr>
+              <tr><td class="what">40 m² · 10×4</td><td class="num">$776.250</td><td class="num">$595.000</td><td class="num">$495.000</td></tr>
+              <tr><td class="what">50 m² · 10×5</td><td class="num">$621.000</td><td class="num">$476.000</td><td class="num">$396.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <figcaption>
+        El caso central —casa extra de construcción estándar, piscina de 32 m², que es el tamaño
+        residencial típico— da <b>$743.750/m²</b>. Las tarifas que el motor ya usa son $650.000/m²
+        para fibra y $900.000/m² para hormigón: <b>el valor derivado cae justo entre las dos</b>, y
+        toda la matriz plausible las contiene.
+      </figcaption>
+    </figure>
+
+    <p style="margin-top:22px">
+      La conclusión práctica es que <strong>no hay que cambiar nada</strong>. Las dos tarifas de
+      piscina del motor quedan corroboradas por un camino totalmente distinto al que las originó.
+      Lo que sí conviene recordar es de qué depende el resultado: si el propietario declara 32 m²
+      de piscina de hormigón, el motor suma $28.800.000, y el mercado observado paga alrededor de
+      $23.800.000 por esa misma piscina. Está en el orden correcto, un poco por el lado generoso.
+    </p>
+  </section>
+
+  <!-- ================= 5 ================= -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">05</span>
+      <h2 class="area__title">Cuánto se equivoca el tasador</h2>
+    </div>
+
+    <p>
+      Hasta aquí el catastro sirvió para calibrar. Ahora sirve para juzgar: corrí el motor completo
+      sobre <strong>528 avisos reales</strong> y comparé su tasación contra el precio que pide cada
+      vendedor. Es la única prueba que mide el error de verdad.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Configuración</th><th>Error mediano</th><th>Sesgo</th><th>Dentro de ±20%</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="what">Distancia fija de 40,8 km</td><td class="num">34,4%</td><td class="num">−23,0%</td><td class="num">28%</td></tr>
+          <tr><td class="what">Distancia real por comuna</td><td class="num">39,0%</td><td class="num">−11,9%</td><td class="num">25%</td></tr>
+          <tr><td class="what">Con tramos interpolados</td><td class="num">38,4%</td><td class="num">−18,9%</td><td class="num">25%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:22px">
+      El sesgo de −12% a −23% no es necesariamente un defecto: el motor tasa por debajo de lo que
+      se <em>pide</em>, y el precio pedido siempre está sobre el de cierre. Lo que sí preocupa es la
+      dispersión: solo una cuarta parte de los avisos cae dentro de ±20%.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>El multiplicador de distancia se come todo lo demás.</strong> Va de <strong>9× a
+        0-10 km hasta 1× sobre 50 km</strong>, en escalones. Cambiar la distancia supuesta de 8 km a
+        40,8 km mueve el error mediano de 134,7% a 34,4%: cien puntos. Mi recalibración de cerco y
+        portón lo movió 0,14 puntos. No están en la misma escala, ni cerca.
+      </p>
+    </div>
+
+    <figure>
+      <div class="viz">
+        <p class="viz__title">Qué tan sensible es la tasación a la distancia supuesta</p>
+        <p class="viz__sub">528 avisos · error mediano contra el precio pedido</p>
+        <svg viewBox="0 0 720 300" role="img" aria-label="El error mediano cae de 134,7% con 8 km supuestos a 34,4% con 40,8 km, y vuelve a subir a 38% sobre 50 km.">
+          <line class="grid" x1="80" y1="250" x2="700" y2="250"></line>
+          <line class="grid" x1="80" y1="196" x2="700" y2="196"></line>
+          <line class="grid" x1="80" y1="142" x2="700" y2="142"></line>
+          <line class="grid" x1="80" y1="88"  x2="700" y2="88"></line>
+          <line class="grid" x1="80" y1="34"  x2="700" y2="34"></line>
+          <text class="ax" x="72" y="254" text-anchor="end">0%</text>
+          <text class="ax" x="72" y="200" text-anchor="end">40%</text>
+          <text class="ax" x="72" y="146" text-anchor="end">80%</text>
+          <text class="ax" x="72" y="92"  text-anchor="end">120%</text>
+          <text class="ax" x="72" y="38"  text-anchor="end">160%</text>
+          <text class="axl" x="80" y="18">Error mediano de la tasación</text>
+
+          <!-- barras: x por tramo, altura = error/160*216 -->
+          <rect x="110" y="68"  width="58" height="182" rx="4" fill="var(--s1)"></rect>
+          <rect x="220" y="169" width="58" height="81"  rx="4" fill="var(--s1)"></rect>
+          <rect x="330" y="183" width="58" height="67"  rx="4" fill="var(--s1)"></rect>
+          <rect x="440" y="204" width="58" height="46"  rx="4" fill="var(--s2)"></rect>
+          <rect x="550" y="199" width="58" height="51"  rx="4" fill="var(--s1)"></rect>
+
+          <text class="dlab" x="139" y="60"  text-anchor="middle" style="font-weight:600">134,7%</text>
+          <text class="dlab" x="249" y="161" text-anchor="middle" style="font-weight:600">60,0%</text>
+          <text class="dlab" x="359" y="175" text-anchor="middle" style="font-weight:600">49,9%</text>
+          <text class="dlab" x="469" y="196" text-anchor="middle" style="font-weight:600">34,4%</text>
+          <text class="dlab" x="579" y="191" text-anchor="middle" style="font-weight:600">38,0%</text>
+
+          <text class="ax" x="139" y="268" text-anchor="middle">8 km</text>
+          <text class="ax" x="249" y="268" text-anchor="middle">15 km</text>
+          <text class="ax" x="359" y="268" text-anchor="middle">25 km</text>
+          <text class="ax" x="469" y="268" text-anchor="middle">40,8 km</text>
+          <text class="ax" x="579" y="268" text-anchor="middle">+50 km</text>
+          <text class="axl" x="390" y="290" text-anchor="middle">Distancia supuesta al polo urbano</text>
+        </svg>
+      </div>
+      <figcaption>
+        Ninguno de los 562 avisos del catastro trae coordenadas, así que la distancia hay que
+        suponerla. <b>Y la suposición decide el resultado.</b> El caso destacado (40,8 km, la mediana
+        del atlas territorial) no es más correcto que los otros: es simplemente el que menos se
+        equivoca contra este conjunto.
+      </figcaption>
+    </figure>
+
+    <p style="margin-top:24px">
+      Una última prueba, más justa con los ajustes: dentro de una misma comuna, ¿ordena el motor las
+      parcelas como las ordena el mercado? La correlación de rangos promedio es <strong>0,335</strong>
+      —mejor que el azar, lejos de bueno— y varía muchísimo: 0,881 en Laja, 0,047 en Chillán con 64
+      avisos, y <strong>−0,292 en Cabrero</strong>, donde el orden sale invertido.
+    </p>
+
+    <div class="callout">
+      <p>
+        <strong>La conclusión incomoda pero es la útil: el techo de precisión no lo ponen las
+        reglas, lo pone la falta de coordenadas.</strong> Con una sola distancia por comuna, todas
+        las parcelas de esa comuna reciben el mismo tratamiento territorial, y el componente más
+        potente del motor deja de distinguir entre ellas. Ninguna recalibración de atributos puede
+        compensar eso. Geocodificar el catastro es la única inversión que mueve la aguja — y hasta
+        que exista, ningún cambio en las reglas se puede validar de verdad.
+      </p>
+    </div>
+  </section>
+
+  <div class="closing">
+    <span class="closing__label">En una línea</span>
+    <div>
+      <p>
+        Pediste que el catastro entregara las tarifas. No puede: 18 casos útiles de 562, con un
+        método cuyo resultado depende más del peso del terreno que de la casa. Dártelas igual,
+        calculadas sobre esos 18, habría sido darte cifras con apariencia de rigor.
+      </p>
+      <p>
+        Lo que sí salió es más útil de lo que parece: <strong>la tarifa que el motor ya usa para
+        construcción sólida está bien</strong>, confirmada por dos caminos independientes; el
+        catálogo propio fija el piso de la escala; y las dos tarifas de piscina quedan corroboradas
+        por diferencia de mercado.
+      </p>
+      <p>
+        Pero el hallazgo que más vale es el último. Puesto a tasar 528 avisos reales, el motor se
+        equivoca un 38% en la mediana y acierta dentro de ±20% en una cuarta parte de los casos. No
+        es culpa de las reglas: <strong>ninguno de los 562 avisos del catastro tiene
+        coordenadas</strong>, y el multiplicador territorial —que va de 9× a 1×— es el término que
+        domina todo lo demás. Afinar tarifas de materialidad mueve décimas; geocodificar el catastro
+        movería decenas.
+      </p>
+    </div>
+  </div>
+
+</div>

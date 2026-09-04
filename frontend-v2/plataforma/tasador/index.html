@@ -1,0 +1,70 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Informes de tasación | TPL</title>
+<meta name="description" content="Consulta, compara y administra tus informes de tasación TPL.">
+<link rel="stylesheet" href="tasador.css?v=20260728-1">
+
+</head>
+<body>
+<header class="tpl-header">
+  <a class="tpl-brand" href="../../index.html" aria-label="Tu Parcela Lista, inicio">
+    <img src="../../assets/logo-tu-parcela-lista.webp" width="130" height="56" alt="Tu Parcela Lista">
+  </a>
+  <nav class="tpl-nav" aria-label="Navegación principal">
+    <a href="../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../como-comprar.html">Cómo comprar</a>
+    <a href="../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../tpl-business-v2/index.html">TPL Business</a>
+    <a class="tpl-publish" href="../publicar-v2/index.html">Publicar</a>
+  </nav>
+  <div class="tpl-mobile-actions">
+    <a href="../../index.html#resultados">Parcelas</a>
+    <a class="tpl-publish" href="../publicar-v2/index.html">Publicar</a>
+    <button id="menu-toggle" class="tpl-menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Abrir menú">☰</button>
+  </div>
+  <nav id="mobile-menu" class="tpl-mobile-menu" hidden aria-label="Menú móvil">
+    <a href="../../index.html#buscador">Buscar parcelas</a>
+    <a href="../../como-comprar.html">Cómo comprar</a>
+    <a href="../../red-partner-v2/index.html">Red Partner</a>
+    <a href="../tpl-business-v2/index.html">TPL Business</a>
+  </nav>
+</header>
+<main>
+  <section class="hero">
+    <div><span>Informes TPL</span><h1>Tus tasaciones, claras y comparables</h1><p>Revisa el valor recomendado, la estrategia de venta y los antecedentes usados en cada informe.</p></div>
+    <button id="newValuation" type="button">Crear nueva tasación</button>
+  </section>
+
+  <section class="summary-grid">
+    <article><small>Informes guardados</small><strong id="countReports">0</strong></article>
+    <article><small>Valor total estimado</small><strong id="totalValue">$0</strong></article>
+    <article><small>Última tasación</small><strong id="lastDate">—</strong></article>
+  </section>
+
+  <section class="toolbar">
+    <div class="search"><span>🔍</span><input id="searchInput" placeholder="Buscar por comuna, tipo o título"></div>
+    <select id="statusFilter"><option value="">Todos los estados</option><option value="borrador">Borrador</option><option value="publicada">Publicada</option></select>
+  </section>
+
+  <section id="emptyState" class="empty" hidden>
+    <span class="tpl-icon tpl-icon-chart"></span><h2>Aún no tienes informes</h2><p>Realiza una tasación desde el publicador y quedará guardada aquí.</p><a href="../publicar-v2/index.html">Crear primera tasación</a>
+  </section>
+  <section id="reportsGrid" class="reports-grid"></section>
+</main>
+
+<dialog id="reportDialog">
+  <div class="dialog-head"><strong>Informe TPL</strong><button id="closeDialog" type="button">×</button></div>
+  <div id="dialogContent"></div>
+  <div class="dialog-actions"><button id="printBtn" type="button">Imprimir / PDF</button><button id="deleteBtn" type="button">Eliminar</button></div>
+</dialog>
+<script src="../../js/core/tpl-data-service.js?v=20260901-limit"></script>
+<script src="tasador.js?v=20260731-supabase"></script>
+
+
+</body>
+</html>
+
+

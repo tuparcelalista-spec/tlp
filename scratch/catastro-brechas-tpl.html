@@ -1,0 +1,822 @@
+<title>Catastro de brechas TPL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+
+<style>
+  /* ---- Paleta clara: neutro frío con sesgo verde, acento petróleo ---- */
+  :root {
+    --paper:      #F1F3EF;
+    --surface:    #FBFCFA;
+    --ink:        #141C19;
+    --ink-2:      #3E4A45;
+    --ink-3:      #6E7B75;
+    --line:       #D7DCD5;
+    --line-soft:  #E5E9E2;
+    --accent:     #0E5B52;
+    --accent-ink: #0E5B52;
+    --accent-bg:  #DFEAE6;
+    --flag:       #8A5A12;
+    --flag-bg:    #F4EAD6;
+    --good:       #1C7048;
+    --shadow:     0 1px 2px rgba(20,28,25,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #0F1412;
+      --surface:    #161D1A;
+      --ink:        #E9EEEA;
+      --ink-2:      #B0BCB6;
+      --ink-3:      #7E8B85;
+      --line:       #2A342F;
+      --line-soft:  #1E2724;
+      --accent:     #63D2BA;
+      --accent-ink: #7FDCC7;
+      --accent-bg:  #14322C;
+      --flag:       #DCA746;
+      --flag-bg:    #2C2314;
+      --good:       #52C88C;
+      --shadow:     0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:      #0F1412;
+    --surface:    #161D1A;
+    --ink:        #E9EEEA;
+    --ink-2:      #B0BCB6;
+    --ink-3:      #7E8B85;
+    --line:       #2A342F;
+    --line-soft:  #1E2724;
+    --accent:     #63D2BA;
+    --accent-ink: #7FDCC7;
+    --accent-bg:  #14322C;
+    --flag:       #DCA746;
+    --flag-bg:    #2C2314;
+    --good:       #52C88C;
+    --shadow:     0 1px 2px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px 96px; }
+
+  /* ---------- Encabezado ---------- */
+  .masthead { padding: 72px 0 0; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.4rem, 5.6vw, 3.9rem);
+    line-height: 1.02;
+    letter-spacing: -.028em;
+    text-wrap: balance;
+    margin: 0 0 22px;
+    max-width: 17ch;
+  }
+  .lede {
+    font-size: 1.16rem;
+    color: var(--ink-2);
+    max-width: 62ch;
+    margin: 0 0 40px;
+  }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Franja de medición ---------- */
+  .measured {
+    border-top: 1.5px solid var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 26px 0 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(126px, 1fr));
+    gap: 26px 22px;
+  }
+  .measured__item { display: flex; flex-direction: column; gap: 4px; }
+  .measured__n {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: 1.85rem;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .measured__n--flag { color: var(--flag); }
+  .measured__l {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    line-height: 1.45;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+  }
+  .measured__note {
+    grid-column: 1 / -1;
+    font-size: .92rem;
+    color: var(--ink-3);
+    margin: 4px 0 0;
+    font-style: italic;
+  }
+
+  /* ---------- Secciones ---------- */
+  .area { padding-top: 68px; }
+  .area__head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 8px;
+  }
+  .area__num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--accent-ink);
+    padding-top: 6px;
+  }
+  .area__title {
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.4rem, 2.6vw, 1.85rem);
+    letter-spacing: -.018em;
+    margin: 0;
+    flex: 1;
+  }
+  .area__where {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-3);
+  }
+
+  /* ---------- Hallazgo: la medición es el margen ---------- */
+  .finding {
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 34px;
+    padding: 30px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .finding:last-child { border-bottom: 0; }
+
+  .measure { padding-top: 3px; }
+  .measure__fig {
+    font-family: "Archivo", sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: .92;
+    letter-spacing: -.035em;
+    font-variant-numeric: tabular-nums;
+    color: var(--flag);
+    display: block;
+  }
+  .measure__fig--ok { color: var(--good); }
+  .measure__fig--sm { font-size: 1.5rem; letter-spacing: -.02em; line-height: 1.1; }
+  .measure__cap {
+    display: block;
+    margin-top: 8px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .body h3 {
+    font-family: "Archivo", sans-serif;
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: -.01em;
+    line-height: 1.3;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .body p { margin: 0 0 12px; max-width: 66ch; }
+  .body p:last-child { margin-bottom: 0; }
+  .body code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .85em;
+    background: var(--accent-bg);
+    color: var(--accent-ink);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .ref {
+    font-size: .96rem;
+    color: var(--ink-2);
+    border-left: 2px solid var(--accent);
+    padding-left: 14px;
+  }
+  .ref__who {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .move {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .move::before {
+    content: "→";
+    font-family: "IBM Plex Mono", monospace;
+    color: var(--accent-ink);
+    margin-right: 8px;
+    font-weight: 400;
+  }
+
+  /* ---------- Tabla de arranque ---------- */
+  .start { padding-top: 76px; }
+  .start__intro { max-width: 62ch; color: var(--ink-2); margin: 0 0 26px; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; }
+  th, td { text-align: left; padding: 13px 18px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.order {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    color: var(--accent-ink);
+    width: 44px;
+    font-variant-numeric: tabular-nums;
+  }
+  td.what { font-weight: 600; font-size: .98rem; }
+  td.why { color: var(--ink-2); font-size: .95rem; }
+  .pill {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill--horas { background: var(--accent-bg); color: var(--accent-ink); }
+  .pill--dias  { background: var(--flag-bg); color: var(--flag); }
+
+  /* ---------- Cierre ---------- */
+  .closing {
+    margin-top: 72px;
+    border-top: 1.5px solid var(--ink);
+    padding-top: 30px;
+    display: grid;
+    grid-template-columns: 168px 1fr;
+    gap: 34px;
+  }
+  .closing p { margin: 0 0 12px; max-width: 66ch; }
+  .closing p:last-child { margin-bottom: 0; }
+  .closing__label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: 5px;
+  }
+
+  a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  @media (max-width: 720px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 20px 72px; }
+    .masthead { padding-top: 48px; }
+    .finding, .closing { grid-template-columns: 1fr; gap: 16px; }
+    .measure { display: flex; align-items: baseline; gap: 12px; }
+    .measure__fig { font-size: 1.9rem; }
+    .measure__cap { margin-top: 0; }
+    .area__head { flex-wrap: wrap; gap: 6px 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Tu Parcela Lista · Revisión del 2 de septiembre de 2026</p>
+    <h1>Catastro de brechas</h1>
+    <p class="lede">
+      Revisando el CRM, la ficha pública, el publicador y el informe premium apareció un patrón:
+      <strong>TPL ya calcula y guarda casi todo lo que le falta mostrar</strong>. La tasación, los
+      ajustes que la componen, cuántos avisos la respaldan, qué antecedentes faltan — todo existe en
+      la base y muere antes de llegar a la pantalla. Lo que sigue son las brechas que medí, y cómo
+      las resolvió el portal que ya se topó con cada una.
+    </p>
+
+    <div class="measured">
+      <div class="measured__item">
+        <span class="measured__n">32</span>
+        <span class="measured__l">fichas publicadas</span>
+      </div>
+      <div class="measured__item">
+        <span class="measured__n">562</span>
+        <span class="measured__l">avisos de catastro</span>
+      </div>
+      <div class="measured__item">
+        <span class="measured__n measured__n--flag">0</span>
+        <span class="measured__l">filtros de precio</span>
+      </div>
+      <div class="measured__item">
+        <span class="measured__n measured__n--flag">0</span>
+        <span class="measured__l">fichas con video</span>
+      </div>
+      <div class="measured__item">
+        <span class="measured__n measured__n--flag">1</span>
+        <span class="measured__l">vez se ve la superficie</span>
+      </div>
+      <div class="measured__item">
+        <span class="measured__n measured__n--flag">33</span>
+        <span class="measured__l">recálculos en cola</span>
+      </div>
+      <p class="measured__note">
+        Cifras consultadas contra la base de producción y contra las páginas corriendo, no estimadas.
+      </p>
+    </div>
+  </header>
+
+  <!-- ============ 1 ============ -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">01</span>
+      <h2 class="area__title">Buscar</h2>
+      <span class="area__where">index.html</span>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">0</span>
+        <span class="measure__cap">filtros de precio<br>o superficie</span>
+      </div>
+      <div class="body">
+        <h3>Las siete «prioridades» ordenan, no filtran</h3>
+        <p>
+          El buscador ofrece dos métodos (cerca de mí, por comuna) y siete prioridades. Ninguna
+          descarta resultados: reordenan la misma lista. Quien tiene 20 millones y quiere 5.000 m²
+          no puede decirlo, y la búsqueda tampoco queda en la dirección, así que no se puede
+          compartir ni volver a ella.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Idealista · Portal Inmobiliario</span>
+          Cada filtro trae su contador en vivo y se convierte en un chip que se quita con un clic.
+          El estado completo vive en la URL: por eso una búsqueda se manda por WhatsApp y Google la
+          indexa como página propia.
+        </p>
+        <p class="move">
+          Rango de precio y superficie, comuna múltiple, chips activos y todo el estado en la URL.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig measure__fig--ok">32</span>
+        <span class="measure__cap">fichas con<br>coordenadas</span>
+      </div>
+      <div class="body">
+        <h3>El mapa muestra, pero no busca</h3>
+        <p>
+          Leaflet ya está montado y las 32 fichas tienen latitud y longitud. Hoy el mapa sirve para
+          mirar; la búsqueda ocurre en otra parte de la página.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Redfin · Zillow</span>
+          «Dibuja tu zona»: el usuario traza un polígono sobre el mapa y el resultado es la lista.
+          Para comprar campo importa más el <em>dónde</em> que el precio, y un polígono dice cosas
+          que ningún selector de comuna dice — «entre el lago y la ruta», «todo el valle».
+        </p>
+        <p class="move">
+          Dibujo de polígono sobre el mapa que ya existe, filtrando el mismo listado.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">0</span>
+        <span class="measure__cap">favoritos, comparar<br>o alertas</span>
+      </div>
+      <div class="body">
+        <h3>Nadie puede volver a lo que le gustó</h3>
+        <p>
+          No hay forma de guardar una parcela ni de pedir aviso cuando aparezca algo. Comprar campo
+          se decide en meses, no en una sesión: sin un lugar donde volver, cada visita empieza de
+          cero.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow · Rightmove · Idealista</span>
+          «Guardar» sin registrarse, y «guardar esta búsqueda» con aviso por correo cuando entra
+          algo nuevo. Rightmove construyó su negocio sobre esa alerta.
+        </p>
+        <p class="move">
+          Favoritos en el navegador y «avísame cuando publiquen en Pucón», que escribe en el CRM.
+          Resend y la función <code>procesar-comunicaciones</code> ya están instalados. Con 32
+          fichas, la alerta vale más que el catálogo.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">02</span>
+      <h2 class="area__title">La ficha</h2>
+      <span class="area__where">parcela.html</span>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">1</span>
+        <span class="measure__cap">aparición de<br>«5.000 m²»</span>
+      </div>
+      <div class="body">
+        <h3>El dato más buscado está enterrado en el párrafo</h3>
+        <p>
+          En toda la ficha de Caburgua la superficie aparece una sola vez, dentro de la descripción.
+          Los elementos <code>v3-superficie</code> y <code>v3-topografia</code> existen en el
+          JavaScript pero no en el HTML, así que nunca se pintan. Mientras tanto los mismos atributos
+          se repiten en tres bloques distintos antes de que bajes, y el precio tres veces.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow · Airbnb</span>
+          Una tabla de hechos escaneable bajo el precio — superficie, año, dormitorios — y la
+          descripción larga cortada con «Mostrar más». Los hechos se miran; la prosa se lee solo si
+          los hechos convencieron.
+        </p>
+        <p class="move">
+          Bloque de hechos bajo el precio, descripción colapsada, y dos de los tres bloques de chips
+          fuera.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig measure__fig--sm">$19.700</span>
+        <span class="measure__cap">por m², calculado<br>y nunca mostrado</span>
+      </div>
+      <div class="body">
+        <h3>El precio por metro no sale en ninguna pantalla</h3>
+        <p>
+          Cada ficha guarda <code>valor_tpl_m2</code> y <code>referencia_comunal_m2</code>. Ninguno
+          de los dos llega al público. Es la única cifra que permite comparar dos parcelas de
+          tamaños distintos.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Idealista</span>
+          El €/m² va pegado al precio, siempre, en el listado y en la ficha. Es lo que convierte una
+          lista de precios en un mercado legible.
+        </p>
+        <p class="move">
+          $/m² publicado junto al precio, y al lado el $/m² de la comuna.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">3.400</span>
+        <span class="measure__cap">píxeles hasta<br>el primer botón</span>
+      </div>
+      <div class="body">
+        <h3>En móvil la tarjeta de precio quedó sin acción</h3>
+        <p>
+          La columna lateral sube al tope en pantallas chicas, así que lo primero que se ve es el
+          precio y la evaluación de mercado — sin ningún botón. Las acciones quedan al fondo.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Todos los portales, sin excepción</span>
+          Barra fija abajo con el precio a la izquierda y la acción a la derecha, visible durante
+          todo el scroll.
+        </p>
+        <p class="move">
+          Barra inferior fija en móvil con el precio y «Agendar visita».
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">03</span>
+      <h2 class="area__title">La tasación</h2>
+      <span class="area__where">el activo que ningún portal chileno tiene</span>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">9</span>
+        <span class="measure__cap">ajustes calculados<br>y descartados</span>
+      </div>
+      <div class="body">
+        <h3>El número aparece sin su origen</h3>
+        <p>
+          El motor devuelve cada ajuste etiquetado: <em>rol propio +15%, empalme +20%, río dentro
+          +30%, zona turística nacional +300%</em>. Al guardar solo sobrevive el resumen
+          — técnico, comunal y sus pesos — y la lista de ajustes se pierde. La ficha pública muestra
+          tres cifras sin explicación, y el desglose completo únicamente lo ve quien abre el informe
+          premium, porque ahí se recalcula en vivo.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow · Redfin</span>
+          El Zestimate es el activo más reconocible de Zillow, y lo es porque cada casa lo lleva
+          visible con un «cómo lo calculamos» que se despliega. Redfin acompaña el suyo con el
+          número de comparables usados.
+        </p>
+        <p class="move">
+          Guardar la lista de ajustes junto al resumen que ya se escribe, y desplegarla en la ficha
+          bajo «cómo llegamos a este número».
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig measure__fig--ok">38</span>
+        <span class="measure__cap">comparables tras la<br>ficha de Caburgua</span>
+      </div>
+      <div class="body">
+        <h3>La evidencia sí está guardada y no se declara</h3>
+        <p>
+          Cada ficha guarda cuántos avisos la respaldan, de qué segmento de superficie y si la
+          muestra es de la comuna o prestada de comunas vecinas. Caburgua se apoya en 38 comparables
+          propios del tramo 3.000–12.000 m². Nada de eso sale a pantalla; en su lugar hay una
+          etiqueta «Reporte IA Activo» que no promete nada verificable.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Idealista · Rightmove</span>
+          Sello de anuncio verificado, «actualizado hace 3 días», precio histórico. La confianza se
+          gana enseñando la fecha y la fuente, no adjetivos.
+        </p>
+        <p class="move">
+          «Basado en 38 avisos comparables de la comuna · actualizado hace N días», leído del
+          guardado. Y fuera «Reporte IA Activo».
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig measure__fig--sm">tpl_<wbr>tasaciones</span>
+        <span class="measure__cap">histórico guardado,<br>nunca graficado</span>
+      </div>
+      <div class="body">
+        <h3>Cada retasación se guarda y desaparece</h3>
+        <p>
+          La tabla de tasaciones acumula el histórico de cada propiedad. Hoy solo se lee la última.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow · Rightmove</span>
+          El historial de precio y de estimación es de lo más visitado de una ficha: dice si la
+          propiedad lleva tiempo colgada, si bajó, si la zona subió.
+        </p>
+        <p class="move">
+          Línea de tiempo de la tasación en el informe premium y en el portal del propietario.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">04</span>
+      <h2 class="area__title">Publicar</h2>
+      <span class="area__where">publicar-v2</span>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">14</span>
+        <span class="measure__cap">antecedentes que<br>el informe lista</span>
+      </div>
+      <div class="body">
+        <h3>El publicador no dice qué falta ni cuánto vale</h3>
+        <p>
+          El informe premium ya arma la lista de antecedentes sin declarar y explica que cada uno es
+          un ajuste que el modelo no pudo aplicar. Esa lista se le muestra al propietario
+          <em>después</em>, cuando ya publicó. En el formulario, donde serviría, no aparece.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Idealista · Zillow FSBO</span>
+          Barra de completitud del anuncio: «tu aviso está al 60%, agrega fotos» — con el argumento
+          de cuántas visitas gana quien completa.
+        </p>
+        <p class="move">
+          Barra de completitud atada al tasador que acaba de conectarse: «declara la topografía →
+          +8%». Ningún portal chileno tiene ese bucle, y es el que hace que el vendedor mejore su
+          propio aviso.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">0</span>
+        <span class="measure__cap">fichas con video<br>de 32</span>
+      </div>
+      <div class="body">
+        <h3>El campo de video existe en los dos formularios y nadie lo llenó</h3>
+        <p>
+          El publicador y el editor del CRM piden <code>videoUrl</code>, y la ficha tiene su sección
+          de video lista y oculta. Ninguna de las 32 propiedades lo trae. La mediana es de 6 fotos.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Airbnb · Idealista</span>
+          El recorrido en video es lo que más sube la conversión en propiedades donde el entorno es
+          el producto — y en una parcela el entorno <em>es</em> el producto.
+        </p>
+        <p class="move">
+          Un video por ficha como requisito de publicación, aunque sea grabado con teléfono.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="area">
+    <div class="area__head">
+      <span class="area__num">05</span>
+      <h2 class="area__title">Lo que no se ve</h2>
+      <span class="area__where">datos y operación</span>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig">33</span>
+        <span class="measure__cap">recálculos<br>pendientes</span>
+      </div>
+      <div class="body">
+        <h3>La cola crece y nadie la vacía</h3>
+        <p>
+          Cada edición de una propiedad encola un recálculo por disparador de base de datos. Hay 33
+          pendientes y ninguno procesado: la función <code>procesar-recalculo-tasador</code> no está
+          agendada. Aparte, editar comuna o coordenadas no refresca el contexto territorial, así que
+          el informe de un asesor puede seguir usando distancias viejas.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow</span>
+          El Zestimate se recalcula solo. Su valor no está en la fórmula, está en que nadie tiene que
+          acordarse de correrla.
+        </p>
+        <p class="move">
+          Agendar el procesamiento de la cola y el refresco territorial. Sin esto, todo lo anterior
+          muestra cifras que envejecen.
+        </p>
+      </div>
+    </div>
+
+    <div class="finding">
+      <div class="measure">
+        <span class="measure__fig measure__fig--ok">397</span>
+        <span class="measure__cap">eventos de visita<br>registrados</span>
+      </div>
+      <div class="body">
+        <h3>Hay analítica real y no se usa en ninguna dirección</h3>
+        <p>
+          Las visitas a las fichas se están registrando. Ese dato no vuelve ni al visitante ni al
+          propietario.
+        </p>
+        <p class="ref">
+          <span class="ref__who">Zillow · Booking</span>
+          «Esta propiedad tuvo 42 visitas esta semana». Sirve al comprador como señal y al vendedor
+          como argumento para bajar el precio o mejorar las fotos.
+        </p>
+        <p class="move">
+          Contador de visitas reales en la ficha y en el portal del propietario. Con dato medido,
+          nunca inflado.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ arranque ============ -->
+  <section class="start">
+    <div class="area__head">
+      <span class="area__num">→</span>
+      <h2 class="area__title">Por dónde partir</h2>
+    </div>
+    <p class="start__intro">
+      Ordenado por lo que entrega valor más rápido con menos riesgo. Los cuatro primeros son trabajo
+      de pantalla sobre datos que el sistema ya produce: ninguno toca la fórmula del motor.
+    </p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Movimiento</th>
+            <th>Por qué primero</th>
+            <th>Tamaño</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="order">1</td>
+            <td class="what">Hechos de la ficha: superficie y $/m²</td>
+            <td class="why">El dato más buscado hoy no tiene campo propio. Los valores ya están calculados.</td>
+            <td><span class="pill pill--horas">horas</span></td>
+          </tr>
+          <tr>
+            <td class="order">2</td>
+            <td class="what">Barra fija en móvil</td>
+            <td class="why">Ahora mismo la primera pantalla en teléfono no tiene ninguna acción.</td>
+            <td><span class="pill pill--horas">horas</span></td>
+          </tr>
+          <tr>
+            <td class="order">3</td>
+            <td class="what">«Cómo llegamos a este número»</td>
+            <td class="why">Una línea más al guardar la tasación y el diferencial de TPL queda visible en cada ficha.</td>
+            <td><span class="pill pill--horas">horas</span></td>
+          </tr>
+          <tr>
+            <td class="order">4</td>
+            <td class="what">Comparables y fecha de actualización</td>
+            <td class="why">Reemplaza «Reporte IA Activo» por dos hechos verificables.</td>
+            <td><span class="pill pill--horas">horas</span></td>
+          </tr>
+          <tr>
+            <td class="order">5</td>
+            <td class="what">Agendar la cola y el refresco territorial</td>
+            <td class="why">Sin esto, lo que se muestre arriba envejece en silencio.</td>
+            <td><span class="pill pill--dias">días</span></td>
+          </tr>
+          <tr>
+            <td class="order">6</td>
+            <td class="what">Filtros reales y estado en la URL</td>
+            <td class="why">Habilita compartir búsquedas y que Google indexe páginas de comuna.</td>
+            <td><span class="pill pill--dias">días</span></td>
+          </tr>
+          <tr>
+            <td class="order">7</td>
+            <td class="what">Favoritos y alerta por comuna</td>
+            <td class="why">Convierte la visita única en un contacto que vuelve. Correo ya instalado.</td>
+            <td><span class="pill pill--dias">días</span></td>
+          </tr>
+          <tr>
+            <td class="order">8</td>
+            <td class="what">Completitud en el publicador</td>
+            <td class="why">Cierra el bucle con el tasador de casa recién conectado.</td>
+            <td><span class="pill pill--dias">días</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="closing">
+    <span class="closing__label">En una línea</span>
+    <div>
+      <p>
+        TPL no tiene un problema de catálogo ni de motor. Tiene un problema de <strong>lo calculado
+        que no llega a la pantalla</strong>: 38 comparables por ficha, el $/m², el segmento de
+        mercado, el histórico de tasaciones y 397 visitas registradas están guardados y no se
+        muestran; los nueve ajustes que explican el valor ni siquiera alcanzan a guardarse.
+      </p>
+      <p>
+        Zillow no ganó por tener mejores casas. Ganó por poner un número propio en cada ficha y
+        explicar de dónde salía. TPL ya calcula ese número mejor que cualquier portal chileno, y hoy
+        lo esconde detrás de un informe que casi nadie abre.
+      </p>
+    </div>
+  </div>
+
+</div>
