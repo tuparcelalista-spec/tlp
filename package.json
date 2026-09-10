@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
     "dotenv": "^17.4.2",
