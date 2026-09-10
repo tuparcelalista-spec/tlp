@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "http-server", ".", "-p", "5599", "-c-1", "--silent"],
       "port": 5599
+    },
+    {
+      "name": "apps-publico-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@tpl/publico", "dev"],
+      "port": 3000
     }
   ]
 }

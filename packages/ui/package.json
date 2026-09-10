@@ -2,9 +2,10 @@
   "name": "@tpl/ui",
   "version": "0.0.0",
   "private": true,
-  "description": "Paquete de diseño compartido (Fase 2 en adelante). En Fase 1 solo contiene un placeholder que prueba que el workspace enlaza correctamente.",
+  "description": "Design system compartido de TPL (Fase 2, TPL-MASTER-MIGRATION-PLAN.md §Fase 2). Ver README.md para tokens, componentes y arquitectura.",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "sideEffects": false,
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
