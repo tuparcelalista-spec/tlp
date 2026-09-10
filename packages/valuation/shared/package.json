@@ -1,0 +1,14 @@
+{
+  "name": "@tpl/valuation-shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Utilidades/infraestructura común entre @tpl/valuation-land y @tpl/valuation-house (traducción de vocabulario, formato de salida). No contiene fórmulas de ninguno de los dos motores.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

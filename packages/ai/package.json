@@ -1,0 +1,14 @@
+{
+  "name": "@tpl/ai",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AI Gateway (ver Plan Maestro §9): fachada única futura para Gemini/Veo, cuotas, costo, historial y aprobación humana. Esqueleto vacío en Fase 1 — no se conecta a ningún proveedor de IA ni reemplaza ninguna Edge Function gemini-* existente.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

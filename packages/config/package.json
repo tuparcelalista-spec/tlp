@@ -1,0 +1,9 @@
+{
+  "name": "@tpl/config",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Configuración compartida del monorepo (TSConfig base). Infraestructura de Fase 1 — no contiene lógica de producto.",
+  "files": [
+    "tsconfig.base.json"
+  ]
+}

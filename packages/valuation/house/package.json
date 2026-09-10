@@ -1,0 +1,14 @@
+{
+  "name": "@tpl/valuation-house",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fuente única del motor de tasación de casas (ver Plan Maestro §3, §6 punto 6). Esqueleto vacío en Fase 1 — la lógica de tpl-house-engine.js NO se porta todavía. No se mezcla con el motor de terrenos.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

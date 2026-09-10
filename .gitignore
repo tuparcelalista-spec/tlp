@@ -7,6 +7,13 @@ yarn-error.log*
 pnpm-lock.yaml
 
 # =========================
+# Monorepo Next.js (Fase 1 — TPL-MASTER-MIGRATION-PLAN.md)
+# =========================
+.next/
+.turbo/
+*.tsbuildinfo
+
+# =========================
 # Variables de entorno
 # =========================
 .env

@@ -1,0 +1,1 @@
+export { InfraestructuraPlaceholder } from "./InfraestructuraPlaceholder";
