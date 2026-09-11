@@ -75,8 +75,7 @@ export default async function Home() {
             <Button href="/propiedades" variant="navy">
               Ver propiedades
             </Button>
-            {/* Placeholders intencionales — Business/Publisher no forman parte de esta misión (Fase 3, solo catálogo público). */}
-            <Button href="#publicar" variant="secondary">
+            <Button href="/publicar" variant="secondary">
               Publicar propiedad
             </Button>
             <Button href="/cotizador" variant="ghost">

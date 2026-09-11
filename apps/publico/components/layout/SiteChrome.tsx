@@ -21,7 +21,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       <Header
         logoSrc="/brand/tpl-wordmark.svg"
         navLinks={primaryNavLinks}
-        publishHref="#publicar"
+        publishHref="/publicar"
         mobileQuickLink={{ href: "/propiedades", label: "Parcelas" }}
         currentPath={pathname}
       />

@@ -11,16 +11,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tpl/core": "workspace:*",
+    "@tpl/ui": "workspace:*",
+    "leaflet": "^1.9.4",
     "next": "^15.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@tpl/ui": "workspace:*",
-    "@tpl/core": "workspace:*"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.3",
+    "@types/leaflet": "^1.9.22",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.6.3"
   }
 }
