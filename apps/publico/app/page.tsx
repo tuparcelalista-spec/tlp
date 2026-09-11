@@ -1,51 +1,90 @@
-import { Header, Footer, InfraestructuraPlaceholder } from "@tpl/ui";
+import { Container, Section, Grid, Button, Stack } from "@tpl/ui";
+import { SearchWidgetServer } from "../components/search";
+import { getFeaturedProperties, getOpportunityProperties, getHomeCatalogSummary } from "../lib/search/actions";
+import { SearchResultCard } from "../components/search/SearchResultCard";
+import { CommuneRibbon } from "../components/home/CommuneRibbon";
+import { TrustBar } from "../components/home/TrustBar";
 
-const navLinks = [
-  { href: "#buscador", label: "Buscar parcelas" },
-  { href: "#como-comprar", label: "Cómo comprar" },
-  { href: "#cotizador", label: "Cotizador de Casa" },
-  { href: "#red-partner", label: "Red Partner" },
-  { href: "#tpl-business", label: "TPL Business" },
-];
+/**
+ * Home pública — Fase 3.6. Reutiliza el mismo `SearchWidgetServer`/
+ * `SearchWidget` de `/propiedades` (Bloque 2.4) — no se construyó un
+ * segundo buscador. `featured`/`opportunity` se resuelven en
+ * `getFeaturedProperties()`/`getOpportunityProperties()` (`actions.ts`) —
+ * ver ahí por qué ese filtro vive a nivel de llamador y no en Search Core.
+ * Header/Footer viven en `app/layout.tsx` (`SiteChrome`).
+ *
+ * Commune Ribbon + Trust Bar (paridad con `frontend-v2`): mismo orden real
+ * del legacy (ribbon, luego trust bar, luego hero/buscador) — `catalogSummary`
+ * viene de `getHomeCatalogSummary()`, una sola consulta real, calculada acá
+ * en el servidor antes del primer render.
+ */
+export default async function Home() {
+  const [featured, opportunities, catalogSummary] = await Promise.all([
+    getFeaturedProperties(6),
+    getOpportunityProperties(6),
+    getHomeCatalogSummary(),
+  ]);
 
-const footerLinks = [
-  { href: "#buscador", label: "Buscar parcelas" },
-  { href: "#como-comprar", label: "Cómo comprar" },
-  { href: "#cotizador", label: "Cotizador de Casa" },
-  { href: "#red-partner", label: "Red Partner" },
-  { href: "#terminos", label: "Términos" },
-  { href: "#privacidad", label: "Privacidad" },
-];
-
-export default function Home() {
   return (
     <>
-      <Header
-        logoSrc="/brand/tpl-wordmark.svg"
-        navLinks={navLinks}
-        publishHref="#publicar"
-        mobileQuickLink={{ href: "#resultados", label: "Parcelas" }}
-        currentPath="/"
+      <CommuneRibbon communesByRegion={catalogSummary.communesByRegion} />
+      <TrustBar
+        totalPublished={catalogSummary.totalPublished}
+        communeCount={catalogSummary.communeCount}
+        regionCount={catalogSummary.regionCount}
       />
-      <main style={{ fontFamily: "system-ui, sans-serif", padding: "40px clamp(16px, 4vw, 40px)", maxWidth: 780, marginInline: "auto" }}>
-        <h1>apps/publico</h1>
-        <p>
-          Infraestructura de la <strong>Fase 2</strong> del Plan Maestro de Migración: base del design system
-          (<code>@tpl/ui</code>) sobre la que se construirá la próxima homepage. Ninguna página real de{" "}
-          <code>frontend-v2/</code> fue migrada todavía, y esta app no está conectada a Supabase.
-        </p>
-        <InfraestructuraPlaceholder app="publico" />
-        <p style={{ fontFamily: "monospace", color: "#5a6b7d", fontSize: 13 }}>
-          Header y Footer de arriba/abajo son <code>@tpl/ui</code> real (mismo contenido y comportamiento que
-          frontend-v2, sobre la nueva arquitectura de tokens). Los enlaces son de demostración (anclas), todavía
-          no apuntan a rutas reales de Next.js.
-        </p>
-      </main>
-      <Footer
-        logoSrc="/brand/tpl-wordmark-light.svg"
-        navLinks={footerLinks}
-        internalAccessHref="#crm"
-      />
+
+      <Section tone="canvas">
+        <Container>
+          <h1>En tu proyecto de campo te acompañamos.</h1>
+          <p>Libertad, inversión y tranquilidad — busca la parcela o el campo que necesitas, con datos reales y sin sorpresas.</p>
+          <SearchWidgetServer />
+        </Container>
+      </Section>
+
+      {featured.length > 0 ? (
+        <Section tone="raised">
+          <Container>
+            <h2>Propiedades destacadas</h2>
+            <Grid columns={{ mobile: 1, tablet: 2, desktop: 3 }}>
+              {featured.map((card) => (
+                <SearchResultCard key={card.id} card={card} />
+              ))}
+            </Grid>
+          </Container>
+        </Section>
+      ) : null}
+
+      {opportunities.length > 0 ? (
+        <Section tone="canvas">
+          <Container>
+            <h2>Oportunidades TPL</h2>
+            <Grid columns={{ mobile: 1, tablet: 2, desktop: 3 }}>
+              {opportunities.map((card) => (
+                <SearchResultCard key={card.id} card={card} />
+              ))}
+            </Grid>
+          </Container>
+        </Section>
+      ) : null}
+
+      <Section tone="inverse">
+        <Container>
+          <h2>¿Listo para encontrar tu parcela?</h2>
+          <Stack direction="row" gap={3} wrap>
+            <Button href="/propiedades" variant="navy">
+              Ver propiedades
+            </Button>
+            {/* Placeholders intencionales — Business/Publisher no forman parte de esta misión (Fase 3, solo catálogo público). */}
+            <Button href="#publicar" variant="secondary">
+              Publicar propiedad
+            </Button>
+            <Button href="/cotizador" variant="ghost">
+              Cotizar proyecto
+            </Button>
+          </Stack>
+        </Container>
+      </Section>
     </>
   );
 }
