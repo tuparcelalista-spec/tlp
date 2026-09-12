@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/publico/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "^/propiedades/([^/]+)$",
+      "dest": "/apps/publico/propiedades/[codigo]?codigo=$1"
+    },
+    {
+      "src": "^/mi-parcela/([^/]+)$",
+      "dest": "/apps/publico/mi-parcela/[token]?token=$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/apps/publico/$1"
+    }
+  ]
+}
