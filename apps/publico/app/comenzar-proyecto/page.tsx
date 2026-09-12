@@ -13,11 +13,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+import { WHATSAPP_PHONE } from "../../lib/contact";
+
 interface ComenzarProyectoProps {
   searchParams?: Promise<{ parcela?: string; casa?: string }>;
 }
-
-const WHATSAPP_PHONE = "56988508361";
 
 export default async function ComenzarProyectoPage({ searchParams }: ComenzarProyectoProps) {
   const resolved = searchParams ? await searchParams : undefined;

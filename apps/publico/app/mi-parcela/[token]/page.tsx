@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Container, Section, Button, Stack, Card, Grid } from "@tpl/ui";
 import { getOwnerPortalViewModel } from "../../../lib/propietario/actions";
+import { OwnerEditForm } from "../../../components/propietario/OwnerEditForm";
 
 export const metadata: Metadata = {
   title: "Mi Propiedad",
@@ -8,11 +9,11 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+import { WHATSAPP_PHONE } from "../../../lib/contact";
+
 interface MiParcelaPageProps {
   params: Promise<{ token: string }>;
 }
-
-const WHATSAPP_PHONE = "56988508361";
 
 export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
   const { token } = await params;
@@ -417,9 +418,13 @@ export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
               </table>
             </div>
 
-            <div style={{ textAlign: "center", marginTop: "2rem" }}>
+            <div style={{ marginTop: "2.5rem" }}>
+              <OwnerEditForm token={token} propiedad={propiedad} />
+            </div>
+
+            <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
               <p style={{ color: "#64748b", fontSize: "0.9rem", marginBottom: "1rem" }}>
-                ¿Deseas actualizar algún dato, agregar fotografías o solicitar una nueva tasación de tu parcela?
+                ¿Deseas agregar fotografías o solicitar una nueva tasación de tu parcela?
               </p>
               <Button
                 href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(

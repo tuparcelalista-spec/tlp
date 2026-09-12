@@ -1,3 +1,6 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { Button } from "@tpl/ui";
 import { propertyLocationCardCss } from "./propertyLocationCard.css";
 
@@ -7,16 +10,34 @@ export interface PropertyLocationCardProps {
 }
 
 /**
- * Reemplaza el texto plano "mapa interactivo disponible en un bloque
- * futuro" por un componente limpio, sin agregar Leaflet ni ninguna
- * librería de mapas nueva (regla vigente: eso requiere aprobación
- * explícita aparte). En vez de un mapa embebido, un link real a Google
- * Maps con las coordenadas exactas — funciona hoy, sin API key, sin
- * dependencia nueva, y sin inventar una "vista previa" que no sea un mapa
- * real. Si más adelante se aprueba un mapa embebido (Leaflet u otro),
- * este componente es el punto exacto a reemplazar — `coordinates` y
- * `distanceKm` (Search Core, @tpl/core) ya están disponibles para eso.
+ * Mapa real embebido (Leaflet + OpenStreetMap, ya aprobado e instalado
+ * para el wizard de Publicar) en modo **solo lectura**: sin arrastre, sin
+ * clic para mover el pin — un visitante de la ficha pública nunca debe
+ * poder cambiar la ubicación real de la propiedad. Antes de que Leaflet
+ * fuera una dependencia aprobada, este componente solo mostraba un link a
+ * Google Maps; se mantiene el link como respaldo/acceso directo, y se
+ * agrega el mapa embebido como mejora real, sin dependencias nuevas (usa
+ * exactamente el mismo `ParcelMapPicker` del wizard).
  */
+const ParcelMapPicker = dynamic(() => import("../publicar/ParcelMapPicker").then((m) => m.ParcelMapPicker), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        height: 280,
+        borderRadius: "var(--tpl-radius-lg)",
+        background: "var(--tpl-surface-sunken)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--tpl-content-muted)",
+      }}
+    >
+      Cargando mapa…
+    </div>
+  ),
+});
+
 export function PropertyLocationCard({ location, coordinates }: PropertyLocationCardProps) {
   const mapsHref = coordinates ? `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}` : null;
 
@@ -41,10 +62,19 @@ export function PropertyLocationCard({ location, coordinates }: PropertyLocation
           )}
         </div>
       </div>
+
+      {coordinates ? (
+        <div style={{ marginTop: "12px" }}>
+          <ParcelMapPicker lat={coordinates.lat} lng={coordinates.lng} interactive={false} popupText={location} />
+        </div>
+      ) : null}
+
       {mapsHref ? (
-        <Button href={mapsHref} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
-          Ver en Google Maps
-        </Button>
+        <div style={{ marginTop: "12px" }}>
+          <Button href={mapsHref} target="_blank" rel="noopener noreferrer" variant="secondary" size="sm">
+            Ver en Google Maps
+          </Button>
+        </div>
       ) : null}
     </div>
   );

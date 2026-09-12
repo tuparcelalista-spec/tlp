@@ -8,7 +8,7 @@ export const primaryNavLinks = [
   { href: "/cotizador", label: "Cotizador de Casa" },
   { href: "/como-comprar", label: "Cómo comprar" },
   { href: "/campo-chileno", label: "El Campo Chileno" },
-  { href: "/red-partner", label: "Red Partner" },
+  { href: "/red-partner", label: "TPL Business" },
 ];
 
 export const footerNavLinks = [
@@ -16,7 +16,7 @@ export const footerNavLinks = [
   { href: "/cotizador", label: "Cotizador de Casa" },
   { href: "/como-comprar", label: "Cómo comprar" },
   { href: "/campo-chileno", label: "El Campo Chileno" },
-  { href: "/red-partner", label: "Red Partner" },
+  { href: "/red-partner", label: "TPL Business (Red Partner)" },
   { href: "/terminos", label: "Términos" },
   { href: "/privacidad", label: "Privacidad" },
 ];

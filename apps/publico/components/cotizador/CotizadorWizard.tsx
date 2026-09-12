@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, type FormEvent, type MouseEvent } from "react";
 import type { Property } from "@tpl/core";
 import {
   calculateProjectBudget,
@@ -10,9 +10,10 @@ import {
   CONSTRUCTION_SYSTEM_RATES,
   type ConstructionMaterial,
 } from "@tpl/core";
-import { Card, Button, Badge, Stack, Grid } from "@tpl/ui";
-
-const TPL_WHATSAPP_PHONE = "56988508361";
+import { Card, Button, Badge, Stack, Grid, Input } from "@tpl/ui";
+import { registrarCotizacionAction } from "../../lib/cotizador/actions";
+import { scheduleVisitDialogCss } from "../property/scheduleVisitDialog.css";
+import { WHATSAPP_PHONE as TPL_WHATSAPP_PHONE } from "../../lib/contact";
 
 function fmt(n: number): string {
   return new Intl.NumberFormat("es-CL").format(Math.max(0, Math.round(n)));
@@ -77,19 +78,85 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
     });
   }
 
-  const whatsappMessage = encodeURIComponent(
-    `Hola Tu Parcela Lista! Armé mi proyecto en el Cotizador web:\n\n` +
-      `📍 Parcela: ${selectedParcel ? `${selectedParcel.title} ($${fmt(parcelPrice)} CLP)` : "Ya cuento con terreno propio"}\n` +
-      `🏡 Vivienda: ${estimate.details.houseName} ($${fmt(estimate.housePrice)} CLP)\n` +
-      `🏗️ Fundación: ${estimate.details.foundationName ?? "Sin fundación seleccionada"} ($${fmt(estimate.foundationPrice)} CLP)\n` +
-      `⚡ Obras adc.: ${
-        estimate.details.extrasBreakdown.map((e) => `${e.name} ($${fmt(e.subtotal)})`).join(", ") || "Ninguna"
-      }\n\n` +
-      `💰 Total Estimado Consolidado: $${fmt(estimate.totalProjectPrice)} CLP\n\n` +
-      `Quiero coordinar asesoría con un especialista TPL para evaluar mi proyecto.`
-  );
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const whatsappUrl = `https://wa.me/${TPL_WHATSAPP_PHONE}?text=${whatsappMessage}`;
+  function openDialog() {
+    dialogRef.current?.showModal();
+  }
+
+  function closeDialog() {
+    dialogRef.current?.close();
+  }
+
+  function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
+    if (event.target === dialogRef.current) closeDialog();
+  }
+
+  async function handleContactSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmedName = clientName.trim();
+    const trimmedPhone = clientPhone.trim();
+    const trimmedEmail = clientEmail.trim();
+    if (!trimmedName || (!trimmedPhone && !trimmedEmail) || isSubmitting) return;
+
+    const contactStr = trimmedPhone ? `${trimmedName} (${trimmedPhone})` : trimmedName;
+    const whatsappMessage = encodeURIComponent(
+      `Hola Tu Parcela Lista! Soy ${contactStr}. Armé mi proyecto en el Cotizador web:\n\n` +
+        `📍 Parcela: ${selectedParcel ? `${selectedParcel.title} ($${fmt(parcelPrice)} CLP)` : "Ya cuento con terreno propio"}\n` +
+        `🏡 Vivienda: ${estimate.details.houseName} ($${fmt(estimate.housePrice)} CLP)\n` +
+        `🏗️ Fundación: ${estimate.details.foundationName ?? "Sin fundación seleccionada"} ($${fmt(estimate.foundationPrice)} CLP)\n` +
+        `⚡ Obras adc.: ${
+          estimate.details.extrasBreakdown.map((e) => `${e.name} ($${fmt(e.subtotal)})`).join(", ") || "Ninguna"
+        }\n\n` +
+        `💰 Total Estimado Consolidado: $${fmt(estimate.totalProjectPrice)} CLP\n\n` +
+        `Quiero coordinar asesoría con un especialista TPL para evaluar mi proyecto.`
+    );
+    const whatsappUrl = `https://wa.me/${TPL_WHATSAPP_PHONE}?text=${whatsappMessage}`;
+
+    // Apertura dentro del gesto del usuario para evitar bloqueo de popups
+    const ventanaWhatsApp = window.open("", "_blank");
+    setIsSubmitting(true);
+
+    try {
+      await Promise.race([
+        registrarCotizacionAction({
+          nombre: trimmedName,
+          telefono: trimmedPhone,
+          email: trimmedEmail || undefined,
+          parcelCode: selectedParcel?.code ?? "terreno_propio",
+          parcelTitle: selectedParcel?.title ?? "Terreno propio",
+          houseModelName: estimate.details.houseName,
+          houseSurfaceM2: estimate.houseSurfaceM2,
+          housePrice: estimate.housePrice,
+          foundationName: estimate.details.foundationName ?? undefined,
+          foundationPrice: estimate.foundationPrice,
+          extrasBreakdown: estimate.details.extrasBreakdown.map((e) => ({
+            name: e.name,
+            subtotal: e.subtotal,
+          })),
+          totalProjectPrice: estimate.totalProjectPrice,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]);
+    } catch {
+      // Persistencia no bloquea WhatsApp
+    } finally {
+      setIsSubmitting(false);
+      if (ventanaWhatsApp && !ventanaWhatsApp.closed) {
+        try {
+          ventanaWhatsApp.opener = null;
+        } catch {}
+        ventanaWhatsApp.location.href = whatsappUrl;
+      } else {
+        window.location.href = whatsappUrl;
+      }
+      closeDialog();
+    }
+  }
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "32px", alignItems: "start" }}>
@@ -625,10 +692,9 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                   se validan en la visita técnica en terreno.
                 </p>
 
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={openDialog}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -638,23 +704,87 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                     color: "#fff",
                     padding: "14px",
                     borderRadius: "10px",
-                    textDecoration: "none",
+                    border: "none",
+                    cursor: "pointer",
                     fontWeight: 700,
                     fontSize: "1rem",
                     boxShadow: "0 4px 12px rgba(37,211,102,0.3)",
                     marginTop: "8px",
+                    width: "100%",
                   }}
                 >
                   <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.133.553 4.214 1.603 6.06L.266 23.514l5.578-1.464a12.016 12.016 0 006.187 1.696c6.646 0 12.031-5.385 12.031-12.031C24.062 5.385 18.677 0 12.031 0zm3.626 17.15c-.152.427-.887.844-1.228.877-.32.031-.767.124-2.528-.567-2.115-.83-3.468-2.984-3.573-3.125-.105-.141-.853-1.137-.853-2.17 0-1.033.538-1.541.728-1.737.19-.196.411-.245.549-.245.138 0 .276 0 .393.006.122.006.286-.046.438.318.157.377.538 1.314.585 1.408.047.094.078.204.016.332-.062.128-.094.208-.188.318-.094.11-.196.241-.281.332-.094.102-.194.212-.081.408.113.196.583 1.203.541.482.879.621 1.077.728.198.107.315.094.433-.031.118-.125.508-.592.645-.796.137-.204.275-.17.455-.104.18.066 1.139.537 1.334.635.195.098.325.147.372.228.047.081.047.469-.105.896z" />
                   </svg>
                   Consultar Proyecto por WhatsApp
-                </a>
+                </button>
               </Stack>
             </Card.Body>
           </Card>
         </div>
       </div>
+
+      <style>{scheduleVisitDialogCss}</style>
+      <dialog
+        ref={dialogRef}
+        className="tpl-visit-dialog"
+        aria-labelledby="cotizador-dialog-title"
+        onClick={handleBackdropClick}
+      >
+        <form className="tpl-visit-dialog__form" onSubmit={handleContactSubmit}>
+          <h3 id="cotizador-dialog-title" className="tpl-visit-dialog__title">
+            Consultar Proyecto Rural
+          </h3>
+          <p className="tpl-visit-dialog__intro">
+            Ingresa tu nombre y teléfono para respaldar tu cotización (${fmt(estimate.totalProjectPrice)} CLP) y abrir el chat de WhatsApp con un asesor.
+          </p>
+          <div className="tpl-visit-dialog__field">
+            <label htmlFor="cotizador-name">Nombre completo</label>
+            <Input
+              id="cotizador-name"
+              name="name"
+              required
+              autoComplete="name"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="Tu nombre"
+            />
+          </div>
+          <div className="tpl-visit-dialog__field">
+            <label htmlFor="cotizador-phone">Teléfono / WhatsApp</label>
+            <Input
+              id="cotizador-phone"
+              name="phone"
+              type="tel"
+              required
+              autoComplete="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+              placeholder="+56 9 1234 5678"
+            />
+          </div>
+          <div className="tpl-visit-dialog__field">
+            <label htmlFor="cotizador-email">Correo electrónico (opcional)</label>
+            <Input
+              id="cotizador-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              placeholder="tu@correo.cl"
+            />
+          </div>
+          <div className="tpl-visit-dialog__actions">
+            <Button type="button" variant="ghost" onClick={closeDialog} disabled={isSubmitting}>
+              Cancelar
+            </Button>
+            <Button type="submit" variant="whatsapp" disabled={isSubmitting}>
+              {isSubmitting ? "Guardando…" : "Continuar por WhatsApp"}
+            </Button>
+          </div>
+        </form>
+      </dialog>
     </div>
   );
 }

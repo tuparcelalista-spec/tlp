@@ -49,14 +49,17 @@ $$;
 
 grant execute on function public.tpl_es_dueno_propiedad(uuid) to authenticated;
 
+drop policy if exists tpl_landing_borradores_dueno_select on public.tpl_landing_borradores;
 create policy tpl_landing_borradores_dueno_select on public.tpl_landing_borradores
   for select to authenticated
   using (public.tpl_es_dueno_propiedad(propiedad_id) or public.tpl_es_staff());
 
+drop policy if exists tpl_landing_borradores_dueno_insert on public.tpl_landing_borradores;
 create policy tpl_landing_borradores_dueno_insert on public.tpl_landing_borradores
   for insert to authenticated
   with check (public.tpl_es_dueno_propiedad(propiedad_id));
 
+drop policy if exists tpl_landing_borradores_dueno_update on public.tpl_landing_borradores;
 create policy tpl_landing_borradores_dueno_update on public.tpl_landing_borradores
   for update to authenticated
   using (public.tpl_es_dueno_propiedad(propiedad_id))

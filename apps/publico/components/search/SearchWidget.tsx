@@ -12,9 +12,11 @@ import {
   type SearchFormState,
 } from "./searchState";
 import { SearchFiltersPanel } from "./SearchFiltersPanel";
+import { SearchProjectPanel } from "./SearchProjectPanel";
 import { SearchSummary } from "./SearchSummary";
 import { SearchResults } from "./SearchResults";
 import { searchWidgetCss } from "./searchWidget.css";
+import { Badge } from "@tpl/ui";
 
 export interface SearchWidgetProps {
   /** Server-side, vía `listAvailableCommunes()` — ver `SearchWidgetServer.tsx`. No se inventa una lista estática. */
@@ -66,6 +68,14 @@ export function SearchWidget({
 
   function updateForm(patch: Partial<SearchFormState>) {
     setForm((previous) => ({ ...previous, ...patch }));
+  }
+
+  function handleModeChange(nextIntent: "property" | "project") {
+    if (nextIntent === form.intent) return;
+    setForm((previous) => ({ ...previous, intent: nextIntent }));
+    setViewModel(null);
+    setHasSearched(false);
+    setError(null);
   }
 
   function toggleNaturalFeature(feature: string) {
@@ -147,7 +157,10 @@ export function SearchWidget({
   }
 
   function handleClear() {
-    setForm(INITIAL_SEARCH_FORM_STATE);
+    setForm({
+      ...INITIAL_SEARCH_FORM_STATE,
+      intent: form.intent,
+    });
     setViewModel(null);
     setHasSearched(false);
     setError(null);
@@ -170,7 +183,7 @@ export function SearchWidget({
           role="tab"
           aria-selected={form.intent === "property"}
           className={`tpl-search-mode-toggle__btn${form.intent === "property" ? " tpl-search-mode-toggle__btn--active" : ""}`}
-          onClick={() => updateForm({ intent: "property" })}
+          onClick={() => handleModeChange("property")}
         >
           Propiedades
         </button>
@@ -179,7 +192,7 @@ export function SearchWidget({
           role="tab"
           aria-selected={form.intent === "project"}
           className={`tpl-search-mode-toggle__btn${form.intent === "project" ? " tpl-search-mode-toggle__btn--active" : ""}`}
-          onClick={() => updateForm({ intent: "project" })}
+          onClick={() => handleModeChange("project")}
         >
           Proyecto (parcela + casa)
         </button>
@@ -199,7 +212,16 @@ export function SearchWidget({
           onSubmit={handleSubmit}
           onClear={handleClear}
         />
-      ) : null}
+      ) : (
+        <SearchProjectPanel
+          form={form}
+          communes={initialCommunes}
+          isLoading={isLoading}
+          onChange={updateForm}
+          onSubmit={handleSubmit}
+          onClear={handleClear}
+        />
+      )}
 
       {form.intent === "property" && status === "success" && viewModel?.mode === "property" ? (
         <SearchSummary
@@ -212,10 +234,29 @@ export function SearchWidget({
         />
       ) : null}
 
+      {form.intent === "project" && status === "success" && viewModel?.mode === "project" ? (
+        <div className="tpl-search-summary">
+          <div>
+            <p className="tpl-search-summary__count">
+              {viewModel.totalCount} {viewModel.totalCount === 1 ? "combinación compatible encontrada" : "combinaciones compatibles encontradas"}
+            </p>
+            {viewModel.appliedFilters.length > 0 ? (
+              <div className="tpl-search-summary__chips">
+                {viewModel.appliedFilters.map((filter) => (
+                  <Badge key={filter.label} variant="info">
+                    {filter.label}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <SearchResults
         status={status}
         viewModel={viewModel}
-        projectModeUnavailable={form.intent === "project"}
+        projectModeUnavailable={false}
         onRetry={handleRetry}
         onClearFilters={handleClear}
       />

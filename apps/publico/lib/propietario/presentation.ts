@@ -40,12 +40,20 @@ export interface RawOwnerPropiedad {
   id: string;
   codigo: string;
   titulo?: string | null;
+  descripcion?: string | null;
   region?: string | null;
   comuna?: string | null;
   sector?: string | null;
   superficie_m2?: number | string | null;
   precio_publicado?: number | string | null;
   estado?: string | null;
+  agua?: string | null;
+  electricidad?: string | null;
+  acceso?: string | null;
+  topografia?: string | null;
+  rol_situacion?: string | null;
+  cierre_perimetral?: string | null;
+  porton?: string | null;
   propietario_contacto?: { nombre?: string | null } | null;
   updated_at?: string | null;
 }
@@ -78,6 +86,7 @@ export interface OwnerPropertySummary {
   id: string;
   codigo: string;
   titulo: string;
+  descripcion: string;
   region: string;
   comuna: string;
   sector: string | null;
@@ -85,6 +94,13 @@ export interface OwnerPropertySummary {
   precioPublicado: number | null;
   precioPublicadoLabel: string | undefined;
   estado: string;
+  agua: string | null;
+  electricidad: string | null;
+  acceso: string | null;
+  topografia: string | null;
+  rolSituacion: string | null;
+  cierrePerimetral: string | null;
+  porton: string | null;
   /** Primer nombre solamente — mismo criterio que el legacy (`contacto.nombre.split(' ')[0]`). */
   contactoNombre: string | null;
   updatedAt: string | null;
@@ -143,6 +159,7 @@ export function toOwnerPortalViewModel(raw: RawOwnerResumenResponse | null | und
       id: p.id,
       codigo: p.codigo,
       titulo: p.titulo?.trim() || "Tu propiedad",
+      descripcion: p.descripcion?.trim() || "",
       region: p.region?.trim() ?? "",
       comuna: p.comuna?.trim() ?? "",
       sector: p.sector?.trim() || null,
@@ -150,6 +167,13 @@ export function toOwnerPortalViewModel(raw: RawOwnerResumenResponse | null | und
       precioPublicado,
       precioPublicadoLabel: formatPriceCLP(precioPublicado),
       estado: p.estado ?? "",
+      agua: p.agua?.trim() || null,
+      electricidad: p.electricidad?.trim() || null,
+      acceso: p.acceso?.trim() || null,
+      topografia: p.topografia?.trim() || null,
+      rolSituacion: p.rol_situacion?.trim() || null,
+      cierrePerimetral: p.cierre_perimetral?.trim() || null,
+      porton: p.porton?.trim() || null,
       contactoNombre: nombreCompleto ? nombreCompleto.split(/\s+/)[0]! : null,
       updatedAt: p.updated_at ?? null,
     },

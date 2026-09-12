@@ -121,9 +121,16 @@ test("buildSearchFilters: coordinates + radiusKm solo si nearbyEnabled", () => {
   assert.equal("radiusKm" in sinNearby, false);
 });
 
-test("buildSearchFilters: intent siempre 'property' (el modo project no usa esta función)", () => {
+test("buildSearchFilters: intent por defecto 'property'", () => {
   const filters = buildSearchFilters(form());
   assert.equal(filters.intent, "property");
+});
+
+test("buildSearchFilters: intent 'project' con totalBudget y comuna", () => {
+  const filters = buildSearchFilters(form({ intent: "project", totalBudgetText: "40.000.000", commune: "Pinto" }));
+  assert.equal(filters.intent, "project");
+  assert.equal(filters.totalBudget, 40_000_000);
+  assert.equal(filters.commune, "Pinto");
 });
 
 test("buildSearchFilters: combinación de varios filtros a la vez", () => {

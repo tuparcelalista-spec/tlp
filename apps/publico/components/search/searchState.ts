@@ -50,6 +50,8 @@ export interface SearchFormState {
   intent: SearchIntentMode;
   keyword: string;
   commune: string;
+  /** Presupuesto total para modo 'project' (parcela + casa). Por defecto $35.000.000. */
+  totalBudgetText: string;
   /** Texto tal como lo escribe la persona (ej. "10.000.000" o "$10.000.000") — se parsea recién al construir `SearchFilters`. */
   priceMinText: string;
   priceMaxText: string;
@@ -67,6 +69,7 @@ export const INITIAL_SEARCH_FORM_STATE: SearchFormState = {
   intent: "property",
   keyword: "",
   commune: "",
+  totalBudgetText: "35.000.000",
   priceMinText: "",
   priceMaxText: "",
   landAreaMinText: "",
@@ -94,13 +97,20 @@ export function parseCLPInput(text: string): number | undefined {
 /**
  * Única traducción formulario -> `SearchFilters`. Construye el objeto de
  * entrada exacto que espera `@tpl/core` — no filtra, no valida de más, no
- * agrega campos que `SearchFilters` no tenga. `intent` siempre es
- * `"property"` aquí: el modo "project" no llama a esta función (ver
- * `SearchWidget.tsx` — sin fuente real de casas, se muestra un estado
- * aparte, nunca se construye un `SearchFilters` de project con datos
- * inventados).
+ * agrega campos que `SearchFilters` no tenga.
  */
 export function buildSearchFilters(form: SearchFormState): SearchFilters {
+  if (form.intent === "project") {
+    const totalBudget = parseCLPInput(form.totalBudgetText) ?? 35_000_000;
+    const filters: SearchFilters = {
+      intent: "project",
+      totalBudget,
+    };
+    if (form.keyword.trim()) filters.keyword = form.keyword.trim();
+    if (form.commune) filters.commune = form.commune;
+    return filters;
+  }
+
   const filters: SearchFilters = { intent: "property" };
 
   if (form.keyword.trim()) filters.keyword = form.keyword.trim();

@@ -187,6 +187,16 @@ export const searchWidgetCss = `
   align-items: center;
   justify-content: space-between;
 }
+.tpl-search-project-card__actions {
+  grid-column: 1 / -1;
+  padding: var(--tpl-space-3) var(--tpl-space-5);
+  border-top: 1px solid var(--tpl-border-default);
+  background: var(--tpl-surface-raised);
+  display: flex;
+  gap: var(--tpl-space-3);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
 
 /* Estados idle/loading/error viven sobre EmptyState/LoadingState de @tpl/ui; solo se ajusta el contenedor. */
 .tpl-search-state-container {

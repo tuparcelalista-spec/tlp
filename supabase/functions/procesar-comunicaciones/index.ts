@@ -85,6 +85,96 @@ function render(template: string, payload: Record<string, unknown>) {
         <p style="color:#60758a;font-size:14px">Si necesitas corregir algo, responde este correo y lo ajustamos antes de publicar.</p>
         ${button('Ver el catálogo TPL', url || 'https://www.parcelalista.cl/')}`);
     }
+    case 'contratacion_confirmada': {
+      // Se encola dentro de tpl_confirmar_contratacion_servicio_v1, en la misma
+      // transacción que crea la oportunidad y las tareas: si el correo no cabe,
+      // tampoco queda un cliente contratado a medias.
+      //
+      // "Próximos pasos" cambia por plan porque no es lo mismo haber comprado
+      // visibilidad que haber entregado la venta a un corredor: un texto
+      // genérico dejaba a la persona sin saber qué esperaba de ella.
+      const plan = escapeHtml(payload.plan || 'tu plan');
+      const planCodigo = String(payload.plan_codigo || '');
+      const codigo = escapeHtml(payload.codigo || '');
+      const fecha = escapeHtml(payload.fecha || '');
+      const propiedad = escapeHtml(payload.propiedad || 'tu propiedad');
+      const medioPago = escapeHtml(payload.medio_pago || '');
+      const condicion = escapeHtml(payload.condicion || '');
+      const facturaUrl = safeHttpUrl(payload.factura_url);
+      const montoNum = Number(payload.monto || 0);
+      const monto = montoNum > 0 ? `$${montoNum.toLocaleString('es-CL')}` : '';
+      const vence = payload.vence_at
+        ? new Date(String(payload.vence_at)).toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })
+        : '';
+      const beneficios = Array.isArray(payload.beneficios) ? payload.beneficios.map(String) : [];
+
+      const pasos: Record<string, string[]> = {
+        publicacion: [
+          'Tu anuncio queda activo apenas termine la revisión de nuestro equipo.',
+          'Las consultas de los interesados te llegan directo a tu correo y teléfono.',
+          'Puedes editar el anuncio cuando quieras escribiéndonos.',
+        ],
+        destacado: [
+          'Activamos el destacado y la prioridad en búsquedas dentro de las próximas 24 horas.',
+          'Programamos la difusión de tu parcela en las redes sociales de TPL.',
+          'Te avisamos cuando empiece a subir el número de visitas.',
+        ],
+        marketing: [
+          'Un ejecutivo te contacta en 24 horas para levantar el material de tu propiedad.',
+          'Producimos tu landing, el video y las piezas publicitarias.',
+          'Lanzamos las campañas y te enviamos un informe cada semana.',
+        ],
+        asesoria: [
+          'Te asignamos un corredor responsable y te llama dentro de las próximas 24 horas.',
+          'Coordinamos la visita a terreno y armamos el Informe de Propiedad.',
+          'Desde ahí nos hacemos cargo: consultas, visitas, negociación y cierre.',
+        ],
+      };
+      const proximos = pasos[planCodigo] || pasos.publicacion;
+
+      const fila = (etiqueta: string, valor: string) => valor
+        ? `<tr><td style="padding:9px 0;border-bottom:1px solid #e6edf3;color:#60758a">${etiqueta}</td><td style="padding:9px 0;border-bottom:1px solid #e6edf3;text-align:right;font-weight:600">${valor}</td></tr>`
+        : '';
+
+      return base(`
+        <h2>¡Listo${name ? `, ${name}` : ''}! Contrataste ${plan}</h2>
+        <p>Ya quedó registrado en tu ficha de Tu Parcela Lista. Este correo es tu comprobante.</p>
+
+        <table style="width:100%;border-collapse:collapse;margin:18px 0;font-size:15px">
+          ${fila('Plan contratado', plan)}
+          ${fila('Propiedad', propiedad)}
+          ${fila('N° de orden', codigo)}
+          ${fila('Fecha', fecha)}
+          ${fila('Monto pagado', monto)}
+          ${fila('Medio de pago', medioPago)}
+          ${fila('Condición', condicion)}
+          ${fila('Vigente hasta', escapeHtml(vence))}
+        </table>
+
+        ${beneficios.length ? `
+        <h3 style="margin-top:26px">Qué incluye</h3>
+        <ul style="padding-left:18px;line-height:1.75">
+          ${beneficios.map((b) => `<li>${escapeHtml(b)}</li>`).join('')}
+        </ul>` : ''}
+
+        <h3 style="margin-top:26px">Próximos pasos</h3>
+        <ol style="padding-left:18px;line-height:1.75">
+          ${proximos.map((paso) => `<li>${escapeHtml(paso)}</li>`).join('')}
+        </ol>
+
+        ${button('Ver mi anuncio', url || 'https://www.parcelalista.cl/')}
+        ${facturaUrl ? `<p style="margin:-8px 0 22px"><a href="${escapeHtml(facturaUrl)}" style="color:#0b395d;font-weight:600">Descargar la factura</a></p>` : ''}
+
+        <div style="margin-top:26px;padding:16px 18px;background:#f2f6f9;border-radius:10px">
+          <strong style="display:block;margin-bottom:6px">¿Necesitas algo?</strong>
+          <span style="color:#4a5c6e;font-size:14px">
+            Escríbenos a <a href="mailto:tuparcelalista@gmail.com" style="color:#0b395d">tuparcelalista@gmail.com</a>
+            o respondiendo este correo. También estamos en
+            <a href="https://www.parcelalista.cl" style="color:#0b395d">parcelalista.cl</a>.
+          </span>
+        </div>`);
+    }
+
     case 'avance_nuevo_cliente':
     case 'partner_avance_publicado':
       return base(`<h2>Nuevo avance en ${title}</h2><p>${message}</p><p><strong>Avance informado:</strong> ${escapeHtml(payload.porcentaje || '')}%</p>${amount ? `<p><strong>Monto solicitado:</strong> ${amount}</p>` : ''}${button('Revisar avance', url)}`);

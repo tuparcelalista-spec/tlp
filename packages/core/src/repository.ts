@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { normalizeProperty, type RawPropertyImageInput, type RawPropertyInput } from "./normalizeProperty";
+import {
+  normalizeProperty,
+  type RawPropertyImageInput,
+  type RawPropertyInput,
+  type RawPropertyVideoInput,
+} from "./normalizeProperty";
 import type { Property } from "./property";
 
 const PUBLISHED_STATUS = "publicada";
@@ -45,11 +50,17 @@ const PROPERTY_COLUMNS = [
 ].join(", ");
 
 const IMAGE_COLUMNS = "propiedad_id, url, storage_path, alt, orden, es_portada";
+const VIDEO_COLUMNS = "propiedad_id, video_url, thumbnail_url, titulo, publicado_en_parcela, created_at";
 
 type RawPropertyRow = Omit<RawPropertyInput, "imagenes" | "video">;
 
 interface RawImageRow extends RawPropertyImageInput {
   propiedad_id: string;
+}
+
+interface RawVideoRow extends RawPropertyVideoInput {
+  propiedad_id: string;
+  publicado_en_parcela?: boolean;
 }
 
 export interface PropertyListOptions {
@@ -125,20 +136,31 @@ export class SupabasePropertyRepository implements PropertyRepository {
   }
 
   /**
-   * Adjunta imágenes con UNA sola consulta batch (`in propiedad_id`) para
-   * todo el lote recibido — nunca una consulta por propiedad.
+   * P2-01 — Adjunta imágenes y videos con consultas batch (`in propiedad_id`)
+   * para todo el lote recibido — nunca consultas individuales por propiedad.
+   * Filtra videos por `publicado_en_parcela = true`.
    */
   private async hydrate(rows: RawPropertyRow[]): Promise<Property[]> {
     if (rows.length === 0) return [];
 
     const ids = rows.map((row) => row.id);
-    const { data: imageRows, error: imagesError } = await this.client
-      .from("tpl_propiedad_imagenes")
-      .select(IMAGE_COLUMNS)
-      .in("propiedad_id", ids);
+    const [{ data: imageRows, error: imagesError }, { data: videoRows, error: videosError }] =
+      await Promise.all([
+        this.client.from("tpl_propiedad_imagenes").select(IMAGE_COLUMNS).in("propiedad_id", ids),
+        this.client
+          .from("tpl_propiedad_videos")
+          .select(VIDEO_COLUMNS)
+          .in("propiedad_id", ids)
+          .eq("publicado_en_parcela", true)
+          .order("created_at", { ascending: false }),
+      ]);
 
     if (imagesError) {
       throw new Error(`SupabasePropertyRepository: error al obtener imágenes: ${imagesError.message}`);
+    }
+
+    if (videosError) {
+      console.error(`SupabasePropertyRepository: error al obtener videos: ${videosError.message}`);
     }
 
     const imagesByPropertyId = new Map<string, RawPropertyImageInput[]>();
@@ -148,11 +170,18 @@ export class SupabasePropertyRepository implements PropertyRepository {
       imagesByPropertyId.set(img.propiedad_id, list);
     }
 
+    const videosByPropertyId = new Map<string, RawPropertyVideoInput>();
+    for (const vid of (videoRows ?? []) as unknown as RawVideoRow[]) {
+      if (!videosByPropertyId.has(vid.propiedad_id)) {
+        videosByPropertyId.set(vid.propiedad_id, vid);
+      }
+    }
+
     return rows.map((row) =>
       normalizeProperty({
         ...row,
         imagenes: imagesByPropertyId.get(row.id) ?? [],
-        video: null,
+        video: videosByPropertyId.get(row.id) ?? null,
       }),
     );
   }

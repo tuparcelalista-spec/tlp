@@ -8,6 +8,16 @@ import { SITE_URL } from "../lib/seo/site";
  * `estado='publicada'` — no se repite ese filtro aquí ni se consulta
  * Supabase directamente.
  */
+
+/**
+ * P0-02 — ISR (2026-09-12). Este era el caso más grave de los dos: el
+ * sitemap se generaba UNA vez en el build y quedaba congelado, así que una
+ * parcela publicada después de ese build nunca entraba al sitemap y por lo
+ * tanto nunca se le declaraba a Google. Con `revalidate = 3600` el archivo
+ * se regenera como máximo cada hora contra el catálogo real.
+ */
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, changeFrequency: "weekly", priority: 1 },

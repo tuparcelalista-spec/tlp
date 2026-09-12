@@ -1,4 +1,4 @@
-import { PropertyCard, Badge, Area, Stat, type PropertyCardBadge } from "@tpl/ui";
+import { PropertyCard, Badge, Area, Stat, Button, type PropertyCardBadge } from "@tpl/ui";
 import type { PropertyCardViewModel, ProjectCombinationViewModel } from "../../lib/search/presentation";
 
 /**
@@ -54,8 +54,20 @@ export function SearchProjectCombinationCard({ combination }: { combination: Pro
         {combination.houseRoomsLabel ? <span>{combination.houseRoomsLabel}</span> : null}
       </div>
       <div className="tpl-search-project-card__total">
-        <span>Total proyecto</span>
+        <span>Total proyecto referencial</span>
         <Badge variant="accent">{combination.totalPriceLabel ?? "Consultar"}</Badge>
+      </div>
+      <div className="tpl-search-project-card__actions">
+        <Button href={combination.property.href} variant="secondary" size="sm">
+          Ver parcela
+        </Button>
+        <Button
+          href={`/cotizador?parcela=${encodeURIComponent(combination.property.id)}&casa=${encodeURIComponent(combination.houseName)}`}
+          variant="primary"
+          size="sm"
+        >
+          Cotizar proyecto
+        </Button>
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
+import { cache } from "react";
 import {
   createSupabasePublicClient,
   SupabasePropertyRepository,
   runSearch,
+  type Property,
   type PropertyRepository,
   type SearchFilters,
   type SearchResult,
@@ -57,6 +59,36 @@ export function createDefaultRepository(): PropertyRepository {
 }
 
 /**
+ * P1-06 — memoización por render (2026-09-12).
+ *
+ * `React.cache()` memoiza por argumentos DENTRO de un mismo render del
+ * servidor (o de una misma invocación de Server Action) y no comparte nada
+ * entre peticiones ni entre usuarios — no es una caché de datos, es
+ * deduplicación de trabajo repetido en el mismo árbol.
+ *
+ * Sin esto, una sola visita a `/propiedades` disparaba TRES recorridos
+ * completos e independientes del catálogo: `listAvailableCommunes()`,
+ * `listAvailableNaturalFeatures()` y la hidratación inicial, cada uno con
+ * su propio `SELECT` a `tpl_propiedades` más su propia consulta batch a
+ * `tpl_propiedad_imagenes` — 6 viajes a Supabase para pintar una página. La
+ * Home hacía lo propio con `getFeaturedProperties()`,
+ * `getOpportunityProperties()` y `getHomeCatalogSummary()`.
+ *
+ * `getDefaultRepository()` evita además reconstruir el cliente Supabase una
+ * vez por llamada.
+ */
+export const getDefaultRepository = cache((): PropertyRepository => createDefaultRepository());
+
+/**
+ * Catálogo publicado completo, memoizado por render. Es la ÚNICA entrada
+ * que deben usar los llamadores que necesitan "todo el catálogo" —
+ * `repository.list()` sin filtros. Las búsquedas con filtros reales pasan
+ * igual por acá porque el filtrado ocurre en memoria dentro de
+ * `runSearch()` (Search Core), no en la consulta.
+ */
+export const getPublishedCatalog = cache(async (): Promise<Property[]> => getDefaultRepository().list());
+
+/**
  * Único punto de entrada de este adaptador. `intent: "property"` recorre
  * exactamente el flujo Supabase -> PropertyRepository -> Property[] ->
  * Search Core -> SearchResult. `intent: "project"` usa el mismo `Property[]`
@@ -67,9 +99,13 @@ export function createDefaultRepository(): PropertyRepository {
  * el catálogo publicado tal cual (sin filtros de búsqueda propios, igual
  * que en Bloque 1.3) y todo el filtrado/ranking ocurre en memoria dentro de
  * `runSearch()`.
+ *
+ * P1-06: cuando NO se inyecta un `repository` explícito, el catálogo se pide
+ * a `getPublishedCatalog()` (memoizado por render). Un `repository`
+ * inyectado —el caso de los tests— se sigue usando tal cual, sin memoizar:
+ * un test que cuenta llamadas debe poder contarlas de verdad.
  */
 export async function searchProperties(filters: SearchFilters, options: SearchPropertiesOptions = {}): Promise<SearchResult> {
-  const repository = options.repository ?? createDefaultRepository();
-  const properties = await repository.list();
+  const properties = options.repository ? await options.repository.list() : await getPublishedCatalog();
   return runSearch(properties, filters, options);
 }

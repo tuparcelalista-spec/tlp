@@ -2,6 +2,7 @@ import { distanceKm } from "@tpl/core";
 import type {
   Property,
   PropertyType,
+  PropertyVideo,
   SearchResult,
   SearchFilters,
   RankingOptions,
@@ -307,6 +308,7 @@ export interface PropertyDetailViewModel {
   opportunity: boolean;
   publishedAt: string | null;
   valuation: PropertyValuationViewModel;
+  video: PropertyVideo | null;
 }
 
 /**
@@ -341,6 +343,7 @@ export function toPropertyDetailViewModel(property: Property): PropertyDetailVie
     opportunity: property.opportunity,
     publishedAt: property.publishedAt,
     valuation: toValuationViewModel(property),
+    video: property.video,
   };
 }
 
@@ -381,6 +384,7 @@ function summarizeFilters(filters: SearchFilters | undefined): AppliedFilterSumm
   if (filters.keyword) summary.push({ label: `Búsqueda: "${filters.keyword}"` });
   if (typeof filters.priceMin === "number") summary.push({ label: `Precio desde ${formatPriceCLP(filters.priceMin)}` });
   if (typeof filters.priceMax === "number") summary.push({ label: `Precio hasta ${formatPriceCLP(filters.priceMax)}` });
+  if (typeof filters.totalBudget === "number") summary.push({ label: `Presupuesto total: ${formatPriceCLP(filters.totalBudget)}` });
   if (typeof filters.landAreaMin === "number") summary.push({ label: `Superficie desde ${formatAreaM2(filters.landAreaMin)}` });
   if (typeof filters.landAreaMax === "number") summary.push({ label: `Superficie hasta ${formatAreaM2(filters.landAreaMax)}` });
   if (filters.naturalFeatures && filters.naturalFeatures.length > 0) {

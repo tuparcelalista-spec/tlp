@@ -50,6 +50,11 @@ export function publicError(error: unknown) {
     'TEXTO_MUY_CORTO','TEXTO_MUY_LARGO','CONFIGURACION_INCOMPLETA','IA_NO_DISPONIBLE','RESPUESTA_IA_INVALIDA',
     'NOMBRE_INVALIDO','ENVIO_FALLIDO','CONTACTO_REQUERIDO','TELEFONO_INVALIDO',
     'DATOS_INSUFICIENTES',
+    // Contratación de planes desde el publicador: sin estos códigos la persona
+    // solo veía "SOLICITUD_NO_PROCESADA" y no sabía si el problema era el plan,
+    // la propiedad o que ya lo tenía contratado.
+    'PLAN_INVALIDO','PROPIEDAD_NO_ENCONTRADA','PLAN_YA_CONTRATADO',
+    'CONTRATACION_NO_ENCONTRADA','ACTIVACION_FALLIDA','ESTADO_SERVICIO_INVALIDO',
   ]);
   return safe.has(message) ? message : 'SOLICITUD_NO_PROCESADA';
 }

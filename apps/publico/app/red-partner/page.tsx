@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Container, Section, Grid, Card, Stack, Button, Badge } from "@tpl/ui";
 import { PartnerApplicationDialog } from "../../components/red-partner/PartnerApplicationDialog";
 import { SITE_URL, SITE_NAME } from "../../lib/seo/site";
-
-const WHATSAPP_PHONE = "56988508361";
+import { WHATSAPP_PHONE } from "../../lib/contact";
 
 const TITLE = "Red Partner — Trabajos y servicios para proyectos de campo";
 const DESCRIPTION =

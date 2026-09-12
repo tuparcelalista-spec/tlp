@@ -18,6 +18,7 @@
     "next:dev": "turbo run dev",
     "next:build": "turbo run build",
     "next:lint": "turbo run lint",
-    "next:typecheck": "turbo run typecheck"
+    "next:typecheck": "turbo run typecheck",
+    "test": "node scripts/run-all-tests.mjs"
   }
 }

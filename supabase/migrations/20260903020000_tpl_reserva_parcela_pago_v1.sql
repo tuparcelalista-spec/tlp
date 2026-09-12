@@ -41,7 +41,7 @@ alter table public.tpl_ordenes_informe
 
 -- 2) Semilla del catálogo público (precio_publicado en CLP, superficie en m2)
 insert into public.tpl_propiedades
-  (codigo, titulo, comuna, precio_publicado, superficie_m2, lat, lng, tipo, estado_publicacion)
+  (codigo, titulo, comuna, precio_publicado, superficie_m2, lat, lng, tipo, estado)
 values
   ('perigallo_yumbel','Parcela cercada con linda vista sector Perigallo - Yumbel','Yumbel',20000000,5000,-37.04244276437281,-72.64501423010334,'parcela','publicada'),
   ('venega_ñipas','Lomas Coloradas - Ñipas','Ñipas',25000000,5000,-36.636288,-72.564494,'parcela','publicada'),
@@ -126,13 +126,13 @@ begin
     raise exception 'La parcela no tiene un precio publicado válido.';
   end if;
 
-  if v_propiedad.estado_publicacion = 'reservada'
+  if v_propiedad.estado = 'reservada'
      and v_propiedad.reservada_hasta is not null
      and v_propiedad.reservada_hasta > now() then
     raise exception 'Esta parcela ya tiene una reserva en curso. Intenta nuevamente más tarde.';
   end if;
 
-  if v_propiedad.estado_publicacion = 'vendida' then
+  if v_propiedad.estado = 'vendida' then
     raise exception 'Esta parcela ya no está disponible.';
   end if;
 
@@ -157,7 +157,7 @@ begin
   ) returning * into v_orden;
 
   update public.tpl_propiedades
-  set estado_publicacion = 'reservada',
+  set estado = 'reservada',
       reservada_hasta = now() + interval '1 month',
       reservada_orden_id = v_orden.id,
       updated_at = now()

@@ -130,6 +130,43 @@ function toStringOrNull(value: unknown): string | null {
 }
 
 /**
+ * P1-03 (2026-09-12) — helper EXCLUSIVO de `normalizeValuation()`.
+ *
+ * Replica exactamente el predicado del legacy
+ * (`frontend-v2/js/parcela.js:valoracionGuardada()`), que es:
+ *
+ *     const valor = Number(guardado[clave] ?? parcel[clave]);
+ *     if (Number.isFinite(valor) && valor > 0) return valor;
+ *
+ * Dos diferencias reales respecto a `toFiniteNumber()`, ambas deliberadas y
+ * ambas fuente de discrepancias de cifras antes de esta corrección:
+ *
+ *  1. `Number(value)` en vez de `typeof value === "number"`. En `metadata`
+ *     (jsonb) un valor puede llegar como string (`"50000000"`). El legacy lo
+ *     convierte y lo muestra; `toFiniteNumber()` lo descartaba, así que la
+ *     misma parcela mostraba tasación en la ficha vieja y no en la nueva.
+ *  2. `> 0`. El legacy trata un 0 guardado como "sin dato" y salta a la
+ *     siguiente clave de la cascada; `toFiniteNumber()` lo aceptaba y el
+ *     sitio nuevo habría formateado un "$0" donde el legacy no muestra nada.
+ *
+ * NO se replica el fallback del legacy a la raíz del registro
+ * (`?? parcel[clave]`): ahí existe únicamente porque la ficha legacy mezcla
+ * el catálogo estático `parcelas.js` con la fila de Supabase, y su propio
+ * comentario dice que metadata manda sobre la raíz precisamente por eso. En
+ * `apps/publico` no hay catálogo estático y esas claves no forman parte de
+ * `PROPERTY_COLUMNS`, así que el fallback no tendría de dónde leer.
+ *
+ * Se mantiene acotado a la valoración a propósito: aplicar `> 0` a
+ * `precio_publicado` o `superficie_m2` cambiaría el significado de esos
+ * campos, que no es lo que corrige P1-03.
+ */
+function toPositiveValuationNumber(value: unknown): number | undefined {
+  if (value === null || value === undefined || value === "") return undefined;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+/**
  * `metadata` verificado en producción como objeto en la mayoría de los
  * casos, pero el código legacy (`tpl-property-view.js`) defiende contra que
  * llegue como string sin parsear — se conserva la misma defensa aquí.
@@ -179,27 +216,56 @@ function deriveHasHouse(raw: RawPropertyInput): boolean {
 }
 
 /**
- * Precedencia aprobada (Bloque 1.2, regla 7). `asFiniteNumber` se aplica a
- * CADA clave antes de encadenar con `??` — es la única forma type-safe de
- * leer un valor `unknown` de `metadata` sin perder la precedencia: si una
- * clave existe pero no es un número finito, se trata como ausente y se
- * prueba la siguiente, en vez de detener la cadena en un valor inválido.
- * La clave que gana cuando SÍ hay un número válido es exactamente la que
- * especifica la regla aprobada — no se reordena ni se inventa nada.
+ * Cascadas de valoración — P1-03 (2026-09-12).
+ *
+ * Las tres cascadas son ahora IDÉNTICAS, clave por clave y en el mismo
+ * orden, a `frontend-v2/js/parcela.js:valoracionGuardada()`, que es la
+ * fuente que hoy alimenta la ficha pública en producción:
+ *
+ *     recomendado := num('valor_tpl_recomendado','valor_tpl_tasador_ajustado','valor_tpl_tasador')
+ *     comunal     := num('valor_comunal','valor_promedio_comunal','valor_tpl_promedio_comunal')
+ *     tecnico     := num('valor_tpl_tecnico','valor_tpl_tasador_base','valor_tpl_tasador_ajustado')
+ *
+ * QUÉ CAMBIÓ: `recommendedValue` leía ÚNICAMENTE
+ * `metadata.valor_tpl_recomendado`. Cualquier parcela cuya tasación se haya
+ * guardado con una de las dos claves históricas mostraba su Valor
+ * Recomendado en `parcela.html` y NO lo mostraba en `/propiedades/[codigo]`
+ * — una discrepancia de cifra de negocio, que es justo lo que el criterio
+ * de aceptación del Plan Maestro §18 prohíbe.
+ *
+ * Además las tres pasan ahora por `toPositiveValuationNumber()` (ver su
+ * JSDoc): acepta números en string y descarta 0/negativos, igual que el
+ * legacy.
+ *
+ * `??` sobre `undefined` es lo que hace que la cascada avance: una clave
+ * presente pero inválida se trata como ausente y se prueba la siguiente,
+ * en vez de detener la cadena en un valor que no sirve.
+ *
+ * NOTA (comportamiento conocido, NO corregido acá): `valor_tpl_tasador_ajustado`
+ * aparece a propósito en dos cascadas — 2ª de `recommended` y 3ª de
+ * `technical`. Es exactamente lo que hace el legacy, así que una propiedad
+ * que solo tenga esa clave mostrará el mismo número como Valor Recomendado
+ * y como Valor TPL Técnico. Se replica tal cual para lograr paridad de
+ * cifras; si se quiere cambiar esa presentación, es una decisión de
+ * producto aparte, no un ajuste de normalización.
  */
 function normalizeValuation(metadata: Record<string, unknown>): PropertyValuation {
   return {
     technicalValue:
-      toFiniteNumber(metadata.valor_tpl_tecnico) ??
-      toFiniteNumber(metadata.valor_tpl_tasador_base) ??
-      toFiniteNumber(metadata.valor_tpl_tasador_ajustado) ??
+      toPositiveValuationNumber(metadata.valor_tpl_tecnico) ??
+      toPositiveValuationNumber(metadata.valor_tpl_tasador_base) ??
+      toPositiveValuationNumber(metadata.valor_tpl_tasador_ajustado) ??
       null,
     communalAverageValue:
-      toFiniteNumber(metadata.valor_comunal) ??
-      toFiniteNumber(metadata.valor_promedio_comunal) ??
-      toFiniteNumber(metadata.valor_tpl_promedio_comunal) ??
+      toPositiveValuationNumber(metadata.valor_comunal) ??
+      toPositiveValuationNumber(metadata.valor_promedio_comunal) ??
+      toPositiveValuationNumber(metadata.valor_tpl_promedio_comunal) ??
       null,
-    recommendedValue: toFiniteNumber(metadata.valor_tpl_recomendado) ?? null,
+    recommendedValue:
+      toPositiveValuationNumber(metadata.valor_tpl_recomendado) ??
+      toPositiveValuationNumber(metadata.valor_tpl_tasador_ajustado) ??
+      toPositiveValuationNumber(metadata.valor_tpl_tasador) ??
+      null,
   };
 }
 

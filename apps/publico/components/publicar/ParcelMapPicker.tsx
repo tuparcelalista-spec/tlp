@@ -21,7 +21,17 @@ L.Icon.Default.mergeOptions({
 export interface ParcelMapPickerProps {
   lat: number | null;
   lng: number | null;
-  onChange: (lat: number, lng: number) => void;
+  /** Requerido solo en modo interactivo (arrastrar/clic) — el modo solo-lectura no lo llama nunca. */
+  onChange?: (lat: number, lng: number) => void;
+  /**
+   * `true` (por defecto): pin arrastrable + clic para marcar — uso del
+   * wizard de Publicar. `false`: pin fijo, sin arrastre ni clic — uso de la
+   * ficha pública de detalle, donde el visitante NUNCA debe poder mover la
+   * ubicación real de la propiedad.
+   */
+  interactive?: boolean;
+  /** Solo modo no interactivo — texto del popup del pin (ej. el título de la propiedad). */
+  popupText?: string;
 }
 
 /** Centro-sur de Chile — misma zona donde hoy está el catálogo real de TPL, no un punto arbitrario. */
@@ -30,11 +40,13 @@ const DEFAULT_ZOOM = 8;
 const PIN_ZOOM = 13;
 
 /**
- * Cargado exclusivamente vía `next/dynamic(..., { ssr: false })` desde
- * `PublishWizard.tsx` — Leaflet toca `window`/`document` directamente y
- * nunca debe evaluarse en el servidor.
+ * Cargado exclusivamente vía `next/dynamic(..., { ssr: false })` — Leaflet
+ * toca `window`/`document` directamente y nunca debe evaluarse en el
+ * servidor. Reutilizado en dos contextos (wizard de Publicar y ficha
+ * pública de detalle) en vez de duplicar el componente — la única
+ * diferencia real entre ambos es si el pin se puede mover.
  */
-export function ParcelMapPicker({ lat, lng, onChange }: ParcelMapPickerProps) {
+export function ParcelMapPicker({ lat, lng, onChange, interactive = true, popupText }: ParcelMapPickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -46,22 +58,29 @@ export function ParcelMapPicker({ lat, lng, onChange }: ParcelMapPickerProps) {
     if (!containerRef.current || mapRef.current) return;
 
     const initialCenter: [number, number] = lat !== null && lng !== null ? [lat, lng] : DEFAULT_CENTER;
-    const map = L.map(containerRef.current).setView(initialCenter, lat !== null ? PIN_ZOOM : DEFAULT_ZOOM);
+    const map = L.map(containerRef.current, { dragging: true, scrollWheelZoom: interactive }).setView(
+      initialCenter,
+      lat !== null ? PIN_ZOOM : DEFAULT_ZOOM,
+    );
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
     }).addTo(map);
 
-    const marker = L.marker(initialCenter, { draggable: true }).addTo(map);
-    marker.on("dragend", () => {
-      const pos = marker.getLatLng();
-      onChangeRef.current(pos.lat, pos.lng);
-    });
-    map.on("click", (event: L.LeafletMouseEvent) => {
-      marker.setLatLng(event.latlng);
-      onChangeRef.current(event.latlng.lat, event.latlng.lng);
-    });
+    const marker = L.marker(initialCenter, { draggable: interactive }).addTo(map);
+    if (popupText) marker.bindPopup(popupText);
+
+    if (interactive) {
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        onChangeRef.current?.(pos.lat, pos.lng);
+      });
+      map.on("click", (event: L.LeafletMouseEvent) => {
+        marker.setLatLng(event.latlng);
+        onChangeRef.current?.(event.latlng.lat, event.latlng.lng);
+      });
+    }
 
     mapRef.current = map;
     markerRef.current = marker;

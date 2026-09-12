@@ -1,7 +1,7 @@
 "use server";
 
 import { cache } from "react";
-import { searchProperties, createDefaultRepository } from "./supabaseSearchRepository";
+import { searchProperties, getDefaultRepository } from "./supabaseSearchRepository";
 import {
   toSearchViewModel,
   toPropertyDetailViewModel,
@@ -12,7 +12,8 @@ import {
   type PropertyCardViewModel,
   type HomeCatalogSummary,
 } from "./presentation";
-import type { SearchFilters, RankingOptions, PropertyType } from "@tpl/core";
+import { HOUSE_MODELS, type SearchFilters, type RankingOptions, type PropertyType } from "@tpl/core";
+import { adaptCasasToHouses } from "./houseAdapter";
 
 /**
  * Server Action — Bloque 2.4. Único punto de contacto entre el
@@ -39,7 +40,8 @@ export interface RunPropertySearchInput {
 }
 
 export async function runPropertySearch(input: RunPropertySearchInput): Promise<SearchViewModel> {
-  const result = await searchProperties(input.filters, { ranking: input.ranking });
+  const houses = input.filters.intent === "project" ? adaptCasasToHouses(HOUSE_MODELS) : undefined;
+  const result = await searchProperties(input.filters, { ranking: input.ranking, houses });
   return toSearchViewModel(result, { filters: input.filters, ranking: input.ranking, origin: input.origin });
 }
 
@@ -70,7 +72,9 @@ export async function runPropertySearch(input: RunPropertySearchInput): Promise<
  * cachear una respuesta entre usuarios distintos.
  */
 export const getPropertyDetail = cache(async function getPropertyDetail(code: string): Promise<PropertyDetailViewModel | null> {
-  const repository = createDefaultRepository();
+  // P1-06: `getDefaultRepository()` está memoizado por render, así que el
+  // cliente Supabase no se reconstruye en cada llamada.
+  const repository = getDefaultRepository();
   const property = await repository.getByCode(code);
   if (!property) return null;
   return toPropertyDetailViewModel(property);

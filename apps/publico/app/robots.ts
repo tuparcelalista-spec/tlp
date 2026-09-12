@@ -10,7 +10,7 @@ import { SITE_URL } from "../lib/seo/site";
  */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: ["/search-demo", "/mi-parcela"] }],
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/search-demo", "/mi-parcela", "/design-system"] }],
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

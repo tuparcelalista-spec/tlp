@@ -7,9 +7,7 @@ import { RelatedProperties } from "../../../components/property/RelatedPropertie
 import { PropertyLocationCard } from "../../../components/property/PropertyLocationCard";
 import { ScheduleVisitDialog } from "../../../components/property/ScheduleVisitDialog";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo/site";
-
-/** Mismo número ya usado por los CTA de WhatsApp de esta ficha. */
-const WHATSAPP_PHONE = "56988508361";
+import { WHATSAPP_PHONE } from "../../../lib/contact";
 
 /**
  * `/cotizador` ya existe en `apps/publico` (creado fuera de esta tarea,
@@ -96,21 +94,33 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
   const hasValuation = property.valuation.technicalValueLabel || property.valuation.communalAverageValueLabel || property.valuation.recommendedValueLabel;
 
   /**
-   * JSON-LD conservador (Fase 3.7): solo campos con dato real. Sin
-   * dirección exacta (no existe en `Property`, solo región/comuna/sector),
-   * sin rating/reviews (no existen). `Product` en vez de un tipo más
-   * específico de inmueble porque es el que soporta `offers.price` sin
-   * exigir campos que no tenemos con confianza (ej. `streetAddress`).
+   * P1-07 — Datos estructurados schema.org para buscadores:
+   * Se utiliza `RealEstateListing` (paridad con el legacy `frontend-v2/js/tpl-seo.js`)
+   * enriquecido con `PostalAddress` (`comuna`, `region`, `CL`) y `Offer` (`price`, `currency`, `InStock`).
    */
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "RealEstateListing",
     name: property.title,
     description: property.description || undefined,
-    url: `${SITE_URL}/propiedades/${property.code}`,
+    url: `${SITE_URL}/propiedades/${encodeURIComponent(property.code)}`,
     image: property.gallery.map((img) => img.url).filter((url): url is string => Boolean(url)),
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: property.commune || undefined,
+      addressRegion: property.region || undefined,
+      addressCountry: "CL",
+    },
     ...(property.price !== null
-      ? { offers: { "@type": "Offer", price: property.price, priceCurrency: property.currency, availability: "https://schema.org/InStock" } }
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: property.price,
+            priceCurrency: property.currency,
+            availability: "https://schema.org/InStock",
+            url: `${SITE_URL}/propiedades/${encodeURIComponent(property.code)}`,
+          },
+        }
       : {}),
   };
 
@@ -170,6 +180,32 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           </section>
         ) : null}
 
+        {property.video?.url ? (
+          <section aria-labelledby="video-heading">
+            <h2 id="video-heading">Video de la Parcela</h2>
+            <div
+              style={{
+                borderRadius: "16px",
+                overflow: "hidden",
+                background: "#0f172a",
+                maxWidth: "850px",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+              }}
+            >
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                poster={property.video.thumbnailUrl || undefined}
+                style={{ width: "100%", maxHeight: "500px", display: "block" }}
+              >
+                <source src={property.video.url} type="video/mp4" />
+                Tu navegador no soporta la reproducción de video HTML5.
+              </video>
+            </div>
+          </section>
+        ) : null}
+
         <section aria-labelledby="ubicacion-heading">
           <h2 id="ubicacion-heading">Ubicación</h2>
           {/*
@@ -187,6 +223,14 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
           <Stack direction="row" gap={3} wrap>
             <Button href={`https://wa.me/${WHATSAPP_PHONE}?text=${whatsappMessage}`} variant="whatsapp">
               Consultar por WhatsApp
+            </Button>
+            <Button
+              href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
+                `Hola, me interesa hacer una oferta por "${property.title}" (código ${property.code}). ¿Podemos conversar?`,
+              )}`}
+              variant="secondary"
+            >
+              Hacer una oferta
             </Button>
             <ScheduleVisitDialog propertyTitle={property.title} propertyCode={property.code} whatsappPhone={WHATSAPP_PHONE} />
             <Button href={cotizadorHref(property.code)} variant="gold">

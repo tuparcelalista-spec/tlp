@@ -17,7 +17,8 @@ import {
   type PublishPlan,
 } from "../../lib/publicar/wizardState";
 
-const WHATSAPP_PHONE = "56988508361";
+import { WHATSAPP_PHONE } from "../../lib/contact";
+
 const TOTAL_STEPS = 4;
 
 const STEP_LABELS = [

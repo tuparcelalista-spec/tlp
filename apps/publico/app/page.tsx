@@ -4,6 +4,7 @@ import { getFeaturedProperties, getOpportunityProperties, getHomeCatalogSummary 
 import { SearchResultCard } from "../components/search/SearchResultCard";
 import { CommuneRibbon } from "../components/home/CommuneRibbon";
 import { TrustBar } from "../components/home/TrustBar";
+import { SITE_URL, SITE_NAME } from "../lib/seo/site";
 
 /**
  * Home pública — Fase 3.6. Reutiliza el mismo `SearchWidgetServer`/
@@ -18,6 +19,23 @@ import { TrustBar } from "../components/home/TrustBar";
  * viene de `getHomeCatalogSummary()`, una sola consulta real, calculada acá
  * en el servidor antes del primer render.
  */
+
+/**
+ * P0-02 — ISR (2026-09-12). Antes esta ruta se prerenderizaba en el build y
+ * NUNCA se volvía a generar: una parcela publicada o editada en Supabase no
+ * aparecía en la Home (destacadas, oportunidades, ribbon de comunas, trust
+ * bar) hasta un redeploy manual. Verificado en el log de build real:
+ * `○ / ` marcado como Static, y `grep revalidate` sin un solo resultado en
+ * todo `apps/publico`.
+ *
+ * Con `revalidate = 3600` la página sigue sirviéndose desde caché —el
+ * visitante no espera nunca a Supabase— pero Next la regenera en segundo
+ * plano como máximo una hora después del primer pedido que la encuentre
+ * vencida. Es exactamente el "SSG + ISR" que pide el Plan Maestro §5 para
+ * la Fase 3.
+ */
+export const revalidate = 3600;
+
 export default async function Home() {
   const [featured, opportunities, catalogSummary] = await Promise.all([
     getFeaturedProperties(6),
@@ -25,8 +43,42 @@ export default async function Home() {
     getHomeCatalogSummary(),
   ]);
 
+  const realEstateAgentSchema = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    name: SITE_NAME,
+    url: `${SITE_URL}/`,
+    image: `${SITE_URL}/legacy-image/logo_compartir.png`,
+    description:
+      "Portal de venta de parcelas y campos en Chile: comparación de alternativas, tasación técnica TPL y acompañamiento para proyectos de vivienda rural.",
+    areaServed: {
+      "@type": "Country",
+      name: "Chile",
+    },
+  };
+
+  const webSiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: `${SITE_URL}/`,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/propiedades?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(realEstateAgentSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+      />
       <CommuneRibbon communesByRegion={catalogSummary.communesByRegion} />
       <TrustBar
         totalPublished={catalogSummary.totalPublished}
