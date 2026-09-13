@@ -44,10 +44,16 @@ export interface FoundationOption {
 
 export type ExtraWorkUnit = "unidad" | "metro" | "mt2" | "hora";
 
+export type ExtraWorkBase = "manual" | "casa_m2" | "parcela_perimetro";
+
+export type ExtraWorkCategory = "terminaciones" | "servicios" | "amenidades";
+
 export interface AdditionalWorkItem {
   id: string;
   nombre: string;
   tipoCalculo: ExtraWorkUnit;
+  base?: ExtraWorkBase;
+  category?: ExtraWorkCategory;
   valorUnitario: number;
   defaultQty: number;
   minQty: number;
@@ -74,6 +80,7 @@ export type HousingChoice =
 
 export interface CotizadorConfiguration {
   parcelPriceClp?: number;
+  parcelSurfaceM2?: number;
   housing: HousingChoice;
   foundationId?: string;
   selectedExtras: SelectedExtraWork[];

@@ -49,9 +49,16 @@ export function calculateProjectBudget(config: CotizadorConfiguration): ProjectB
   const extrasBreakdown: ProjectBudgetEstimate["details"]["extrasBreakdown"] = [];
 
   for (const item of config.selectedExtras) {
-    const workDef = ADDITIONAL_WORKS.find((w) => w.id === item.workId);
+    const workDef = ADDITIONAL_WORKS.find(
+      (w) =>
+        w.id.toLowerCase() === item.workId.toLowerCase() ||
+        w.id.toLowerCase().replace(/_/g, " ") === item.workId.toLowerCase().replace(/_/g, " ")
+    );
     if (workDef && item.quantity > 0) {
-      const qty = Math.min(workDef.maxQty, Math.max(workDef.minQty, item.quantity));
+      let qty = Math.min(workDef.maxQty, Math.max(workDef.minQty, item.quantity));
+      if (workDef.base === "casa_m2") {
+        qty = houseSurfaceM2 > 0 ? houseSurfaceM2 : qty;
+      }
       const subtotal = workDef.valorUnitario * qty;
       extrasPrice += subtotal;
       extrasBreakdown.push({

@@ -62,6 +62,45 @@ export function runCotizadorTests() {
   assert.equal(estimate2.totalProjectPrice, rateMetalcon * 80);
   assert.ok(estimate2.details.houseName.includes("Metalcon"));
 
+  // Test 4: Catálogo completo de 15 obras y cálculo dinámico base casa_m2
+  assert.ok(ADDITIONAL_WORKS.length >= 15, "Debe contener al menos 15 obras adicionales");
+  // P1-05: ids fieles al legacy (frontend-v2/extras.js) — no las variantes
+  // que se habían colado ("instalacion_electrica" en minúscula, "porton_acceso").
+  const elec = ADDITIONAL_WORKS.find((w) => w.id === "Instalacion_electrica");
+  assert.ok(elec, "Debe existir Instalacion_electrica (con mayúscula, igual que el legacy)");
+  assert.equal(elec?.base, "casa_m2", "Base de Instalacion_electrica debe ser casa_m2");
+
+  const pisoCeramico = ADDITIONAL_WORKS.find((w) => w.id === "piso ceramico");
+  assert.ok(pisoCeramico, "El id debe ser 'piso ceramico' (con espacio), igual que el legacy");
+
+  assert.ok(ADDITIONAL_WORKS.some((w) => w.id === "porton"), "El id debe ser 'porton', igual que el legacy");
+  assert.ok(!ADDITIONAL_WORKS.some((w) => w.id === "porton_acceso"), "'porton_acceso' no debe existir: no es el id original");
+
+  // Los maxQty deben calzar exactamente con frontend-v2/extras.js.
+  assert.equal(ADDITIONAL_WORKS.find((w) => w.id === "artefactos_cocina")?.maxQty, 1);
+  assert.equal(ADDITIONAL_WORKS.find((w) => w.id === "artefactos_bano")?.maxQty, 3);
+  assert.equal(ADDITIONAL_WORKS.find((w) => w.id === "fosa_septica")?.maxQty, 5);
+  assert.equal(ADDITIONAL_WORKS.find((w) => w.id === "cierre_perimetral")?.maxQty, 500);
+  assert.equal(ADDITIONAL_WORKS.find((w) => w.id === "quincho")?.maxQty, 30);
+
+  const estimate4 = calculateProjectBudget({
+    parcelPriceClp: 20000000,
+    housing: {
+      mode: "prefab",
+      houseModelId: "aura36", // 36 m²
+    },
+    selectedExtras: [
+      { workId: "Instalacion_electrica", quantity: 1 }, // 15.000 * 36 = 540.000 (prueba de case insensitivity)
+      { workId: "piso_ceramico", quantity: 1 }, // 32.000 * 36 = 1.152.000
+    ],
+  });
+
+  assert.equal(estimate4.houseSurfaceM2, 36);
+  assert.equal(estimate4.extrasPrice, 15000 * 36 + 32000 * 36);
+  assert.equal(estimate4.details.extrasBreakdown.length, 2);
+  assert.equal(estimate4.details.extrasBreakdown[0].quantity, 36);
+  assert.equal(estimate4.details.extrasBreakdown[0].subtotal, 540000);
+
   console.log("✓ Todos los tests del Cotizador Core pasaron exitosamente.");
 }
 

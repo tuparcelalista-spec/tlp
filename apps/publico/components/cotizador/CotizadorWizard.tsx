@@ -47,6 +47,7 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
     cierre_perimetral: 0,
     porton_acceso: 0,
   });
+  const [activeExtraCategory, setActiveExtraCategory] = useState<"todas" | "terminaciones" | "servicios" | "amenidades">("todas");
 
   const selectedParcel = initialProperties.find((p) => p.code === selectedParcelCode);
   const parcelPrice = selectedParcelCode === "own_parcel" ? 0 : (selectedParcel?.price ?? 0);
@@ -554,14 +555,51 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                     <Badge variant="accent">Llave en Mano</Badge>
                   </div>
                   <p style={{ color: "#4a5d6e", margin: 0, lineHeight: 1.5 }}>
-                    Agrega los servicios indispensables para habilitar y habitar tu parcela de campo desde el primer día.
+                    Agrega las terminaciones interiores, servicios básicos y amenidades exteriores para tu proyecto integral.
                   </p>
 
+                  {/* Pestañas de categoría */}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBlock: "6px" }}>
+                    {[
+                      { id: "todas", label: "Todas las obras (15)" },
+                      { id: "terminaciones", label: "Terminaciones interiores (6)" },
+                      { id: "servicios", label: "Servicios de campo (6)" },
+                      { id: "amenidades", label: "Exteriores & Amenidades (3)" },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setActiveExtraCategory(cat.id as any)}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: "20px",
+                          border: activeExtraCategory === cat.id ? "2px solid #003f7a" : "1px solid #cbd5e1",
+                          backgroundColor: activeExtraCategory === cat.id ? "#003f7a" : "#fff",
+                          color: activeExtraCategory === cat.id ? "#fff" : "#334155",
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
                   <div style={{ display: "grid", gap: "14px" }}>
-                    {ADDITIONAL_WORKS.map((work) => {
+                    {ADDITIONAL_WORKS.filter(
+                      (w) => activeExtraCategory === "todas" || w.category === activeExtraCategory
+                    ).map((work) => {
                       const qty = selectedExtras[work.id] || 0;
                       const isActive = qty > 0;
-                      const subtotal = work.valorUnitario * qty;
+                      const isAreaBased = work.base === "casa_m2";
+                      const effectiveQty = isAreaBased ? estimate.houseSurfaceM2 : qty;
+                      const subtotal = isActive ? work.valorUnitario * effectiveQty : 0;
+                      const stepDelta =
+                        work.id === "cierre_perimetral" ? 20 :
+                        work.id === "pozo_profundo" ? 5 :
+                        work.tipoCalculo === "mt2" || work.tipoCalculo === "hora" ? 2 : 1;
 
                       return (
                         <div
@@ -582,7 +620,14 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                                 style={{ width: "18px", height: "18px", marginTop: "3px", accentColor: "#003f7a" }}
                               />
                               <div>
-                                <strong style={{ display: "block", color: "#132437" }}>{work.nombre}</strong>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <strong style={{ color: "#132437" }}>{work.nombre}</strong>
+                                  {isAreaBased && (
+                                    <span style={{ fontSize: "0.75rem", padding: "2px 8px", borderRadius: "12px", background: "rgba(0,63,122,0.08)", color: "#003f7a", fontWeight: 700 }}>
+                                      Por m² de casa
+                                    </span>
+                                  )}
+                                </div>
                                 <p style={{ fontSize: "0.85rem", color: "#64748b", margin: "2px 0 0 0" }}>{work.descripcion}</p>
                               </div>
                             </div>
@@ -597,13 +642,19 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                             </div>
                           </div>
 
-                          {isActive && work.maxQty > 1 && (
+                          {isActive && isAreaBased && (
+                            <div style={{ marginTop: "10px", paddingLeft: "30px", fontSize: "0.85rem", color: "#003f7a", fontWeight: 600 }}>
+                              ✓ Calculado para los {estimate.houseSurfaceM2} m² de la vivienda seleccionada ({estimate.houseSurfaceM2} m² × ${fmt(work.valorUnitario)})
+                            </div>
+                          )}
+
+                          {isActive && !isAreaBased && work.maxQty > 1 && (
                             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "12px", paddingLeft: "30px" }}>
                               <span style={{ fontSize: "0.85rem", color: "#475569" }}>Cantidad ({work.tipoCalculo}s):</span>
                               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                                 <button
                                   type="button"
-                                  onClick={() => updateExtraQty(work.id, -10, work.minQty, work.maxQty)}
+                                  onClick={() => updateExtraQty(work.id, -stepDelta, work.minQty, work.maxQty)}
                                   style={{ width: "28px", height: "28px", borderRadius: "4px", border: "1px solid #cbd5e1" }}
                                 >
                                   -
@@ -611,7 +662,7 @@ export function CotizadorWizard({ initialProperties, preselectedParcelCode }: Co
                                 <strong style={{ minWidth: "30px", textAlign: "center" }}>{qty}</strong>
                                 <button
                                   type="button"
-                                  onClick={() => updateExtraQty(work.id, 10, work.minQty, work.maxQty)}
+                                  onClick={() => updateExtraQty(work.id, stepDelta, work.minQty, work.maxQty)}
                                   style={{ width: "28px", height: "28px", borderRadius: "4px", border: "1px solid #cbd5e1" }}
                                 >
                                   +

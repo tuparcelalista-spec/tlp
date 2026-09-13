@@ -1,9 +1,9 @@
 import { Container, Section, Grid, Button, Stack } from "@tpl/ui";
-import { SearchWidgetServer } from "../components/search";
-import { getFeaturedProperties, getOpportunityProperties, getHomeCatalogSummary } from "../lib/search/actions";
+import { listAvailableCommunes, getFeaturedProperties, getOpportunityProperties, getHomeCatalogSummary } from "../lib/search/actions";
 import { SearchResultCard } from "../components/search/SearchResultCard";
 import { CommuneRibbon } from "../components/home/CommuneRibbon";
 import { TrustBar } from "../components/home/TrustBar";
+import { HomeHero } from "../components/home/HomeHero";
 import { SITE_URL, SITE_NAME } from "../lib/seo/site";
 
 /**
@@ -37,10 +37,11 @@ import { SITE_URL, SITE_NAME } from "../lib/seo/site";
 export const revalidate = 3600;
 
 export default async function Home() {
-  const [featured, opportunities, catalogSummary] = await Promise.all([
+  const [featured, opportunities, catalogSummary, availableCommunes] = await Promise.all([
     getFeaturedProperties(6),
     getOpportunityProperties(6),
     getHomeCatalogSummary(),
+    listAvailableCommunes(),
   ]);
 
   const realEstateAgentSchema = {
@@ -86,13 +87,7 @@ export default async function Home() {
         regionCount={catalogSummary.regionCount}
       />
 
-      <Section tone="canvas">
-        <Container>
-          <h1>En tu proyecto de campo te acompañamos.</h1>
-          <p>Libertad, inversión y tranquilidad — busca la parcela o el campo que necesitas, con datos reales y sin sorpresas.</p>
-          <SearchWidgetServer />
-        </Container>
-      </Section>
+      <HomeHero initialCommunes={availableCommunes} />
 
       {featured.length > 0 ? (
         <Section tone="raised">
