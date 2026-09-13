@@ -2,7 +2,7 @@
   "name": "@tpl/crm",
   "version": "0.0.0",
   "private": true,
-  "description": "CRM/Admin (Plan Maestro §3). Fase 1: infraestructura vacía, sin ningún módulo migrado. No sirve tráfico real y no interrumpe el CRM actual del equipo.",
+  "description": "CRM/Admin (Plan Maestro §3). Migración incremental de crm-tpl-v1 (2026-09-13): 'Pipeline comercial', 'Clientes, leads y partners' (Actores), 'Parcelas' (listado + editor integral + compartir) y 'Tasaciones' (historial global + Herramientas/Informe Premium: link propietario, Tasador TPL, Análisis de Mercado IA con Gemini) ya migrados end-to-end contra Supabase. El resto de los módulos de crm-tpl-v1 sigue sin migrar.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -14,6 +14,9 @@
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "@supabase/supabase-js": "^2.112.4",
+    "@supabase/ssr": "^0.5.2",
+    "leaflet": "^1.9.4",
     "@tpl/ui": "workspace:*",
     "@tpl/core": "workspace:*"
   },
@@ -21,6 +24,7 @@
     "typescript": "^5.6.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "@types/leaflet": "^1.9.12"
   }
 }
