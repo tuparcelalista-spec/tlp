@@ -3,6 +3,8 @@ import type {
   Property,
   PropertyType,
   PropertyVideo,
+  PropertyCharacteristics,
+  PropertyValuation,
   SearchResult,
   SearchFilters,
   RankingOptions,
@@ -296,18 +298,21 @@ export interface PropertyDetailViewModel {
   /** Para una futura sección de mapa (Fase 3, "regla especial sobre mapa") — no se renderiza ningún mapa en este bloque. */
   coordinates: { lat: number; lng: number } | null;
   areaLabel?: string;
+  landAreaM2: number | null;
   builtAreaLabel?: string;
   /** Crudo — ver `type` arriba: evita reparsear `priceLabel` (string) para construir filtros de "relacionadas". */
   price: number | null;
   priceLabel?: string;
   currency: string;
   characteristics: PropertyCardAttribute[];
+  rawCharacteristics: PropertyCharacteristics;
   gallery: PropertyGalleryImageViewModel[];
   coverImageUrl: string | null;
   featured: boolean;
   opportunity: boolean;
   publishedAt: string | null;
   valuation: PropertyValuationViewModel;
+  rawValuation: PropertyValuation;
   video: PropertyVideo | null;
 }
 
@@ -332,17 +337,20 @@ export function toPropertyDetailViewModel(property: Property): PropertyDetailVie
     sector: property.sector,
     coordinates: property.coordinates,
     areaLabel: formatAreaM2(property.landAreaM2),
+    landAreaM2: property.landAreaM2,
     builtAreaLabel: formatAreaM2(property.builtAreaM2),
     price: property.price,
     priceLabel: formatPriceCLP(property.price),
     currency: property.currency,
     characteristics: toDetailCharacteristics(property),
+    rawCharacteristics: property.characteristics,
     gallery,
     coverImageUrl: cover.url,
     featured: property.featured,
     opportunity: property.opportunity,
     publishedAt: property.publishedAt,
     valuation: toValuationViewModel(property),
+    rawValuation: property.valuation,
     video: property.video,
   };
 }

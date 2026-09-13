@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Container, Section, Badge, Button, Area, PropertyLocation, Stat, Stack } from "@tpl/ui";
+import { Container, Section, Badge, Button, PropertyLocation, Stack } from "@tpl/ui";
 import { getPropertyDetail } from "../../../lib/search/actions";
 import { PropertyGallery } from "../../../components/property/PropertyGallery";
+import { PropertyFeaturesRibbon } from "../../../components/property/PropertyFeaturesRibbon";
+import { PropertyValuationCard } from "../../../components/property/PropertyValuationCard";
+import { PropertySidebarCard } from "../../../components/property/PropertySidebarCard";
+import { PropertyDistances } from "../../../components/property/PropertyDistances";
+import {
+  PropertyWeatherHeaderBadge,
+  PropertyWeatherWidget,
+} from "../../../components/property/PropertyWeatherWidget";
 import { RelatedProperties } from "../../../components/property/RelatedProperties";
 import { PropertyLocationCard } from "../../../components/property/PropertyLocationCard";
 import { ScheduleVisitDialog } from "../../../components/property/ScheduleVisitDialog";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo/site";
 import { WHATSAPP_PHONE } from "../../../lib/contact";
+import { propertyPageCss } from "./propertyPage.css";
 
 /**
  * `/cotizador` ya existe en `apps/publico` (creado fuera de esta tarea,
@@ -126,122 +135,161 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
 
   return (
     <Section tone="canvas">
+      <style>{propertyPageCss}</style>
       {/* `<` escapado a <: si una descripción real alguna vez contuviera "</script>", no debe poder cerrar esta etiqueta. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Container>
-        <Stack direction="column" gap={2}>
-          <PropertyLocation>{property.location}</PropertyLocation>
-          <h1>{property.title}</h1>
+        {/* Encabezado Superior con Breadcrumb y Badge de Clima */}
+        <div style={{ marginBottom: "16px" }}>
+          <div className="tpl-prop-header-top">
+            <PropertyLocation>{property.location}</PropertyLocation>
+            <PropertyWeatherHeaderBadge coordinates={property.coordinates} />
+          </div>
+          <h1 className="tpl-prop-title">{property.title}</h1>
           <Stack direction="row" gap={2} wrap>
             {property.featured ? <Badge variant="accent">Destacada</Badge> : null}
             {property.opportunity ? <Badge variant="accent">Oportunidad TPL</Badge> : null}
             <Badge variant="neutral">Código: {property.code}</Badge>
           </Stack>
-        </Stack>
+        </div>
 
+        {/* Galería Bento Grid con Visor Modal Fullscreen */}
         <PropertyGallery images={property.gallery} title={property.title} />
 
-        <Stack direction="row" gap={6} wrap>
-          {property.areaLabel ? <Area value={property.areaLabel} label="Superficie del terreno" /> : null}
-          {property.builtAreaLabel ? <Area value={property.builtAreaLabel} label="Superficie construida" /> : null}
-          {property.priceLabel ? <Stat value={property.priceLabel} label="Precio publicado" /> : null}
-        </Stack>
+        {/* Distancias a Ciudades y Servicios Esenciales */}
+        <PropertyDistances coordinates={property.coordinates} commune={property.commune} />
 
-        {property.description ? (
-          <section aria-labelledby="descripcion-heading">
-            <h2 id="descripcion-heading">Descripción</h2>
-            <p>{property.description}</p>
-          </section>
-        ) : null}
+        {/* Layout Asimétrico de 2 Columnas (65% Contenido / 35% Sidebar Sticky) */}
+        <div className="tpl-property-grid">
+          {/* Columna Principal */}
+          <div className="tpl-main-col">
+            {/* Ribbon de Características Clave (Agua, Luz, Rol, Entorno, Superficie) + Virtudes */}
+            <PropertyFeaturesRibbon
+              characteristics={property.rawCharacteristics}
+              areaLabel={property.areaLabel}
+              landAreaM2={property.landAreaM2}
+              description={property.description}
+            />
 
-        {property.characteristics.length > 0 ? (
-          <section aria-labelledby="caracteristicas-heading">
-            <h2 id="caracteristicas-heading">Características</h2>
-            <ul>
-              {property.characteristics.map((item) => (
-                <li key={item.label}>{item.label}</li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+            {/* Acerca de esta Parcela */}
+            {property.description ? (
+              <section className="tpl-prop-section" aria-labelledby="descripcion-heading">
+                <h2 id="descripcion-heading" className="tpl-prop-section-title">
+                  Acerca de esta parcela
+                </h2>
+                <p className="tpl-prop-desc">{property.description}</p>
+              </section>
+            ) : null}
 
-        {hasValuation ? (
-          <section aria-labelledby="valoracion-heading">
-            <h2 id="valoracion-heading">Valoración TPL</h2>
-            <Stack direction="row" gap={6} wrap>
-              {property.valuation.technicalValueLabel ? <Stat value={property.valuation.technicalValueLabel} label="Valor TPL Técnico" /> : null}
-              {property.valuation.communalAverageValueLabel ? (
-                <Stat value={property.valuation.communalAverageValueLabel} label="Valor TPL Promedio Comunal" />
-              ) : null}
-              {property.valuation.recommendedValueLabel ? (
-                <Stat value={property.valuation.recommendedValueLabel} label="Valor TPL Recomendado" />
-              ) : null}
-            </Stack>
-          </section>
-        ) : null}
+            {/* Video Cinemático Veo / TPL Studio */}
+            {property.video?.url ? (
+              <section className="tpl-prop-section" aria-labelledby="video-heading">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span
+                      style={{
+                        background: "#f59e0b",
+                        color: "#000",
+                        fontSize: "11px",
+                        fontWeight: 800,
+                        padding: "3px 8px",
+                        borderRadius: "4px",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      TPL Studio · Veo
+                    </span>
+                    <h2 id="video-heading" className="tpl-prop-section-title" style={{ margin: 0 }}>
+                      Video Cinemático de la Parcela
+                    </h2>
+                  </div>
+                  <span style={{ fontSize: "12px", color: "#64748b" }}>16:9 Panorámico</span>
+                </div>
+                <div
+                  style={{
+                    borderRadius: "16px",
+                    overflow: "hidden",
+                    background: "#0f172a",
+                    maxWidth: "850px",
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <video
+                    controls
+                    playsInline
+                    preload="metadata"
+                    poster={property.video.thumbnailUrl || undefined}
+                    style={{ width: "100%", maxHeight: "500px", display: "block" }}
+                  >
+                    <source src={property.video.url} type="video/mp4" />
+                    Tu navegador no soporta la reproducción de video HTML5.
+                  </video>
+                </div>
+              </section>
+            ) : null}
 
-        {property.video?.url ? (
-          <section aria-labelledby="video-heading">
-            <h2 id="video-heading">Video de la Parcela</h2>
-            <div
-              style={{
-                borderRadius: "16px",
-                overflow: "hidden",
-                background: "#0f172a",
-                maxWidth: "850px",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-              }}
-            >
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster={property.video.thumbnailUrl || undefined}
-                style={{ width: "100%", maxHeight: "500px", display: "block" }}
-              >
-                <source src={property.video.url} type="video/mp4" />
-                Tu navegador no soporta la reproducción de video HTML5.
-              </video>
-            </div>
-          </section>
-        ) : null}
+            {/* Tasación Inteligente TPL (4 Métricas + Market Track + Veredicto del Asesor) */}
+            <PropertyValuationCard
+              valuation={property.rawValuation}
+              valuationLabels={property.valuation}
+              price={property.price}
+              priceLabel={property.priceLabel}
+              commune={property.commune}
+            />
 
-        <section aria-labelledby="ubicacion-heading">
-          <h2 id="ubicacion-heading">Ubicación</h2>
-          {/*
-            Sin Leaflet ni ninguna librería de mapas nueva (regla vigente:
-            eso requiere aprobación explícita aparte) — `PropertyLocationCard`
-            es un componente limpio con link real a Google Maps.
-            `property.coordinates`/`distanceKm` (Search Core, @tpl/core)
-            siguen disponibles para cuando se apruebe un mapa embebido.
-          */}
-          <PropertyLocationCard location={property.location} coordinates={property.coordinates} />
-        </section>
+            {/* Ubicación y Entorno (Clima detallado + Mapa Leaflet) */}
+            <section className="tpl-prop-section" aria-labelledby="ubicacion-heading">
+              <h2 id="ubicacion-heading" className="tpl-prop-section-title">
+                Ubicación y Entorno
+              </h2>
+              <PropertyWeatherWidget coordinates={property.coordinates} commune={property.commune} region={property.region} />
+              <PropertyLocationCard location={property.location} coordinates={property.coordinates} />
+            </section>
 
-        <section aria-labelledby="contacto-heading">
-          <h2 id="contacto-heading">¿Te interesa esta propiedad?</h2>
-          <Stack direction="row" gap={3} wrap>
-            <Button href={`https://wa.me/${WHATSAPP_PHONE}?text=${whatsappMessage}`} variant="whatsapp">
-              Consultar por WhatsApp
-            </Button>
-            <Button
-              href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
-                `Hola, me interesa hacer una oferta por "${property.title}" (código ${property.code}). ¿Podemos conversar?`,
-              )}`}
-              variant="secondary"
-            >
-              Hacer una oferta
-            </Button>
-            <ScheduleVisitDialog propertyTitle={property.title} propertyCode={property.code} whatsappPhone={WHATSAPP_PHONE} />
-            <Button href={cotizadorHref(property.code)} variant="gold">
-              Cotizar casa en esta parcela
-            </Button>
-          </Stack>
-        </section>
+            {/* Acciones al Pie del Contenido */}
+            <section className="tpl-prop-section" aria-labelledby="contacto-heading">
+              <h2 id="contacto-heading" className="tpl-prop-section-title">
+                ¿Te interesa esta propiedad?
+              </h2>
+              <Stack direction="row" gap={3} wrap>
+                <Button href={`https://wa.me/${WHATSAPP_PHONE}?text=${whatsappMessage}`} variant="whatsapp">
+                  Consultar por WhatsApp
+                </Button>
+                <Button
+                  href={`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(
+                    `Hola, me interesa hacer una oferta por "${property.title}" (código ${property.code}). ¿Podemos conversar?`,
+                  )}`}
+                  variant="secondary"
+                >
+                  Hacer una oferta
+                </Button>
+                <ScheduleVisitDialog propertyTitle={property.title} propertyCode={property.code} whatsappPhone={WHATSAPP_PHONE} />
+                <Button href={cotizadorHref(property.code)} variant="gold">
+                  Cotizar casa en esta parcela
+                </Button>
+              </Stack>
+            </section>
 
-        <RelatedProperties
-          reference={{ code: property.code, commune: property.commune, propertyType: property.type, price: property.price }}
-        />
+            {/* Propiedades Relacionadas */}
+            <RelatedProperties
+              reference={{ code: property.code, commune: property.commune, propertyType: property.type, price: property.price }}
+            />
+          </div>
+
+          {/* Columna Lateral Sticky */}
+          <div className="tpl-sidebar-col">
+            <PropertySidebarCard
+              price={property.price}
+              priceLabel={property.priceLabel}
+              landAreaM2={property.landAreaM2}
+              communalBase={property.rawValuation?.communalAverageValue || property.rawValuation?.technicalValue}
+              recommendedValue={property.rawValuation?.recommendedValue}
+              propertyTitle={property.title}
+              propertyCode={property.code}
+              whatsappPhone={WHATSAPP_PHONE}
+            />
+          </div>
+        </div>
       </Container>
     </Section>
   );
