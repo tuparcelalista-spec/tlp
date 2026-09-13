@@ -1,0 +1,41 @@
+{
+  "resultados": [
+    {
+      "id": "6e96ad95-712e-4bf5-be11-cde89a2d1693",
+      "propiedad_id": "023b9e7d-0561-4f95-a5f8-c2dae6c85f1c",
+      "ok": true,
+      "url_anterior": "image/eric_arrepol/huacamala/Fotos_arregladas_ (4).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/023b9e7d-0561-4f95-a5f8-c2dae6c85f1c/1-Fotos_arregladas_-4.webp"
+    },
+    {
+      "id": "3c8b8c4e-2888-44a7-9a52-66558c5df38e",
+      "propiedad_id": "023b9e7d-0561-4f95-a5f8-c2dae6c85f1c",
+      "ok": true,
+      "url_anterior": "image/eric_arrepol/huacamala/gps_arreglado.webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/023b9e7d-0561-4f95-a5f8-c2dae6c85f1c/2-gps_arreglado.webp"
+    },
+    {
+      "id": "068e9034-b466-49f2-baed-3fd9aa83b119",
+      "propiedad_id": "023b9e7d-0561-4f95-a5f8-c2dae6c85f1c",
+      "ok": true,
+      "url_anterior": "image/eric_arrepol/huacamala/Fotos_arregladas_ (1).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/023b9e7d-0561-4f95-a5f8-c2dae6c85f1c/3-Fotos_arregladas_-1.webp"
+    },
+    {
+      "id": "4c95dca9-a370-46be-be57-fd9f059df7aa",
+      "propiedad_id": "093355bf-dd05-4579-a3ad-b4d3d6f5cf0e",
+      "ok": true,
+      "url_anterior": "image/samuel_florida/lote_a/a_florida_arreglada.webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/093355bf-dd05-4579-a3ad-b4d3d6f5cf0e/0-a_florida_arreglada.webp"
+    },
+    {
+      "id": "454eb30e-180a-4231-a6b0-af8844e21728",
+      "propiedad_id": "093355bf-dd05-4579-a3ad-b4d3d6f5cf0e",
+      "ok": true,
+      "url_anterior": "image/samuel_florida/lote_a/lote_a (1).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/093355bf-dd05-4579-a3ad-b4d3d6f5cf0e/1-lote_a-1.webp"
+    }
+  ],
+  "sinArchivo": [],
+  "sinContentType": []
+}

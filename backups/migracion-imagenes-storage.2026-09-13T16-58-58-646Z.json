@@ -1,0 +1,13 @@
+{
+  "resultados": [
+    {
+      "id": "aa023ca1-6ce9-4e55-b948-a7bff2d562cb",
+      "propiedad_id": "023b9e7d-0561-4f95-a5f8-c2dae6c85f1c",
+      "ok": true,
+      "url_anterior": "image/eric_arrepol/huacamala/Fotos_arregladas_ (3).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/023b9e7d-0561-4f95-a5f8-c2dae6c85f1c/0-Fotos_arregladas_-3.webp"
+    }
+  ],
+  "sinArchivo": [],
+  "sinContentType": []
+}

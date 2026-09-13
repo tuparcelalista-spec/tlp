@@ -1,0 +1,34 @@
+{
+  "resultados": [
+    {
+      "id": "52852153-5958-4848-abf2-af72f2105411",
+      "propiedad_id": "1bbe3e83-f464-48b1-8689-1201b2082cda",
+      "ok": false,
+      "url_anterior": "image/cesar_Caburgua/cesar_caburgua_(6).gif",
+      "error": "subida 400: {\"statusCode\":\"415\",\"error\":\"invalid_mime_type\",\"message\":\"mime type image/gif is not supported\",\"code\":\"InvalidMimeType\"}"
+    },
+    {
+      "id": "132a4c3b-4662-4579-81f1-de052d0b9a6a",
+      "propiedad_id": "2a32a70d-c7f8-4eb9-8f79-c8f76151f87f",
+      "ok": true,
+      "url_anterior": "image/nacimiento/nac_cheque_12/nac_chequenal_129_ (10).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/2a32a70d-c7f8-4eb9-8f79-c8f76151f87f/9-nac_chequenal_129_-10.webp"
+    },
+    {
+      "id": "62bb2334-c01e-459f-89b8-f1d7b5bbbc86",
+      "propiedad_id": "2cf624fd-4ead-42e4-af11-20227ddba2cb",
+      "ok": true,
+      "url_anterior": "image/nacimiento/nac_chequenal_12_2/chequenal_12.webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/2cf624fd-4ead-42e4-af11-20227ddba2cb/0-chequenal_12.webp"
+    },
+    {
+      "id": "68d315ae-1771-46ea-a10a-3a886ee8e8d2",
+      "propiedad_id": "86fc06ab-2a4c-427b-9d81-13db9d6177d7",
+      "ok": true,
+      "url_anterior": "image/nacimiento/los_guindos/los_guindos_89_1 (2).webp",
+      "url_nueva": "https://hwyscirbycojwndyzozn.supabase.co/storage/v1/object/public/tpl-propiedades-propietario/legacy/86fc06ab-2a4c-427b-9d81-13db9d6177d7/1-los_guindos_89_1-2.webp"
+    }
+  ],
+  "sinArchivo": [],
+  "sinContentType": []
+}
