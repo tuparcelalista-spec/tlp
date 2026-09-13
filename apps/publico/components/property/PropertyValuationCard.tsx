@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import type { PropertyValuation } from "@tpl/core";
 import type { PropertyValuationViewModel } from "../../lib/search/presentation";
