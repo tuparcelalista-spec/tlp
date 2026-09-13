@@ -3,13 +3,19 @@
  * `@tpl/core` en tiempo de ejecución (mismo criterio ya establecido en
  * `components/search/searchState.ts`): testeable con `node:assert` plano.
  *
- * Alcance de este bloque, a propósito acotado (autorizado explícitamente,
- * no una decisión mía): 4 pasos — Ubicación (región/comuna/sector/mapa),
- * Características (superficie/rol/agua/luz), Precio & Tasación, Planes &
- * Salida. NO incluye multimedia, video, redacción con IA, datos de
- * contacto (nombre/teléfono/correo/RUT) ni el bloque de vivienda del
- * wizard legacy completo (`publicar-v2` real, ver auditoría previa) — el
- * cierre es un mensaje de WhatsApp, no una escritura a Supabase todavía.
+ * Alcance, ampliado (2026-09-13) para que `/publicar` publique de verdad:
+ * 5 pasos — Ubicación (región/comuna/sector/mapa), Características
+ * (tipo/superficie/rol/agua/luz), Precio & Tasación, **Contacto** (nuevo:
+ * nombre + teléfono/correo — el dato que el propio wizard documentaba como
+ * faltante para poder llamar a `tpl_publicar_propiedad_v3`), Planes &
+ * Salida. Al elegir un plan se llama `publicarPropiedadAction()`
+ * (`lib/publicar/actions.ts`) ANTES de abrir WhatsApp — la propiedad queda
+ * real en Supabase (`estado: 'pendiente_revision'`, igual que el
+ * publicador legacy) y el mensaje de WhatsApp incluye el código real.
+ *
+ * Sigue sin incluir (fuera de este bloque, no un olvido): multimedia/fotos,
+ * video, redacción con IA, pago real de planes vía Flow — eso es
+ * `publicar-v2` completo, una migración de producto aparte.
  */
 
 const CLP_FORMATTER = new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
@@ -29,8 +35,11 @@ export function parseCLPInput(text: string): number | undefined {
 export type RolPropio = "" | "si" | "no" | "en_tramite";
 export type FactibilidadAgua = "" | "pozo" | "apr" | "vertiente";
 export type FactibilidadLuz = "" | "red" | "paneles";
+/** Mismos 3 valores que acepta `tpl_publicar_propiedad_v3_core` (`v_tipo not in (...)`). */
+export type TipoPropiedad = "" | "parcela" | "campo" | "casa_con_terreno";
 
 export interface PublishWizardFormState {
+  tipoPropiedad: TipoPropiedad;
   regionCode: string;
   comuna: string;
   sector: string;
@@ -41,9 +50,14 @@ export interface PublishWizardFormState {
   agua: FactibilidadAgua;
   luz: FactibilidadLuz;
   precioEsperadoText: string;
+  titulo: string;
+  contactoNombre: string;
+  contactoTelefono: string;
+  contactoCorreo: string;
 }
 
 export const INITIAL_PUBLISH_WIZARD_STATE: PublishWizardFormState = {
+  tipoPropiedad: "parcela",
   regionCode: "",
   comuna: "",
   sector: "",
@@ -54,7 +68,17 @@ export const INITIAL_PUBLISH_WIZARD_STATE: PublishWizardFormState = {
   agua: "",
   luz: "",
   precioEsperadoText: "",
+  titulo: "",
+  contactoNombre: "",
+  contactoTelefono: "",
+  contactoCorreo: "",
 };
+
+export const TIPO_PROPIEDAD_OPTIONS: { value: TipoPropiedad; label: string }[] = [
+  { value: "parcela", label: "Parcela" },
+  { value: "campo", label: "Campo" },
+  { value: "casa_con_terreno", label: "Parcela con casa" },
+];
 
 export const ROL_PROPIO_OPTIONS: { value: RolPropio; label: string }[] = [
   { value: "si", label: "Sí" },
@@ -104,6 +128,7 @@ export function validatePublishStep(step: number, form: PublishWizardFormState):
     return { ok: true };
   }
   if (step === 2) {
+    if (!form.tipoPropiedad) return { ok: false, mensaje: "Indica el tipo de propiedad." };
     const superficie = parseCLPInput(form.superficieM2Text);
     if (!superficie || superficie <= 0) return { ok: false, mensaje: "Indica la superficie del terreno en m²." };
     if (!form.rolPropio) return { ok: false, mensaje: "Indica la situación del rol." };
@@ -116,6 +141,15 @@ export function validatePublishStep(step: number, form: PublishWizardFormState):
     if (!precio || precio <= 0) return { ok: false, mensaje: "Indica el precio que esperas obtener." };
     return { ok: true };
   }
+  if (step === 4) {
+    if (form.contactoNombre.trim().length < 2) return { ok: false, mensaje: "Indica tu nombre." };
+    const telefonoValido = form.contactoTelefono.replace(/\D/g, "").length >= 8;
+    const correoValido = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.contactoCorreo.trim());
+    if (!telefonoValido && !correoValido) {
+      return { ok: false, mensaje: "Indica un teléfono o un correo válido para contactarte." };
+    }
+    return { ok: true };
+  }
   return { ok: true };
 }
 
@@ -123,14 +157,23 @@ export function validatePublishStep(step: number, form: PublishWizardFormState):
  * Mensaje de WhatsApp — mismo patrón ya usado en
  * `PartnerApplicationDialog`/`ScheduleVisitDialog`: los datos reales que la
  * persona acaba de declarar, en texto plano, para que el asesor no tenga
- * que volver a preguntarlos.
+ * que volver a preguntarlos. Si la publicación ya se guardó en Supabase
+ * (`codigoPropiedad`), el mensaje lo incluye — el asesor abre la ficha real
+ * en vez de tener que crearla desde el chat.
  */
-export function buildPublishWhatsAppMessage(form: PublishWizardFormState, comunaLabel: string, regionLabel: string, plan: PublishPlan): string {
+export function buildPublishWhatsAppMessage(
+  form: PublishWizardFormState,
+  comunaLabel: string,
+  regionLabel: string,
+  plan: PublishPlan,
+  codigoPropiedad?: string,
+): string {
   const superficie = parseCLPInput(form.superficieM2Text);
   const precio = parseCLPInput(form.precioEsperadoText);
 
   const partes = [
     "Hola, quiero postular mi parcela a Tu Parcela Lista.",
+    form.contactoNombre.trim() ? `Soy ${form.contactoNombre.trim()}.` : "",
     comunaLabel ? `Comuna: ${comunaLabel}${regionLabel ? ", " + regionLabel : ""}.` : "",
     form.sector.trim() ? `Sector: ${form.sector.trim()}.` : "",
     superficie ? `Superficie: ${superficie.toLocaleString("es-CL")} m².` : "",
@@ -140,7 +183,49 @@ export function buildPublishWhatsAppMessage(form: PublishWizardFormState, comuna
     precio ? `Precio que espero: ${formatPriceCLP(precio)}.` : "",
     form.lat !== null && form.lng !== null ? `Ubicación marcada en el mapa: ${form.lat.toFixed(5)}, ${form.lng.toFixed(5)}.` : "",
     `Me interesa el ${plan.nombre} (${plan.precioLabel}).`,
+    codigoPropiedad ? `Código de mi publicación: ${codigoPropiedad}.` : "",
   ].filter(Boolean);
 
   return partes.join(" ");
+}
+
+/**
+ * Arma el `payload` real que espera `tpl_publicar_propiedad_v3` (ver
+ * `supabase/migrations/20260901180000_..._v1.sql`, función `_v3_core`) a
+ * partir del estado del wizard — sin inventar campos ni nombres nuevos,
+ * uno a uno contra lo que esa función lee de `p_payload`.
+ */
+export function buildPublicarPropiedadPayload(
+  form: PublishWizardFormState,
+  comunaLabel: string,
+  regionLabel: string,
+): Record<string, unknown> {
+  const superficie = parseCLPInput(form.superficieM2Text) ?? 0;
+  const precio = parseCLPInput(form.precioEsperadoText) ?? 0;
+  const tituloFinal =
+    form.titulo.trim() ||
+    `${labelFrom(TIPO_PROPIEDAD_OPTIONS, form.tipoPropiedad) || "Parcela"} en ${comunaLabel || "comuna por confirmar"}`;
+
+  return {
+    tipo: form.tipoPropiedad || "parcela",
+    titulo: tituloFinal,
+    region: regionLabel || form.regionCode,
+    comuna: comunaLabel || form.comuna,
+    localidad: form.sector.trim() || undefined,
+    superficie,
+    precio,
+    coords: form.lat !== null && form.lng !== null ? { lat: form.lat, lng: form.lng } : {},
+    terreno: {
+      rol: form.rolPropio ? labelFrom(ROL_PROPIO_OPTIONS, form.rolPropio) : undefined,
+      agua: form.agua ? labelFrom(AGUA_OPTIONS, form.agua) : undefined,
+      luz: form.luz ? labelFrom(LUZ_OPTIONS, form.luz) : undefined,
+    },
+    contacto: {
+      nombre: form.contactoNombre.trim(),
+      telefono: form.contactoTelefono.trim() || undefined,
+      email: form.contactoCorreo.trim() || undefined,
+      responsable: "propietario",
+    },
+    publicApproximate: true,
+  };
 }

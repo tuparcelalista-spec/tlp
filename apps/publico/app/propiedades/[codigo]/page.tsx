@@ -14,6 +14,7 @@ import {
 import { RelatedProperties } from "../../../components/property/RelatedProperties";
 import { PropertyLocationCard } from "../../../components/property/PropertyLocationCard";
 import { ScheduleVisitDialog } from "../../../components/property/ScheduleVisitDialog";
+import { PropertyAiFinder } from "../../../components/property/PropertyAiFinder";
 import { SITE_URL, SITE_NAME } from "../../../lib/seo/site";
 import { WHATSAPP_PHONE } from "../../../lib/contact";
 import { propertyPageCss } from "./propertyPage.css";
@@ -290,6 +291,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<P
             />
           </div>
         </div>
+
+        {/* Buscador Asistente IA al pie */}
+        <PropertyAiFinder />
       </Container>
     </Section>
   );

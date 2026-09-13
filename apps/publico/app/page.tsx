@@ -4,6 +4,8 @@ import { SearchResultCard } from "../components/search/SearchResultCard";
 import { CommuneRibbon } from "../components/home/CommuneRibbon";
 import { TrustBar } from "../components/home/TrustBar";
 import { HomeHero } from "../components/home/HomeHero";
+import { TasadorBanner } from "../components/home/TasadorBanner";
+import { CampoStory } from "../components/home/CampoStory";
 import { SITE_URL, SITE_NAME } from "../lib/seo/site";
 
 /**
@@ -115,17 +117,32 @@ export default async function Home() {
         </Section>
       ) : null}
 
+      <Section tone="raised">
+        <Container>
+          <TasadorBanner />
+        </Container>
+      </Section>
+
+      <Section tone="canvas">
+        <Container>
+          <CampoStory />
+        </Container>
+      </Section>
+
       <Section tone="inverse">
         <Container>
           <h2>¿Listo para encontrar tu parcela?</h2>
+          <p style={{ color: "rgba(255,255,255,0.85)", margin: "0 0 1.5rem", maxWidth: "600px" }}>
+            Da el primer paso hoy. Explora parcelas con rol propio, cotiza tu vivienda o publica con tasación orientativa.
+          </p>
           <Stack direction="row" gap={3} wrap>
-            <Button href="/propiedades" variant="navy">
+            <Button href="/propiedades" variant="gold">
               Ver propiedades
             </Button>
             <Button href="/publicar" variant="secondary">
               Publicar propiedad
             </Button>
-            <Button href="/cotizador" variant="ghost">
+            <Button href="/cotizador" variant="secondary">
               Cotizar proyecto
             </Button>
           </Stack>

@@ -4,27 +4,31 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Container, Section, Card, Stack, Button, Badge, Input, Select } from "@tpl/ui";
 import { REGIONS, COMMUNES } from "../../lib/publicar/territoryCatalog";
-import { getComunaPriceReference, type ComunaPriceReference } from "../../lib/publicar/actions";
+import { getComunaPriceReference, publicarPropiedadAction, type ComunaPriceReference } from "../../lib/publicar/actions";
 import {
   INITIAL_PUBLISH_WIZARD_STATE,
+  TIPO_PROPIEDAD_OPTIONS,
   ROL_PROPIO_OPTIONS,
   AGUA_OPTIONS,
   LUZ_OPTIONS,
   PUBLISH_PLANS,
   validatePublishStep,
   buildPublishWhatsAppMessage,
+  buildPublicarPropiedadPayload,
   type PublishWizardFormState,
   type PublishPlan,
 } from "../../lib/publicar/wizardState";
 
-import { WHATSAPP_PHONE } from "../../lib/contact";
-
-const TOTAL_STEPS = 4;
+const WHATSAPP_PHONE = "56988508361";
+const TOTAL_STEPS = 5;
+/** Techo de espera antes de abrir WhatsApp — mismo valor y misma razón que `ScheduleVisitDialog`. */
+const TIMEOUT_PERSISTENCIA_MS = 2500;
 
 const STEP_LABELS = [
   { titulo: "Ubicación", subtitulo: "Dónde está tu propiedad" },
   { titulo: "Características", subtitulo: "Terreno y servicios" },
   { titulo: "Precio & Tasación", subtitulo: "Cuánto esperas obtener" },
+  { titulo: "Contacto", subtitulo: "Para poder escribirte" },
   { titulo: "Planes & Salida", subtitulo: "Cómo quieres venderla" },
 ];
 
@@ -55,13 +59,19 @@ const ParcelMapPicker = dynamic(() => import("./ParcelMapPicker").then((m) => m.
 /**
  * Wizard de publicación — versión acotada y autorizada explícitamente
  * (ver auditoría de `publicar-v2`, que tiene ~40 campos, multimedia, IA y
- * pago real vía Flow). Este bloque cubre 4 pasos: Ubicación, Características,
- * Precio & Tasación, Planes & Salida. El cierre es un mensaje de WhatsApp
- * con el resumen de la parcela — NO llama a `tpl_publicar_propiedad_v3`
- * (esa RPC exige nombre + contacto, que este paso no recolecta todavía) ni
- * escribe nada en Supabase. Es intencional, no un olvido: el siguiente
- * bloque puede agregar la publicación real cuando se decida qué datos de
- * contacto capturar.
+ * pago real vía Flow). Cubre 5 pasos: Ubicación, Características, Precio &
+ * Tasación, Contacto, Planes & Salida.
+ *
+ * Al elegir un plan (paso 5) SÍ se llama a `tpl_publicar_propiedad_v3` —
+ * misma RPC que el publicador legacy, con el dato de contacto que el paso 4
+ * recolecta — antes de abrir WhatsApp: la propiedad queda real en
+ * `tpl_propiedades` (`estado: 'pendiente_revision'`), no solo un mensaje.
+ * Igual que `ScheduleVisitDialog`/`PartnerApplicationDialog`, la
+ * persistencia nunca bloquea ni impide abrir WhatsApp — un fallo de
+ * Supabase no puede convertirse en alguien que no logra contactar.
+ *
+ * Sigue sin incluir (fuera de este bloque, no un olvido): multimedia/fotos,
+ * video, redacción con IA, pago real de planes vía Flow.
  */
 export function PublishWizard() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -70,6 +80,8 @@ export function PublishWizard() {
   const [priceReference, setPriceReference] = useState<ComunaPriceReference | null>(null);
   const [isLoadingReference, setIsLoadingReference] = useState(false);
   const [referenceFetchedFor, setReferenceFetchedFor] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishedCode, setPublishedCode] = useState<string | null>(null);
 
   const comunasDeLaRegion = useMemo(() => COMMUNES.filter((c) => c.regionCode === form.regionCode), [form.regionCode]);
   const regionLabel = useMemo(() => REGIONS.find((r) => r.code === form.regionCode)?.name ?? "", [form.regionCode]);
@@ -116,9 +128,45 @@ export function PublishWizard() {
     setCurrentStep((step) => Math.max(1, step - 1));
   }
 
-  function handleElegirPlan(plan: PublishPlan) {
-    const mensaje = buildPublishWhatsAppMessage(form, form.comuna, regionLabel, plan);
-    window.open(`https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(mensaje)}`, "_blank", "noopener,noreferrer");
+  async function handleElegirPlan(plan: PublishPlan) {
+    if (isPublishing) return;
+
+    // Se abre DENTRO del gesto del clic — mismo motivo que en
+    // `ScheduleVisitDialog`: un `window.open` después de un `await` pierde
+    // el gesto y los bloqueadores de popups lo descartan.
+    const ventana = window.open("", "_blank");
+
+    setIsPublishing(true);
+    let codigoPropiedad: string | undefined;
+    try {
+      const payload = buildPublicarPropiedadPayload(form, form.comuna, regionLabel);
+      const resultado = await Promise.race([
+        publicarPropiedadAction(payload),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), TIMEOUT_PERSISTENCIA_MS)),
+      ]);
+      if (resultado && resultado.ok) {
+        codigoPropiedad = resultado.codigoPropiedad || resultado.codigo;
+        setPublishedCode(codigoPropiedad ?? null);
+      }
+    } catch {
+      // Silencio deliberado — igual que en `ScheduleVisitDialog`: el
+      // resultado de la persistencia no cambia nada para quien publica en
+      // este momento; puede volver a intentar o un asesor lo revisa igual.
+    } finally {
+      setIsPublishing(false);
+      const mensaje = buildPublishWhatsAppMessage(form, form.comuna, regionLabel, plan, codigoPropiedad);
+      const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(mensaje)}`;
+      if (ventana && !ventana.closed) {
+        try {
+          ventana.opener = null;
+        } catch {
+          // Algunos navegadores no permiten reasignar `opener`; no es crítico.
+        }
+        ventana.location.href = whatsappUrl;
+      } else {
+        window.location.href = whatsappUrl;
+      }
+    }
   }
 
   return (
@@ -208,6 +256,23 @@ export function PublishWizard() {
                 <div>
                   <h2 style={{ margin: 0 }}>Características del terreno</h2>
                   <p style={{ margin: "4px 0 0" }}>Solo pedimos lo que aporta a una primera evaluación.</p>
+                </div>
+
+                <div>
+                  <label htmlFor="publicar-tipo" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+                    Tipo de propiedad
+                  </label>
+                  <Select
+                    id="publicar-tipo"
+                    value={form.tipoPropiedad}
+                    onChange={(event) => updateForm({ tipoPropiedad: event.target.value as PublishWizardFormState["tipoPropiedad"] })}
+                  >
+                    {TIPO_PROPIEDAD_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
 
                 <div>
@@ -330,11 +395,84 @@ export function PublishWizard() {
             {currentStep === 4 ? (
               <Stack direction="column" gap={4}>
                 <div>
-                  <h2 style={{ margin: 0 }}>Elige cómo quieres venderla</h2>
+                  <h2 style={{ margin: 0 }}>Tus datos de contacto</h2>
                   <p style={{ margin: "4px 0 0" }}>
-                    Selecciona un plan y te escribimos por WhatsApp con el resumen de tu propiedad para coordinar los siguientes pasos.
+                    Con esto tu propiedad queda registrada en TPL — un asesor te escribe para coordinar los siguientes pasos.
                   </p>
                 </div>
+
+                <div>
+                  <label htmlFor="publicar-contacto-nombre" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+                    Nombre
+                  </label>
+                  <Input
+                    id="publicar-contacto-nombre"
+                    value={form.contactoNombre}
+                    onChange={(event) => updateForm({ contactoNombre: event.target.value })}
+                    placeholder="Tu nombre"
+                  />
+                </div>
+
+                <Stack direction="row" gap={4} wrap>
+                  <div style={{ flex: "1 1 240px" }}>
+                    <label htmlFor="publicar-contacto-telefono" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+                      Teléfono
+                    </label>
+                    <Input
+                      id="publicar-contacto-telefono"
+                      type="tel"
+                      value={form.contactoTelefono}
+                      onChange={(event) => updateForm({ contactoTelefono: event.target.value })}
+                      placeholder="+56 9 1234 5678"
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 240px" }}>
+                    <label htmlFor="publicar-contacto-correo" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+                      Correo (opcional si dejas teléfono)
+                    </label>
+                    <Input
+                      id="publicar-contacto-correo"
+                      type="email"
+                      value={form.contactoCorreo}
+                      onChange={(event) => updateForm({ contactoCorreo: event.target.value })}
+                      placeholder="tu@correo.cl"
+                    />
+                  </div>
+                </Stack>
+
+                <div>
+                  <label htmlFor="publicar-titulo" style={{ display: "block", fontWeight: 600, marginBottom: "6px" }}>
+                    Título de tu publicación (opcional)
+                  </label>
+                  <Input
+                    id="publicar-titulo"
+                    value={form.titulo}
+                    onChange={(event) => updateForm({ titulo: event.target.value })}
+                    placeholder={`Ej. Parcela con vista en ${form.comuna || "tu comuna"}`}
+                  />
+                </div>
+              </Stack>
+            ) : null}
+
+            {currentStep === 5 ? (
+              <Stack direction="column" gap={4}>
+                <div>
+                  <h2 style={{ margin: 0 }}>Elige cómo quieres venderla</h2>
+                  <p style={{ margin: "4px 0 0" }}>
+                    Selecciona un plan: registramos tu propiedad y te escribimos por WhatsApp para coordinar los siguientes pasos.
+                  </p>
+                </div>
+
+                {publishedCode ? (
+                  <Card tone="featured">
+                    <Card.Body>
+                      <strong>¡Tu propiedad quedó registrada!</strong>
+                      <p style={{ margin: "4px 0 0" }}>
+                        Código: <strong>{publishedCode}</strong>. Un asesor TPL la revisa antes de publicarla en el catálogo.
+                      </p>
+                    </Card.Body>
+                  </Card>
+                ) : null}
 
                 <Stack direction="row" gap={4} wrap>
                   {PUBLISH_PLANS.map((plan) => (
@@ -345,8 +483,8 @@ export function PublishWizard() {
                             <h3 style={{ margin: 0 }}>{plan.nombre}</h3>
                             <strong style={{ fontSize: "1.4rem" }}>{plan.precioLabel}</strong>
                           </div>
-                          <Button type="button" variant="whatsapp" onClick={() => handleElegirPlan(plan)}>
-                            Elegir {plan.nombre}
+                          <Button type="button" variant="whatsapp" onClick={() => handleElegirPlan(plan)} disabled={isPublishing}>
+                            {isPublishing ? "Registrando…" : `Elegir ${plan.nombre}`}
                           </Button>
                         </Stack>
                       </Card.Body>

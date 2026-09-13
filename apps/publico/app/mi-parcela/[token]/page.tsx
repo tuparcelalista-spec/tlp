@@ -104,7 +104,7 @@ export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
             <h1
               style={{
                 fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
-                fontFamily: "serif",
+                fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                 margin: "0 0 0.5rem",
                 lineHeight: 1.2,
               }}
@@ -122,7 +122,7 @@ export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
               <Button href={`https://wa.me/${WHATSAPP_PHONE}?text=${waParams}`} variant="whatsapp">
                 Contactar a mi asesor TPL
               </Button>
-              <Button href={`/propiedades/${propiedad.codigo}`} variant="ghost">
+              <Button href={`/propiedades/${propiedad.codigo}`} variant="secondary">
                 Ver ficha pública
               </Button>
             </div>
@@ -183,7 +183,7 @@ export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
                     display: "block",
                     fontSize: "2.4rem",
                     color: "#1e3a8a",
-                    fontFamily: "serif",
+                    fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                     margin: "0.25rem 0",
                   }}
                 >
@@ -222,7 +222,7 @@ export default async function MiParcelaPage({ params }: MiParcelaPageProps) {
                     display: "block",
                     fontSize: "2.4rem",
                     color: "#b91c1c",
-                    fontFamily: "serif",
+                    fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                     margin: "0.25rem 0",
                   }}
                 >

@@ -122,7 +122,7 @@ export default function CampoChilenoPage() {
           <h1
             style={{
               fontSize: "clamp(2.5rem, 5vw, 4rem)",
-              fontFamily: "serif",
+              fontFamily: "var(--tpl-font-display, 'Lora', serif)",
               fontWeight: 600,
               lineHeight: 1.15,
               margin: "0 auto 1.5rem",
@@ -169,7 +169,7 @@ export default function CampoChilenoPage() {
             >
               Carta editorial
             </span>
-            <h2 style={{ fontSize: "2rem", fontFamily: "serif", margin: "0.5rem 0 1.25rem", color: "#132437" }}>
+            <h2 style={{ fontSize: "2rem", fontFamily: "var(--tpl-font-display, 'Lora', serif)", margin: "0.5rem 0 1.25rem", color: "#132437" }}>
               No existe un solo campo chileno.
             </h2>
             <p style={{ fontSize: "1.05rem", lineHeight: 1.8, color: "#334155", margin: "0 0 1rem" }}>
@@ -201,7 +201,7 @@ export default function CampoChilenoPage() {
             >
               Línea de tiempo histórica
             </span>
-            <h2 style={{ fontSize: "2.2rem", fontFamily: "serif", margin: "0.5rem 0", color: "#132437" }}>
+            <h2 style={{ fontSize: "2.2rem", fontFamily: "var(--tpl-font-display, 'Lora', serif)", margin: "0.5rem 0", color: "#132437" }}>
               La evolución de nuestra tierra
             </h2>
           </div>
@@ -212,7 +212,7 @@ export default function CampoChilenoPage() {
                 <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", marginBottom: "0.5rem" }}>
                   <span
                     style={{
-                      fontFamily: "serif",
+                      fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                       fontSize: "2.5rem",
                       fontWeight: 700,
                       color: "#d9aa34",
@@ -234,7 +234,7 @@ export default function CampoChilenoPage() {
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: "1.4rem", fontFamily: "serif", color: "#132437", margin: "0.25rem 0 0.75rem" }}>
+                <h3 style={{ fontSize: "1.4rem", fontFamily: "var(--tpl-font-display, 'Lora', serif)", color: "#132437", margin: "0.25rem 0 0.75rem" }}>
                   {ch.title}
                 </h3>
                 <p style={{ fontSize: "0.98rem", lineHeight: 1.7, color: "#475569", margin: "0 0 1rem" }}>
@@ -263,7 +263,7 @@ export default function CampoChilenoPage() {
                       borderLeft: "3px solid #d9aa34",
                       padding: "1rem",
                       fontSize: "1.05rem",
-                      fontFamily: "serif",
+                      fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                       fontStyle: "italic",
                       color: "#713f12",
                       borderRadius: "0 8px 8px 0",
@@ -293,12 +293,12 @@ export default function CampoChilenoPage() {
             >
               Cifras oficiales · INE & ODEPA
             </span>
-            <h2 style={{ fontSize: "2.2rem", fontFamily: "serif", margin: "0.5rem 0 1.5rem", color: "#132437" }}>
+            <h2 style={{ fontSize: "2.2rem", fontFamily: "var(--tpl-font-display, 'Lora', serif)", margin: "0.5rem 0 1.5rem", color: "#132437" }}>
               Chile se urbanizó, pero el campo sigue siendo el corazón del territorio
             </h2>
             <Grid columns={{ mobile: 1, tablet: 3, desktop: 3 }}>
               <Card style={{ textAlign: "center", borderRadius: "14px", padding: "1.75rem" }}>
-                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "serif" }}>
+                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "var(--tpl-font-display, 'Lora', serif)" }}>
                   25,5%
                 </strong>
                 <span style={{ fontSize: "0.9rem", color: "#475569", fontWeight: 600 }}>
@@ -309,7 +309,7 @@ export default function CampoChilenoPage() {
                 </p>
               </Card>
               <Card style={{ textAlign: "center", borderRadius: "14px", padding: "1.75rem" }}>
-                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "serif" }}>
+                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "var(--tpl-font-display, 'Lora', serif)" }}>
                   263
                 </strong>
                 <span style={{ fontSize: "0.9rem", color: "#475569", fontWeight: 600 }}>
@@ -320,7 +320,7 @@ export default function CampoChilenoPage() {
                 </p>
               </Card>
               <Card style={{ textAlign: "center", borderRadius: "14px", padding: "1.75rem" }}>
-                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "serif" }}>
+                <strong style={{ display: "block", fontSize: "2.8rem", color: "#003f7a", fontFamily: "var(--tpl-font-display, 'Lora', serif)" }}>
                   5.000 m²
                 </strong>
                 <span style={{ fontSize: "0.9rem", color: "#475569", fontWeight: 600 }}>
@@ -353,7 +353,7 @@ export default function CampoChilenoPage() {
             <h2
               style={{
                 fontSize: "clamp(2rem, 4vw, 3rem)",
-                fontFamily: "serif",
+                fontFamily: "var(--tpl-font-display, 'Lora', serif)",
                 margin: "0.75rem 0 1.25rem",
                 lineHeight: 1.2,
               }}
