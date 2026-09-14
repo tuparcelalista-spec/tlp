@@ -2,7 +2,7 @@
   "name": "@tpl/crm",
   "version": "0.0.0",
   "private": true,
-  "description": "CRM/Admin (Plan Maestro §3). Migración incremental de crm-tpl-v1 (2026-09-13): 'Pipeline comercial', 'Clientes, leads y partners' (Actores), 'Parcelas' (listado + editor integral + compartir) y 'Tasaciones' (historial global + Herramientas/Informe Premium: link propietario, Tasador TPL, Análisis de Mercado IA con Gemini) ya migrados end-to-end contra Supabase. El resto de los módulos de crm-tpl-v1 sigue sin migrar.",
+  "description": "CRM/Admin (Plan Maestro §3). Migración incremental de crm-tpl-v1 (2026-09-13): 'Pipeline comercial', 'Clientes, leads y partners' (Actores), 'Parcelas' (listado + editor integral + compartir), 'Tasaciones' (historial global + Herramientas/Informe Premium: link propietario, Tasador TPL, Análisis de Mercado IA con Gemini) y 'Agenda de visitas' (historial + cancelar + Agendar Visita/cambiar estado, conectando por primera vez las RPC tpl_crm_agendar_visita_v1/tpl_crm_actualizar_visita_v1 que existían sin usar) ya migrados end-to-end contra Supabase. El resto de los módulos de crm-tpl-v1 sigue sin migrar.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

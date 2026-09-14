@@ -463,7 +463,80 @@ const tasacionesCss = `
 .herr-ia-texto { color: var(--c-text-secondary); font-weight: var(--fw-regular); font-size: var(--fs-sm); white-space: pre-wrap; }
 `;
 
-const styles = [tokensCss, shellCss, kanbanCss, authCss, directoryCss, parcelasCss, editorIntegralCss, tasacionesCss].join("\n");
+/**
+ * Puerto de `modules/visitas/index.js` (tabla + badges de estado, clases
+ * genéricas de Tailwind reescritas con los tokens `--c-*`, igual criterio
+ * que `tasacionesCss`) y del formulario nuevo `AgendarVisitaModal` (sin
+ * equivalente legacy — ver el comentario de `agendarVisitaAction`).
+ */
+const visitasCss = `
+.visitas-module { padding: var(--sp-4); }
+.visitas-header-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-6); }
+.visitas-title { font-size: var(--fs-2xl); font-weight: var(--fw-bold); margin: 0; color: var(--c-text); }
+.visitas-subtitle { font-size: var(--fs-sm); color: var(--c-text-muted); margin: var(--sp-1) 0 0; }
+.visitas-header-actions { display: flex; align-items: center; gap: var(--sp-3); }
+.visitas-btn-ver-canceladas { font-size: var(--fs-xs); font-weight: var(--fw-semibold); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text-muted); cursor: pointer; transition: var(--transition-fast); }
+.visitas-btn-ver-canceladas:hover { background: var(--c-surface-hover); }
+.visitas-btn-ver-canceladas.is-active { background: var(--c-bg); border-color: var(--c-text-muted); color: var(--c-text-secondary); }
+.visitas-btn-agendar { font-size: var(--fs-sm); font-weight: var(--fw-medium); padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm); border: none; background: var(--c-primary); color: #fff; cursor: pointer; box-shadow: var(--shadow-xs); transition: var(--transition-fast); }
+.visitas-btn-agendar:hover { background: var(--c-primary-light); }
+.visitas-btn-agendar:disabled { opacity: .6; cursor: wait; }
+
+.visitas-table-card { background: var(--c-surface); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm); border: 1px solid var(--c-border); overflow: hidden; }
+.visitas-table-scroll { overflow-x: auto; }
+.visitas-table { width: 100%; border-collapse: collapse; text-align: left; }
+.visitas-table thead tr { background: var(--c-bg); border-bottom: 1px solid var(--c-border); color: var(--c-text-secondary); text-transform: uppercase; letter-spacing: .03em; font-size: var(--fs-xs); }
+.visitas-table th { padding: var(--sp-4); font-weight: var(--fw-semibold); }
+.visitas-table tbody tr { border-bottom: 1px solid var(--c-border-light); transition: var(--transition-fast); }
+.visitas-table tbody tr:hover { background: var(--c-surface-hover); }
+.visitas-table td { padding: var(--sp-4); vertical-align: middle; }
+.visitas-th-right { text-align: right; }
+.visitas-row--cancelada { opacity: .6; }
+.visitas-fecha-cell { display: flex; flex-direction: column; }
+.visitas-fecha-dia { font-weight: var(--fw-medium); color: var(--c-text); text-transform: capitalize; }
+.visitas-fecha-hora { font-size: var(--fs-sm); color: var(--c-text-muted); }
+.visitas-td-cliente { font-weight: var(--fw-medium); color: var(--c-text); }
+.visitas-td-propiedad { font-size: var(--fs-sm); color: var(--c-text-secondary); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visitas-td-mono { font-size: var(--fs-sm); font-family: ui-monospace, monospace; color: var(--c-text-muted); }
+.visitas-staff-cell { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-sm); }
+.visitas-staff-avatar { width: 24px; height: 24px; border-radius: var(--radius-full); background: var(--c-border); display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-text-secondary); }
+
+.visita-badge { display: inline-block; padding: 2px 10px; border-radius: var(--radius-full); font-size: var(--fs-xs); font-weight: var(--fw-semibold); letter-spacing: .02em; border: 1px solid transparent; }
+.visita-badge--programada { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+.visita-badge--confirmada { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+.visita-badge--realizada { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.visita-badge--no-asistio { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+.visita-badge--cancelada { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.visita-badge--desconocido { background: var(--c-bg); color: var(--c-text-muted); border-color: var(--c-border); }
+
+.visitas-acciones { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2); flex-wrap: wrap; }
+.visitas-select-transicion { font-size: var(--fs-xs); padding: 0.3rem 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text-secondary); }
+.visitas-btn-cancelar { font-size: var(--fs-xs); font-weight: var(--fw-semibold); padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; cursor: pointer; transition: var(--transition-fast); }
+.visitas-btn-cancelar:hover { background: #fee2e2; }
+.visitas-btn-cancelar:disabled { opacity: .6; cursor: wait; }
+.visitas-sin-accion { font-size: var(--fs-xs); color: var(--c-border); }
+.visitas-empty { padding: var(--sp-8); text-align: center; color: var(--c-text-muted); }
+
+.visitas-toasts { position: fixed; bottom: var(--sp-4); right: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); z-index: 300; }
+.visitas-toast { padding: 10px 16px; border-radius: var(--radius-sm); font-size: var(--fs-sm); color: #fff; box-shadow: var(--shadow-md); max-width: 360px; }
+.visitas-toast--success { background: var(--c-success); }
+.visitas-toast--error { background: var(--c-danger); }
+
+.agendar-visita-form { display: flex; flex-direction: column; gap: var(--sp-4); }
+.agendar-visita-field { display: flex; flex-direction: column; gap: var(--sp-1); }
+.agendar-visita-field label { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--c-text-secondary); text-transform: uppercase; letter-spacing: .02em; }
+.agendar-visita-field select, .agendar-visita-field input, .agendar-visita-field textarea {
+  padding: 0.6rem 0.75rem; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-size: var(--fs-base); color: var(--c-text); background: var(--c-surface); font-family: inherit;
+}
+.agendar-visita-field textarea { min-height: 70px; resize: vertical; }
+.agendar-visita-aviso { font-size: var(--fs-sm); color: var(--c-warning); background: #fffbeb; border: 1px solid #fde68a; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); margin: 0; }
+.agendar-visita-error { font-size: var(--fs-sm); color: var(--c-danger); margin: 0; }
+.agendar-visita-actions { display: flex; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-2); }
+.visitas-btn-secundario { font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text-secondary); cursor: pointer; }
+.visitas-btn-secundario:hover { background: var(--c-surface-hover); }
+`;
+
+const styles = [tokensCss, shellCss, kanbanCss, authCss, directoryCss, parcelasCss, editorIntegralCss, tasacionesCss, visitasCss].join("\n");
 
 /** Renderizar una sola vez en el layout raíz (`app/layout.tsx`). */
 export function CrmDesignSystemStyles() {
