@@ -536,7 +536,80 @@ const visitasCss = `
 .visitas-btn-secundario:hover { background: var(--c-surface-hover); }
 `;
 
-const styles = [tokensCss, shellCss, kanbanCss, authCss, directoryCss, parcelasCss, editorIntegralCss, tasacionesCss, visitasCss].join("\n");
+/**
+ * Puerto de las clases `.rev-*`/`.dash-vacio` que usa `modules/revision/index.js`
+ * (la bandeja en sí no tenía hoja de estilos propia en el legacy — vivía de
+ * clases genéricas de `components.css` que este piloto no porta; se
+ * construyen aquí versiones propias con los mismos tokens, igual que se hizo
+ * para Parcelas/Tasaciones/Visitas).
+ */
+const revisionCss = `
+.revision-modulo { display: flex; flex-direction: column; gap: var(--sp-6); }
+.revision-cabecera { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; }
+.revision-titulo { font-size: var(--fs-2xl); font-weight: var(--fw-bold); color: var(--c-text); margin: 0; }
+.revision-contador { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: #fff; background: var(--c-warning); padding: 2px 10px; border-radius: var(--radius-full); }
+
+.revision-tabla-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md); box-shadow: var(--shadow-xs); overflow: hidden; }
+.revision-tabla-scroll { overflow-x: auto; }
+.revision-vacio { padding: var(--sp-8); text-align: center; color: var(--c-text-muted); margin: 0; }
+
+.revision-tabla { width: 100%; border-collapse: collapse; }
+.revision-tabla th { text-align: left; padding: var(--sp-3) var(--sp-4); font-size: var(--fs-xs); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: .02em; color: var(--c-text-muted); border-bottom: 1px solid var(--c-border); }
+.revision-tabla tbody tr { border-bottom: 1px solid var(--c-border-light); transition: var(--transition-fast); }
+.revision-tabla tbody tr:hover { background: var(--c-surface-hover); }
+.revision-tabla td { padding: var(--sp-4); vertical-align: middle; }
+.revision-tabla td strong { display: block; color: var(--c-text); }
+.revision-tabla td small { display: block; font-size: var(--fs-xs); color: var(--c-text-muted); }
+.revision-btn-revisar { font-size: var(--fs-sm); font-weight: var(--fw-semibold); padding: 0.4rem 0.9rem; border-radius: var(--radius-sm); border: none; background: var(--c-primary); color: #fff; cursor: pointer; transition: var(--transition-fast); }
+.revision-btn-revisar:hover { background: var(--c-primary-light); }
+
+.revision-toasts { position: fixed; bottom: var(--sp-4); right: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); z-index: 300; }
+.revision-toast { padding: 10px 16px; border-radius: var(--radius-sm); font-size: var(--fs-sm); color: #fff; box-shadow: var(--shadow-md); max-width: 360px; }
+.revision-toast--success { background: var(--c-success); }
+.revision-toast--error { background: var(--c-danger); }
+
+.rev-detalle { display: flex; }
+.rev-panel { flex: 1; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-6); }
+.rev-panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.rev-panel__head h2 { margin: var(--sp-1) 0; font-size: var(--fs-xl); color: var(--c-text); }
+.rev-kicker { font-size: var(--fs-xs); font-weight: var(--fw-semibold); text-transform: uppercase; letter-spacing: .04em; color: var(--c-text-muted); }
+.rev-sub { margin: 0; font-size: var(--fs-sm); color: var(--c-text-secondary); }
+.rev-btn-cerrar { font-size: var(--fs-sm); padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm); border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text-secondary); cursor: pointer; white-space: nowrap; }
+.rev-btn-cerrar:hover { background: var(--c-surface-hover); }
+
+.rev-seccion h3 { margin: 0 0 var(--sp-3); font-size: var(--fs-base); font-weight: var(--fw-semibold); color: var(--c-text); }
+.rev-seccion--alerta { background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: var(--sp-4); }
+.rev-alerta { font-size: var(--fs-sm); color: var(--c-warning); margin: 0 0 var(--sp-2); }
+.rev-faltantes { margin: 0; padding-left: 1.25rem; font-size: var(--fs-sm); color: var(--c-text-secondary); }
+
+.rev-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sp-3); }
+.rev-dato { display: flex; flex-direction: column; gap: 2px; }
+.rev-dato span { font-size: var(--fs-xs); color: var(--c-text-muted); }
+.rev-dato strong { font-size: var(--fs-sm); color: var(--c-text); font-weight: var(--fw-medium); }
+
+.rev-descripcion { margin: 0; font-size: var(--fs-sm); color: var(--c-text-secondary); white-space: pre-wrap; }
+
+.rev-cuenta { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.rev-fotos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--sp-3); }
+.rev-fotos-item { display: block; aspect-ratio: 4 / 3; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--c-border); background: var(--c-bg); }
+.rev-fotos-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rev-fotos-item--rota { display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); color: var(--c-text-muted); }
+
+.rev-decision { display: flex; flex-direction: column; gap: var(--sp-3); padding-top: var(--sp-4); border-top: 1px solid var(--c-border-light); }
+.rev-decision label { font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--c-text-secondary); text-transform: uppercase; letter-spacing: .02em; }
+.rev-decision textarea { padding: 0.6rem 0.75rem; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-size: var(--fs-base); color: var(--c-text); background: var(--c-surface); font-family: inherit; min-height: 70px; resize: vertical; }
+.rev-estado { margin: 0; font-size: var(--fs-sm); color: var(--c-danger); }
+.rev-estado--ok { color: var(--c-success); }
+.rev-botones { display: flex; justify-content: flex-end; gap: var(--sp-2); }
+.rev-btn-rechazar { font-size: var(--fs-sm); font-weight: var(--fw-semibold); padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm); border: 1px solid #fecaca; background: #fef2f2; color: #b91c1c; cursor: pointer; transition: var(--transition-fast); }
+.rev-btn-rechazar:hover { background: #fee2e2; }
+.rev-btn-rechazar:disabled, .rev-btn-aprobar:disabled { opacity: .6; cursor: wait; }
+.rev-btn-aprobar { font-size: var(--fs-sm); font-weight: var(--fw-semibold); padding: var(--sp-2) var(--sp-4); border-radius: var(--radius-sm); border: none; background: var(--c-success); color: #fff; cursor: pointer; transition: var(--transition-fast); }
+.rev-btn-aprobar:hover { background: #15803d; }
+.rev-nota { margin: 0; font-size: var(--fs-xs); color: var(--c-text-muted); }
+`;
+
+const styles = [tokensCss, shellCss, kanbanCss, authCss, directoryCss, parcelasCss, editorIntegralCss, tasacionesCss, visitasCss, revisionCss].join("\n");
 
 /** Renderizar una sola vez en el layout raíz (`app/layout.tsx`). */
 export function CrmDesignSystemStyles() {

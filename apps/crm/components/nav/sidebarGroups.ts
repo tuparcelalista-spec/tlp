@@ -5,9 +5,9 @@
  * etiquetas. Diferencia deliberada de este piloto: cada item declara `href`
  * solo si su ruta ya existe en `apps/crm`. Migrados hasta ahora:
  * "Pipeline comercial", "Clientes, leads y partners", "Parcelas",
- * "Tasaciones e informes" y "Agenda de visitas" — el resto se muestra
- * atenuado con una etiqueta "Próximamente" en vez de un link roto, para no
- * prometer módulos que todavía no se construyeron.
+ * "Tasaciones e informes", "Agenda de visitas" y "Bandeja de revisión" — el
+ * resto se muestra atenuado con una etiqueta "Próximamente" en vez de un
+ * link roto, para no prometer módulos que todavía no se construyeron.
  */
 export interface SidebarItem {
   id: string;
@@ -25,7 +25,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: "Hoy",
     items: [
       { id: "dashboard", label: "Resumen ejecutivo" },
-      { id: "revision", label: "Bandeja de revisión" },
+      { id: "revision", label: "Bandeja de revisión", href: "/revision" },
       { id: "pipeline", label: "Pipeline comercial", href: "/pipeline" },
       { id: "visitas", label: "Agenda de visitas", href: "/visitas" },
     ],
